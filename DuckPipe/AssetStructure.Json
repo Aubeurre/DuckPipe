@@ -1,0 +1,64 @@
+{
+    "Props": {
+        "dlv": {
+            "maps": {}
+        },
+        "Work": {
+            "Rig": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_rig_v001.ma" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_rig.ma" ]
+            },
+            "Surf": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_look_v001.spp" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_look.spp" ]
+            },
+            "Modeling": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_model_v001.ma" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_model.ma" ]
+            }
+        }
+    },
+    "Characters": {
+        "dlv": {
+            "maps": {}
+        },
+        "Work": {
+            "Rig": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_rig_v001.ma" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_rig.ma" ]
+            },
+            "Hair": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_hair_v001.ma" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_hair.ma" ]
+            },
+            "Facial": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_facial_v001.ma" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_facial.ma" ]
+            },
+            "Surf": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_look_v001.spp" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_look.spp" ]
+            },
+            "Modeling": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_model_v001.ma" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_model.ma" ]
+            }
+        }
+    }
+}

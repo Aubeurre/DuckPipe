@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>ducky.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="AssetStructure.js\**" />
+    <EmbeddedResource Remove="AssetStructure.js\**" />
+    <None Remove="AssetStructure.js\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="AssetStructure.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="AssetStructure.Json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ducky.ico" />
+  </ItemGroup>
+
+</Project>
