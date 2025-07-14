@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DuckPipe.Core
 {
@@ -17,28 +18,7 @@ namespace DuckPipe.Core
             return JsonDocument.Parse(jsonText);
         }
 
-        public static void OpenWorkFile(string assetJsonPath, string department)
-        {
-            using var doc = LoadAssetJson(assetJsonPath);
-
-            if (!doc.RootElement.TryGetProperty("departments", out JsonElement departments)) return;
-            if (!departments.TryGetProperty(department, out JsonElement dept)) return;
-
-            string workPath = ReplaceEnvVariables(dept.GetProperty("workPath").GetString());
-            string workFile = dept.GetProperty("workFile").GetString();
-            string software = dept.GetProperty("software").GetString();
-
-            string filePath = Path.Combine(workPath, workFile);
-            if (!File.Exists(filePath))
-            {
-                Console.WriteLine($"Fichier introuvable : {filePath}");
-                return;
-            }
-
-            LaunchSoftware(filePath);
-        }
-
-        public static void LaunchSoftware(string filePath)
+        public static void LaunchAsset(string filePath)
         {
             Process.Start(new ProcessStartInfo
             {
@@ -59,5 +39,92 @@ namespace DuckPipe.Core
 
             return path.Replace("${DUCKPIPE_ROOT}", envPath ?? "");
         }
+
+        public static void VersionAsset(string assetPath)
+        {
+            if (!File.Exists(assetPath))
+            {
+                MessageBox.Show("Fichier introuvable.");
+                return;
+            }
+
+            string fileName = Path.GetFileNameWithoutExtension(assetPath);
+            string extension = Path.GetExtension(assetPath);
+
+            string workFolder = Path.GetDirectoryName(assetPath);
+            string incrementalsDir = Path.Combine(workFolder, "incrementals");
+
+            string[] existingFiles = Directory.GetFiles(incrementalsDir);
+
+            int maxVersion = 0;
+            string pattern = Regex.Escape(fileName) + @"_v(\d{3})" + Regex.Escape(extension) + "$";
+
+            foreach (string file in existingFiles)
+            {
+                string fileOnly = Path.GetFileName(file);
+                Match match = Regex.Match(fileOnly, pattern);
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int version))
+                {
+                    if (version > maxVersion)
+                        maxVersion = version;
+                }
+            }
+
+            int newVersion = maxVersion + 1;
+            string versionedFileName = $"{fileName}_v{newVersion:D3}{extension}";
+            string destinationPath = Path.Combine(incrementalsDir, versionedFileName);
+
+            File.Copy(assetPath, destinationPath);
+            MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
+        }
+
+        public static void PublishAsset(string assetPath)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(assetPath);
+            string extension = Path.GetExtension(assetPath);
+            string workFolder = Path.GetDirectoryName(assetPath);
+
+
+            string[] assetParts = assetPath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
+            if (assetParts.Length < 2)
+            {
+                MessageBox.Show("Chemin d’asset invalide.");
+                return;
+            }
+            string assetRoot = assetParts[0]; 
+            string relativeWorkPath = assetParts[1]; 
+
+            string publishFolder = Path.Combine(assetRoot, "dlv");
+            Directory.CreateDirectory(publishFolder);
+
+            string publishedFileName = $"{fileName}_OK{extension}";
+            string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
+
+            File.Copy(assetPath, publishedFilePath, overwrite: true);
+            MessageBox.Show($"Asset publié : {publishedFileName}", "Succès");
+
+            // Extraction de prodName et assetType (ex: PROD/TEST, Props)
+            string rootPath = AssetManagerForm.GetProductionRootPath(); // Ex: D:\ICHIGO\PROD\TEST
+            string relativeToRoot = assetPath.Replace(rootPath, "").TrimStart('\\');
+            string[] segments = relativeToRoot.Split('\\');
+
+            string assetType = segments[2]; 
+            string deptName = segments[5]; 
+
+            string batPath = Path.Combine(rootPath, "Dev", assetType, $"{deptName}.bat");
+            MessageBox.Show($"bat path : {batPath}");
+
+            if (File.Exists(batPath))
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = batPath,
+                    Arguments = $"\"{publishedFilePath}\"",
+                    UseShellExecute = true
+                };
+                Process.Start(startInfo);
+            }
+        }
+
     }
 }

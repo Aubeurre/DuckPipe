@@ -281,12 +281,12 @@ namespace DuckPipe
         {
             lblAssetName.Text = "";
             lblAssetType.Text = "";
-            pnlPipelineStatus.Controls.Clear();
+            flpPipelineStatus.Controls.Clear();
         }
 
         private Dictionary<string, AssetStructure> LoadAssetStructures(string prodPath)
         {
-            string assetStructPath = Path.Combine(prodPath, "AssetStructure.json");
+            string assetStructPath = Path.Combine(prodPath, "Dev", "AssetStructure.json");
 
             if (!File.Exists(assetStructPath))
             {
@@ -324,7 +324,13 @@ namespace DuckPipe
 
         private void DisplayPipelineDepartments(string assetPath)
         {
-            pnlPipelineStatus.Controls.Clear();
+            flpPipelineStatus.SuspendLayout();
+            flpPipelineStatus.Controls.Clear();
+
+            flpPipelineStatus.AutoScroll = true;
+            flpPipelineStatus.FlowDirection = FlowDirection.TopDown;
+            flpPipelineStatus.WrapContents = false;
+            flpPipelineStatus.Dock = DockStyle.Fill;
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
             if (!File.Exists(jsonPath))
@@ -344,13 +350,12 @@ namespace DuckPipe
                 string status = dept.Value.GetProperty("status").GetString();
                 string version = dept.Value.GetProperty("version").GetString();
 
-                // Panel principal
                 Panel departmentPanel = new Panel
                 {
-                    Height = 60,
-                    Dock = DockStyle.Top,
+                    Size = new Size(flpPipelineStatus.ClientSize.Width - 30, 60),
                     BackColor = Color.LightGray,
-                    Padding = new Padding(5),
+                    Padding = new Padding(3),
+                    Margin = new Padding(3)
                 };
 
                 // Label département
@@ -359,7 +364,7 @@ namespace DuckPipe
                     Text = $" - {deptName}",
                     AutoSize = true,
                     Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                    Dock = DockStyle.Top
+                    Location = new Point(5, 5)
                 };
                 departmentPanel.Controls.Add(lblDepartment);
 
@@ -367,12 +372,13 @@ namespace DuckPipe
                 FlowLayoutPanel buttonPanel = new FlowLayoutPanel
                 {
                     FlowDirection = FlowDirection.LeftToRight,
-                    Dock = DockStyle.Bottom,
+                    Location = new Point(5, 30),
                     AutoSize = true
                 };
 
                 Button btnRun = new Button { Text = "Run" };
                 Button btnExec = new Button { Text = "Exec" };
+                Button btnIncrement = new Button { Text = "Increment" };
                 Button btnPublish = new Button { Text = "Publish" };
                 Button btnEdit = new Button { Text = "Edit" };
 
@@ -380,27 +386,34 @@ namespace DuckPipe
                 {
                     var popup = new FileSelectionPopup(jsonPath, deptName);
                     if (popup.ShowDialog() == DialogResult.OK)
-                    {
-                        string fullPath = popup.SelectedFilePath;
-                        AssetManip.LaunchSoftware(fullPath);
-                    }
+                        AssetManip.LaunchAsset(popup.SelectedFilePath);
+                };
+                btnIncrement.Click += (s, e) =>
+                {
+                    var popup = new FileSelectionPopup(jsonPath, deptName);
+                    if (popup.ShowDialog() == DialogResult.OK)
+                        AssetManip.VersionAsset(popup.SelectedFilePath);
+                };
+                btnPublish.Click += (s, e) =>
+                {
+                    var popup = new FileSelectionPopup(jsonPath, deptName);
+                    if (popup.ShowDialog() == DialogResult.OK)
+                        AssetManip.PublishAsset(popup.SelectedFilePath);
                 };
 
-
-                buttonPanel.Controls.Add(btnRun);
-                buttonPanel.Controls.Add(btnExec);
-                buttonPanel.Controls.Add(btnPublish);
-                buttonPanel.Controls.Add(btnEdit);
+                buttonPanel.Controls.AddRange(new Control[]
+                {
+            btnRun, btnExec, btnIncrement, btnPublish, btnEdit
+                });
 
                 departmentPanel.Controls.Add(buttonPanel);
 
                 // Panel statut/version (droite)
                 FlowLayoutPanel rightPanel = new FlowLayoutPanel
                 {
-                    Dock = DockStyle.Right,
-                    FlowDirection = FlowDirection.LeftToRight,
                     AutoSize = true,
-                    WrapContents = false
+                    Location = new Point(departmentPanel.Width - 100, 5),
+                    FlowDirection = FlowDirection.LeftToRight
                 };
 
                 Color statusColor = status switch
@@ -431,20 +444,10 @@ namespace DuckPipe
 
                 departmentPanel.Controls.Add(rightPanel);
 
-                // Encapsulation pour le margin
-                Panel wrapper = new Panel
-                {
-                    Dock = DockStyle.Top,
-                    Padding = new Padding(0, 0, 0, 10), // Espacement entre panels
-                    Height = 70 // Ajuste si besoin
-                };
-
-                wrapper.Controls.Add(departmentPanel);
-
-                // Ajout final
-                pnlPipelineStatus.Controls.Add(wrapper);
+                flpPipelineStatus.Controls.Add(departmentPanel);
             }
-        }
 
+            flpPipelineStatus.ResumeLayout();
+        }
     }
 }

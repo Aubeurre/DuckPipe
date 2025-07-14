@@ -48,7 +48,7 @@
             btnOpen.Name = "btnOpen";
             btnOpen.Size = new Size(75, 23);
             btnOpen.TabIndex = 1;
-            btnOpen.Text = "Open";
+            btnOpen.Text = "Select";
             btnOpen.UseVisualStyleBackColor = true;
             btnOpen.Click += btnOpen_Click;
             // 

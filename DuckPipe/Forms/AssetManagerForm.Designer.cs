@@ -263,7 +263,7 @@ namespace DuckPipe
             splitContainer3.SplitterDistance = 347;
             splitContainer3.TabIndex = 6;
             // 
-            // AssetManager
+            // AssetManagerForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -271,7 +271,7 @@ namespace DuckPipe
             ClientSize = new Size(1112, 556);
             Controls.Add(splitContainer2);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Name = "AssetManager";
+            Name = "AssetManagerForm";
             Text = "DuckPipe";
             contextMenuTree.ResumeLayout(false);
             panel1.ResumeLayout(false);

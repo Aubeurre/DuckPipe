@@ -43,8 +43,25 @@ namespace DuckPipe.Core
             version = "1.0";
 
             // Copie du fichier JSON original dans le dossier de production pour modification future
-            string assetStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AssetStructure.json");
-            File.Copy(assetStructurePath, Path.Combine(prodPath, "AssetStructure.json"), overwrite: true);
+            string assetStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "AssetStructure.json");
+            File.Copy(assetStructurePath, Path.Combine(prodPath, "Dev", "AssetStructure.json"), overwrite: true);
+
+            string toolPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
+            string targetToolPath = Path.Combine(prodPath, "Dev");
+
+            foreach (string dirPath in Directory.GetDirectories(toolPath, "*", SearchOption.AllDirectories))
+            {
+                string relativePath = Path.GetRelativePath(toolPath, dirPath);
+                string targetDir = Path.Combine(targetToolPath, relativePath);
+                Directory.CreateDirectory(targetDir);
+            }
+
+            foreach (string filePath in Directory.GetFiles(toolPath, "*.*", SearchOption.AllDirectories))
+            {
+                string relativePath = Path.GetRelativePath(toolPath, filePath);
+                string targetFilePath = Path.Combine(targetToolPath, relativePath);
+                File.Copy(filePath, targetFilePath, overwrite: true);
+            }
 
             // Sauvegarde du fichier config de production
             string configJson = JsonSerializer.Serialize(this, new JsonSerializerOptions
