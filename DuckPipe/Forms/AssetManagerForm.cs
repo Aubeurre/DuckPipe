@@ -1,12 +1,13 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
+using DuckPipe.Core;
 
 namespace DuckPipe
 {
-    public partial class AssetManager : Form
+    public partial class AssetManagerForm : Form
     {
-        public AssetManager()
+        public AssetManagerForm()
         {
             InitializeComponent();
             LoadProductionList();
@@ -85,7 +86,7 @@ namespace DuckPipe
 
         private void btCreateAsset_Click(object sender, EventArgs e)
         {
-            using (var form = new CreateAssetForm())
+            using (var form = new CreateAssetPopup())
             {
                 if (form.ShowDialog() != DialogResult.OK)
                     return;
@@ -137,14 +138,14 @@ namespace DuckPipe
 
         private void btnCreateProduction_Click(object sender, EventArgs e)
         {
-            using (var form = new CreateProductionForm())
+            using (var form = new CreateProductionPopup())
             {
                 if (form.ShowDialog() == DialogResult.OK)
                 {
                     string prodName = form.ProductionName;
 
                     string rootPath = GetProductionRootPath();
-                    var productionConfig = new ProductionConfig { name = prodName };
+                    var productionConfig = new ProductionStructureBuilder { name = prodName };
 
                     productionConfig.CreateProductionStructure(prodName, rootPath);
 
@@ -321,7 +322,6 @@ namespace DuckPipe
             }
         }
 
-
         private void DisplayPipelineDepartments(string assetPath)
         {
             pnlPipelineStatus.Controls.Clear();
@@ -372,15 +372,25 @@ namespace DuckPipe
                 };
 
                 Button btnRun = new Button { Text = "Run" };
-                Button btnCreate = new Button { Text = "Create" };
+                Button btnExec = new Button { Text = "Exec" };
                 Button btnPublish = new Button { Text = "Publish" };
                 Button btnEdit = new Button { Text = "Edit" };
 
+                btnRun.Click += (s, e) =>
+                {
+                    var popup = new FileSelectionPopup(jsonPath, deptName);
+                    if (popup.ShowDialog() == DialogResult.OK)
+                    {
+                        string fullPath = popup.SelectedFilePath;
+                        AssetManip.LaunchSoftware(fullPath);
+                    }
+                };
+
+
                 buttonPanel.Controls.Add(btnRun);
-                buttonPanel.Controls.Add(btnCreate);
+                buttonPanel.Controls.Add(btnExec);
                 buttonPanel.Controls.Add(btnPublish);
                 buttonPanel.Controls.Add(btnEdit);
-
 
                 departmentPanel.Controls.Add(buttonPanel);
 

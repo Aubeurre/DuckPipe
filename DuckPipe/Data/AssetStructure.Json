@@ -10,6 +10,12 @@
                 },
                 "_files": [ "assetnamepipeplaceholder_rig.ma" ]
             },
+            "Cfx": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_cfx_v001.ma" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_cfx.ma" ]
+            },
             "Surf": {
                 "incrementals": {
                     "_files": [ "assetnamepipeplaceholder_look_v001.spp" ]
@@ -35,11 +41,17 @@
                 },
                 "_files": [ "assetnamepipeplaceholder_rig.ma" ]
             },
-            "Hair": {
+            "Groom": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_hair_v001.ma" ]
+                    "_files": [ "assetnamepipeplaceholder_groom_v001.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_hair.ma" ]
+                "_files": [ "assetnamepipeplaceholder_groom.ma" ]
+            },
+            "Cfx": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_cfx_v001.ma" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_cfx.ma" ]
             },
             "Facial": {
                 "incrementals": {

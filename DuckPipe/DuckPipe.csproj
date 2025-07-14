@@ -10,17 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="AssetStructure.js\**" />
-    <EmbeddedResource Remove="AssetStructure.js\**" />
-    <None Remove="AssetStructure.js\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="AssetStructure.Json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="AssetStructure.Json">
+    <Content Include="Data\AssetStructure.Json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="ducky.ico" />

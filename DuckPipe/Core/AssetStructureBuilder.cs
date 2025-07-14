@@ -4,9 +4,10 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using DuckPipe.Utils;
 using static System.Windows.Forms.Design.AxImporter;
 
-namespace DuckPipe
+namespace DuckPipe.Core
 {
     public class AssetTypeDefinition
     {
@@ -52,7 +53,7 @@ namespace DuckPipe
         {
             Directory.CreateDirectory(currentPath);
 
-            // Créer les fichiers du nœud
+            // Créer les fichiers
             if (node.Files != null)
             {
                 foreach (var file in node.Files)
@@ -63,7 +64,16 @@ namespace DuckPipe
                         fileName = file.Replace("assetnamepipeplaceholder", assetName.ToLower());
                     }
                     string filePath = Path.Combine(currentPath, fileName);
-                    File.Create(filePath).Dispose();
+
+                    if (filePath.EndsWith(".ma", StringComparison.OrdinalIgnoreCase))
+                    {
+                        CreateMayaScene.CreateBasicMaFile(filePath, Path.GetFileNameWithoutExtension(fileName));
+                    }
+                    else
+                    {
+                        // Créer un fichier vide
+                        File.Create(filePath).Dispose();
+                    }
                 }
             }
 
@@ -104,11 +114,11 @@ namespace DuckPipe
                     {
                         status = "not_started",
                         version = "v001",
-                        workPath = workPath,
-                        incrementalPath = incrementalPath,
+                        workPath,
+                        incrementalPath,
                         workFile = baseFileName + ".ma",
                         publishName = baseFileName + "_pub.ma",
-                        publishPath = publishPath,
+                        publishPath,
                         software = "unknown",
                         user = "",
                         lastModified = ""
@@ -156,11 +166,11 @@ namespace DuckPipe
                     {
                         status = "not_started",
                         version = "v001",
-                        workPath = workPath,
-                        incrementalPath = incrementalPath,
+                        workPath,
+                        incrementalPath,
                         workFile = baseFileName + ".ma",
                         publishName = baseFileName + "_pub.ma",
-                        publishPath = publishPath,
+                        publishPath,
                         software = "unknown",
                         user = "",
                         lastModified = ""

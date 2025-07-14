@@ -2,7 +2,7 @@
 
 namespace DuckPipe
 {
-    partial class AssetManager
+    partial class AssetManagerForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -31,7 +31,7 @@ namespace DuckPipe
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AssetManager));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AssetManagerForm));
             tvAssetList = new TreeView();
             contextMenuTree = new ContextMenuStrip(components);
             tsmiRename = new ToolStripMenuItem();

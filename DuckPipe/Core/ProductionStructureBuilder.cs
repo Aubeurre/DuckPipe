@@ -5,9 +5,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Forms;
 
-namespace DuckPipe
+namespace DuckPipe.Core
 {
-    public class ProductionConfig
+    public class ProductionStructureBuilder
     {
         public string name { get; set; }
         public string created { get; set; }

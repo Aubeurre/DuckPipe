@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace DuckPipe
 {
-    public partial class CreateProductionForm : Form
+    public partial class CreateProductionPopup : Form
     {
-        public CreateProductionForm()
+        public CreateProductionPopup()
         {
             InitializeComponent();
         }

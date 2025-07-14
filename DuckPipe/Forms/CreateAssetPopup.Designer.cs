@@ -1,6 +1,6 @@
 ﻿namespace DuckPipe
 {
-    partial class CreateAssetForm
+    partial class CreateAssetPopup
     {
         /// <summary>
         /// Required designer variable.

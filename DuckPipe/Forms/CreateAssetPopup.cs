@@ -11,9 +11,9 @@ using System.Windows.Forms;
 
 namespace DuckPipe
 {
-    public partial class CreateAssetForm : Form
+    public partial class CreateAssetPopup : Form
     {
-        public CreateAssetForm()
+        public CreateAssetPopup()
         {
             InitializeComponent();
             cbAssetType.SelectedIndex = 0;
