@@ -36,6 +36,7 @@
             // label1
             // 
             label1.AutoSize = true;
+            label1.ForeColor = Color.White;
             label1.Location = new Point(12, 9);
             label1.Name = "label1";
             label1.Size = new Size(124, 15);
@@ -44,6 +45,9 @@
             // 
             // txtProductionName
             // 
+            txtProductionName.BackColor = Color.FromArgb(30, 30, 30);
+            txtProductionName.BorderStyle = BorderStyle.FixedSingle;
+            txtProductionName.ForeColor = Color.White;
             txtProductionName.Location = new Point(12, 28);
             txtProductionName.Name = "txtProductionName";
             txtProductionName.Size = new Size(100, 23);
@@ -51,24 +55,29 @@
             // 
             // btnOK
             // 
+            btnOK.BackColor = Color.FromArgb(80, 80, 80);
+            btnOK.FlatAppearance.BorderSize = 0;
+            btnOK.FlatStyle = FlatStyle.Flat;
+            btnOK.ForeColor = Color.White;
             btnOK.Location = new Point(118, 27);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(38, 23);
             btnOK.TabIndex = 2;
             btnOK.Text = "OK";
-            btnOK.UseVisualStyleBackColor = true;
+            btnOK.UseVisualStyleBackColor = false;
             btnOK.Click += btnOK_Click_1;
             // 
-            // CreateProductionForm
+            // CreateProductionPopup
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(45, 45, 45);
             ClientSize = new Size(176, 64);
             Controls.Add(btnOK);
             Controls.Add(txtProductionName);
             Controls.Add(label1);
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            Name = "CreateProductionForm";
+            Name = "CreateProductionPopup";
             Text = "CreateProductionForm";
             ResumeLayout(false);
             PerformLayout();

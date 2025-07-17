@@ -1,59 +1,107 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Windows.Forms;
 using DuckPipe.Core;
+using static DuckPipe.Core.AssetManip;
 
 namespace DuckPipe
 {
     public partial class AssetManagerForm : Form
     {
+        private string selectedAssetPath = null!;
         public AssetManagerForm()
         {
             InitializeComponent();
             LoadProductionList();
             ClearRightPanel();
         }
+        public class AssetContext
+        {
+            public string RootPath { get; set; }
+            public string ProductionName { get; set; }
+            public string ProductionPath { get; set; }
+            public string AssetType { get; set; }
+            public string AssetName { get; set; }
+            public string? Department { get; set; }
+            public string AssetRoot { get; set; }
+        }
+
+        public static AssetContext? ExtractAssetContext(string assetPath)
+        {
+            try
+            {
+                string rootPath = AssetManagerForm.GetProductionRootPath();
+                if (!assetPath.StartsWith(rootPath))
+                    return null;
+
+                string relativePath = assetPath.Replace(rootPath, "").Trim('\\');
+                string[] parts = relativePath.Split('\\');
+
+                int assetsIndex = Array.IndexOf(parts, "Assets");
+                if (assetsIndex < 0 || assetsIndex + 2 >= parts.Length)
+                    return null;
+
+                string prodName = parts[0];
+                string assetType = parts[assetsIndex + 1];
+                string assetName = parts[assetsIndex + 2];
+
+                var ctx = new AssetContext
+                {
+                    RootPath = rootPath,
+                    ProductionName = prodName,
+                    ProductionPath = Path.Combine(rootPath, prodName),
+                    AssetType = assetType,
+                    AssetName = assetName,
+                    AssetRoot = Path.Combine(rootPath, prodName, "Assets", assetType, assetName)
+                };
+
+                if (parts.Length > assetsIndex + 4)
+                    ctx.Department = parts[assetsIndex + 4];
+
+                return ctx;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ExtractAssetContext] Erreur : {ex.Message}");
+                return null;
+            }
+        }
 
         private void tvAssetList_AfterSelect(object sender, TreeViewEventArgs e)
         {
             string fullPath = GetFullPathFromNode(e.Node);
+
             if (string.IsNullOrEmpty(fullPath) || !Directory.Exists(fullPath))
             {
                 ClearRightPanel();
-                Debug.WriteLine("Sélection invalide 1.");
                 return;
             }
-            string assetType = DetectAssetType(fullPath);
-            if (Path.GetFileName(fullPath) == assetType)
+
+            var ctx = ExtractAssetContext(fullPath);
+            if (ctx == null)
             {
                 ClearRightPanel();
-                Debug.WriteLine("Sélection d'un groupe d'assets ignorée.");
                 return;
             }
 
-            //  MISE À JOUR LABELS
-            lblAssetName.Text = Path.GetFileName(fullPath);
-            lblAssetType.Text = assetType;
-
-            // Charger la structure depuis le config
-            string rootPath = GetProductionRootPath();
-            string selectedProd = cbProdList.SelectedItem?.ToString();
-            string configPath = Path.Combine(rootPath, selectedProd, "config.json");
-
-            if (!File.Exists(configPath))
+            if (Path.GetFileName(fullPath).Equals(ctx.AssetType, StringComparison.OrdinalIgnoreCase))
             {
                 ClearRightPanel();
-                Debug.WriteLine("Fichier config non trouvé.");
+                Debug.WriteLine("Sélection d'un groupe d'assets.");
                 return;
             }
 
-            var assetStructures = LoadAssetStructures(Path.Combine(rootPath, selectedProd));
+            // maj labels
+            lblAssetName.Text = ctx.AssetName;
+            lblAssetType.Text = ctx.AssetType;
 
-            if (assetStructures != null && assetStructures.TryGetValue(assetType, out var structure))
+            // config
+            var assetStructures = LoadAssetStructures(ctx.ProductionPath);
+            if (assetStructures != null && assetStructures.TryGetValue(ctx.AssetType, out var structure))
             {
                 DisplayPipelineDepartments(fullPath);
             }
-
         }
 
         public static string GetProductionRootPath()
@@ -77,11 +125,11 @@ namespace DuckPipe
         private void cbProdList_SelectedIndexChanged(object sender, EventArgs e)
         {
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            if (string.IsNullOrEmpty(selectedProd))
-                return;
-
-            string rootPath = GetProductionRootPath();
-            LoadTreeViewFromFolder(rootPath, selectedProd);
+            if (!string.IsNullOrEmpty(selectedProd))
+            {
+                string rootPath = GetProductionRootPath();
+                LoadTreeViewFromFolder(rootPath, selectedProd);
+            }
         }
 
         private void btCreateAsset_Click(object sender, EventArgs e)
@@ -96,14 +144,14 @@ namespace DuckPipe
 
                 if (string.IsNullOrEmpty(assetName))
                 {
-                    MessageBox.Show("Le nom de l'asset ne peut pas être vide.");
+                    MessageBox.Show("Le nom de l'asset ne peut pas etre vide.");
                     return;
                 }
 
                 string selectedProd = cbProdList.SelectedItem?.ToString();
                 if (string.IsNullOrEmpty(selectedProd))
                 {
-                    MessageBox.Show("Aucune production sélectionnée.");
+                    MessageBox.Show("Aucune production selectionnee.");
                     return;
                 }
 
@@ -252,8 +300,6 @@ namespace DuckPipe
 
         private string GetFullPathFromNode(TreeNode node)
         {
-            // Construire récursivement le chemin complet selon ta structure
-            // Exemple simple :
             List<string> parts = new();
             TreeNode current = node;
             while (current != null)
@@ -267,21 +313,13 @@ namespace DuckPipe
 
         }
 
-        private string DetectAssetType(string path)
-        {
-            // Exemple : récupérer le segment après "Assets"
-            var parts = path.Split(Path.DirectorySeparatorChar);
-            int assetsIndex = Array.IndexOf(parts, "Assets");
-            if (assetsIndex >= 0 && assetsIndex + 1 < parts.Length)
-                return parts[assetsIndex + 1];
-            return "";
-        }
-
         private void ClearRightPanel()
         {
             lblAssetName.Text = "";
             lblAssetType.Text = "";
             flpPipelineStatus.Controls.Clear();
+            flpAssetInspect.Controls.Clear();
+            flpDeptButton.Controls.Clear();
         }
 
         private Dictionary<string, AssetStructure> LoadAssetStructures(string prodPath)
@@ -333,12 +371,6 @@ namespace DuckPipe
             flpPipelineStatus.Dock = DockStyle.Fill;
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
-            if (!File.Exists(jsonPath))
-            {
-                Debug.WriteLine("asset.json introuvable pour : " + assetPath);
-                return;
-            }
-
             string json = File.ReadAllText(jsonPath);
             using var doc = JsonDocument.Parse(json);
             if (!doc.RootElement.TryGetProperty("departments", out JsonElement departments))
@@ -348,106 +380,220 @@ namespace DuckPipe
             {
                 string deptName = dept.Name;
                 string status = dept.Value.GetProperty("status").GetString();
-                string version = dept.Value.GetProperty("version").GetString();
+                string version = dept.Value.GetProperty("version").ToString();
 
-                Panel departmentPanel = new Panel
+                var departmentPanel = BuildDepartmentPanel(jsonPath, deptName, status, version);
+                flpPipelineStatus.Controls.Add(departmentPanel);
+            }
+            AddActionButtons();
+            flpPipelineStatus.ResumeLayout();
+        }
+
+        private Panel BuildDepartmentPanel(string jsonPath, string deptName, string status, string version)
+        {
+            Panel departmentPanel = new()
+            {
+                AutoSize = false,
+                Size = new Size(flpPipelineStatus.ClientSize.Width - 30, 80),
+                BackColor = Color.FromArgb(80,80,80),
+                Padding = new Padding(5),
+                Margin = new Padding(5)
+            };
+
+            // Label
+            departmentPanel.Controls.Add(new Label
+            {
+                Text = $" - {deptName}",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(5, 5),
+                ForeColor = Color.White,
+            });
+
+            // TreeView
+            TreeView tvWorkFiles = new TreeView
+            {
+                AutoSize = false,
+                Width = 500,
+                BackColor = Color.FromArgb(50, 50, 50),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9),
+                BorderStyle = BorderStyle.None,
+                Dock = DockStyle.Left,
+                Tag = new Tuple<string, string>(jsonPath, deptName),
+            };
+            tvWorkFiles.NodeMouseClick += OnAssetNodeClick;
+
+            Panel treeContainer = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 40,
+                Padding = new Padding(3),
+            };
+
+            treeContainer.Controls.Add(tvWorkFiles);
+            departmentPanel.Controls.Add(treeContainer);
+            var info = (Tuple<string, string>)tvWorkFiles.Tag;
+            AddAllWorkFilesToDepartementPanel(tvWorkFiles, info.Item1, info.Item2);
+
+            // Statut version 
+            var rightPanel = BuildStatusVersionPanel(status, version);
+            rightPanel.Location = new Point(departmentPanel.Width - 100, 5);
+            departmentPanel.Controls.Add(rightPanel);
+
+            return departmentPanel;
+        }
+
+        private void AddActionButtons()
+        {
+            void AddButton(string label, Action<string> onValidSelection)
+            {
+                var btn = new Button 
+                { 
+                    Text = label, 
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = Color.FromArgb(105, 105, 105),
+                };
+                btn.FlatAppearance.BorderSize = 0;
+                btn.FlatAppearance.MouseOverBackColor = Color.LightGray;
+                btn.Click += (s, e) =>
                 {
-                    Size = new Size(flpPipelineStatus.ClientSize.Width - 30, 60),
+                    if (!string.IsNullOrEmpty(selectedAssetPath))
+                    {
+                        onValidSelection(selectedAssetPath);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Aucun asset sélectionné dans l’arborescence.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                };
+
+                flpDeptButton.Controls.Add(btn);
+            }
+
+            AddButton("Run", AssetManip.LaunchAsset);
+            AddButton("Exec", AssetManip.ExecAsset);
+            AddButton("Increment", AssetManip.VersionAsset);
+            AddButton("Publish", AssetManip.PublishAsset);
+        }
+
+        private FlowLayoutPanel BuildStatusVersionPanel(string status, string version)
+        {
+            Color statusColor = status switch
+            {
+                "not_started" => Color.Gray,
+                "outDated" => Color.Orange,
+                "upToDate" => Color.Green,
+                _ => Color.Red
+            };
+
+            var panel = new FlowLayoutPanel
+            {
+                AutoSize = true,
+                FlowDirection = FlowDirection.LeftToRight
+            };
+
+            panel.Controls.Add(new Button
+            {
+                Width = 16,
+                Height = 16,
+                BackColor = statusColor,
+                FlatStyle = FlatStyle.Flat,
+                Enabled = false,
+                Margin = new Padding(0, 0, 4, 0)
+            });
+
+            panel.Controls.Add(new Label
+            {
+                Text = version,
+                AutoSize = true,
+                Font = new Font("Segoe UI", 8),
+                TextAlign = ContentAlignment.MiddleLeft
+            });
+
+            return panel;
+        }
+
+        private void DisplayCommitsPanel(string assetPath)
+        {
+            flpAssetInspect.SuspendLayout();
+            flpAssetInspect.Controls.Clear();
+
+            var commits = AssetManip.GetAssetCommits(assetPath);
+
+            foreach (var commit in commits)
+            {
+                var panel = new Panel
+                {
+                    Width = flpAssetInspect.ClientSize.Width - 10,
+                    AutoSize = false,
                     BackColor = Color.LightGray,
-                    Padding = new Padding(3),
+                    Padding = new Padding(5),
                     Margin = new Padding(3)
                 };
 
-                // Label département
-                Label lblDepartment = new Label
+                var lblHeader = new Label
                 {
-                    Text = $" - {deptName}",
+                    Text = $"v{commit.Version} - {commit.Timestamp:dd/MM/yyyy HH:mm} \n - {commit.User}",
                     AutoSize = true,
-                    Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                    Location = new Point(5, 5)
-                };
-                departmentPanel.Controls.Add(lblDepartment);
-
-                // Panel boutons (gauche)
-                FlowLayoutPanel buttonPanel = new FlowLayoutPanel
-                {
-                    FlowDirection = FlowDirection.LeftToRight,
-                    Location = new Point(5, 30),
-                    AutoSize = true
+                    Font = new Font("Segoe UI", 9, FontStyle.Bold)
                 };
 
-                Button btnRun = new Button { Text = "Run" };
-                Button btnExec = new Button { Text = "Exec" };
-                Button btnIncrement = new Button { Text = "Increment" };
-                Button btnPublish = new Button { Text = "Publish" };
-                Button btnEdit = new Button { Text = "Edit" };
-
-                btnRun.Click += (s, e) =>
+                var lblMessage = new Label
                 {
-                    var popup = new FileSelectionPopup(jsonPath, deptName);
-                    if (popup.ShowDialog() == DialogResult.OK)
-                        AssetManip.LaunchAsset(popup.SelectedFilePath);
-                };
-                btnIncrement.Click += (s, e) =>
-                {
-                    var popup = new FileSelectionPopup(jsonPath, deptName);
-                    if (popup.ShowDialog() == DialogResult.OK)
-                        AssetManip.VersionAsset(popup.SelectedFilePath);
-                };
-                btnPublish.Click += (s, e) =>
-                {
-                    var popup = new FileSelectionPopup(jsonPath, deptName);
-                    if (popup.ShowDialog() == DialogResult.OK)
-                        AssetManip.PublishAsset(popup.SelectedFilePath);
-                };
-
-                buttonPanel.Controls.AddRange(new Control[]
-                {
-            btnRun, btnExec, btnIncrement, btnPublish, btnEdit
-                });
-
-                departmentPanel.Controls.Add(buttonPanel);
-
-                // Panel statut/version (droite)
-                FlowLayoutPanel rightPanel = new FlowLayoutPanel
-                {
+                    Text = commit.Message,
                     AutoSize = true,
-                    Location = new Point(departmentPanel.Width - 100, 5),
-                    FlowDirection = FlowDirection.LeftToRight
+                    MaximumSize = new Size(panel.Width - 10, 0),
+                    Font = new Font("Segoe UI", 9)
                 };
 
-                Color statusColor = status switch
-                {
-                    "not_started" => Color.Gray,
-                    "outDated" => Color.Orange,
-                    "upToDate" => Color.Green,
-                    _ => Color.Red
-                };
+                panel.Controls.Add(lblHeader);
+                panel.Controls.Add(lblMessage);
+                lblMessage.Location = new Point(0, lblHeader.Bottom + 4);
 
-                rightPanel.Controls.Add(new Button
-                {
-                    Width = 16,
-                    Height = 16,
-                    BackColor = statusColor,
-                    FlatStyle = FlatStyle.Flat,
-                    Enabled = false,
-                    Margin = new Padding(0, 0, 4, 0)
-                });
-
-                rightPanel.Controls.Add(new Label
-                {
-                    Text = version,
-                    AutoSize = true,
-                    Font = new Font("Segoe UI", 8),
-                    TextAlign = ContentAlignment.MiddleLeft
-                });
-
-                departmentPanel.Controls.Add(rightPanel);
-
-                flpPipelineStatus.Controls.Add(departmentPanel);
+                flpAssetInspect.Controls.Add(panel);
             }
 
-            flpPipelineStatus.ResumeLayout();
+            flpAssetInspect.ResumeLayout();
+        }
+
+        private void AddAllWorkFilesToDepartementPanel(TreeView tv, string assetJsonPath, string department)
+        {
+            tv.Nodes.Clear();
+
+            JsonDocument doc = AssetManip.LoadAssetJson(assetJsonPath);
+            if (!doc.RootElement.TryGetProperty("departments", out JsonElement departments)) return;
+            if (!departments.TryGetProperty(department, out JsonElement dept)) return;
+
+            string workPath = AssetManip.ReplaceEnvVariables(dept.GetProperty("workPath").GetString());
+
+            if (Directory.Exists(workPath))
+            {
+                string[] files = Directory.GetFiles(workPath);
+                foreach (var file in files)
+                {
+                    if (!file.EndsWith(".json"))
+                    {
+                        string fileName = Path.GetFileName(file);
+                        TreeNode node = new TreeNode(fileName)
+                        {
+                            ForeColor = Color.White
+                        };
+                        node.Tag = file;
+                        tv.Nodes.Add(node);
+                    }
+                }
+            }
+        }
+
+        private void OnAssetNodeClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Node?.Tag is string path)
+            {
+                selectedAssetPath = e.Node.Tag as string;
+                MessageBox.Show(selectedAssetPath);
+                DisplayCommitsPanel(path);
+            }
         }
     }
 }

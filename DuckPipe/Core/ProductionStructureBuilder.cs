@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Windows.Forms;
 
 namespace DuckPipe.Core
 {
@@ -12,13 +10,28 @@ namespace DuckPipe.Core
         public string name { get; set; }
         public string created { get; set; }
         public string version { get; set; }
+        public Dictionary<string, DepartmentStructure> departments { get; set; } = new();
 
         public void CreateProductionStructure(string prodName, string rootPath)
         {
             string prodPath = Path.Combine(rootPath, prodName);
             Directory.CreateDirectory(prodPath);
 
-            string[] folders = new string[]
+            CreateDefaultFolders(prodPath);
+            CopyAssetStructure(prodPath);
+            CopyTools(prodPath);
+
+            name = prodName;
+            created = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+            version = "1.0";
+
+            InitializeDefaultDepartments();
+            SaveProductionConfig(prodPath);
+        }
+
+        private void CreateDefaultFolders(string prodPath)
+        {
+            string[] folders =
             {
                 "Assets/Characters",
                 "Assets/Props",
@@ -33,43 +46,65 @@ namespace DuckPipe.Core
             };
 
             foreach (string folder in folders)
-            {
-                string fullPath = Path.Combine(prodPath, folder);
-                Directory.CreateDirectory(fullPath);
-            }
+                Directory.CreateDirectory(Path.Combine(prodPath, folder));
+        }
 
-            name = prodName;
-            created = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-            version = "1.0";
-
-            // Copie du fichier JSON original dans le dossier de production pour modification future
+        private void CopyAssetStructure(string prodPath)
+        {
             string assetStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "AssetStructure.json");
-            File.Copy(assetStructurePath, Path.Combine(prodPath, "Dev", "AssetStructure.json"), overwrite: true);
+            string targetPath = Path.Combine(prodPath, "Dev", "AssetStructure.json");
+            File.Copy(assetStructurePath, targetPath, overwrite: true);
+        }
 
-            string toolPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
+        private void CopyTools(string prodPath)
+        {
+            string sourceToolPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
             string targetToolPath = Path.Combine(prodPath, "Dev");
 
-            foreach (string dirPath in Directory.GetDirectories(toolPath, "*", SearchOption.AllDirectories))
+            foreach (string dirPath in Directory.GetDirectories(sourceToolPath, "*", SearchOption.AllDirectories))
             {
-                string relativePath = Path.GetRelativePath(toolPath, dirPath);
-                string targetDir = Path.Combine(targetToolPath, relativePath);
-                Directory.CreateDirectory(targetDir);
+                string relativePath = Path.GetRelativePath(sourceToolPath, dirPath);
+                Directory.CreateDirectory(Path.Combine(targetToolPath, relativePath));
             }
 
-            foreach (string filePath in Directory.GetFiles(toolPath, "*.*", SearchOption.AllDirectories))
+            foreach (string filePath in Directory.GetFiles(sourceToolPath, "*.*", SearchOption.AllDirectories))
             {
-                string relativePath = Path.GetRelativePath(toolPath, filePath);
-                string targetFilePath = Path.Combine(targetToolPath, relativePath);
-                File.Copy(filePath, targetFilePath, overwrite: true);
+                string relativePath = Path.GetRelativePath(sourceToolPath, filePath);
+                File.Copy(filePath, Path.Combine(targetToolPath, relativePath), overwrite: true);
             }
-
-            // Sauvegarde du fichier config de production
-            string configJson = JsonSerializer.Serialize(this, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
-
-            File.WriteAllText(Path.Combine(prodPath, "config.json"), configJson);
         }
+
+        private void InitializeDefaultDepartments()
+        {
+            departments = new Dictionary<string, DepartmentStructure>
+            {
+                ["Modeling"] = new DepartmentStructure { downstream = new() { "Facial", "Cfx", "Groom", "Surf", "Rig" } },
+                ["Facial"] = new DepartmentStructure { downstream = new() { "Rig" } },
+                ["Cfx"] = new DepartmentStructure { downstream = new() { "Rig" } },
+                ["Groom"] = new DepartmentStructure { downstream = new() { "Rig" } },
+                ["Surf"] = new DepartmentStructure { downstream = new() { "Rig" } },
+                ["Rig"] = new DepartmentStructure { downstream = new() }
+            };
+        }
+
+        private void SaveProductionConfig(string prodPath)
+        {
+            var config = new
+            {
+                name,
+                created,
+                version,
+                departments
+            };
+
+            string configPath = Path.Combine(prodPath, "config.json");
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            File.WriteAllText(configPath, JsonSerializer.Serialize(config, options));
+        }
+    }
+
+    public class DepartmentStructure
+    {
+        public List<string> downstream { get; set; } = new();
     }
 }

@@ -41,16 +41,21 @@ namespace DuckPipe
             btCreateAsset = new Button();
             cbProdList = new ComboBox();
             plAssetTaskInfo = new Panel();
+            flpAssetInspect = new FlowLayoutPanel();
             lblAssetType = new Label();
             lblAssetName = new Label();
             pnlPipelineStatus = new Panel();
             flpPipelineStatus = new FlowLayoutPanel();
+            pnlDeptBtn = new Panel();
+            flpDeptButton = new FlowLayoutPanel();
             panel2 = new Panel();
             splitContainer2 = new SplitContainer();
             splitContainer3 = new SplitContainer();
             contextMenuTree.SuspendLayout();
             panel1.SuspendLayout();
+            plAssetTaskInfo.SuspendLayout();
             pnlPipelineStatus.SuspendLayout();
+            pnlDeptBtn.SuspendLayout();
             panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
             splitContainer2.Panel1.SuspendLayout();
@@ -72,7 +77,7 @@ namespace DuckPipe
             tvAssetList.LineColor = Color.White;
             tvAssetList.Location = new Point(12, 43);
             tvAssetList.Name = "tvAssetList";
-            tvAssetList.Size = new Size(289, 476);
+            tvAssetList.Size = new Size(236, 469);
             tvAssetList.TabIndex = 0;
             tvAssetList.AfterSelect += tvAssetList_AfterSelect;
             // 
@@ -109,7 +114,7 @@ namespace DuckPipe
             panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(312, 556);
+            panel1.Size = new Size(259, 549);
             panel1.TabIndex = 2;
             // 
             // btnCreateProduction
@@ -120,7 +125,7 @@ namespace DuckPipe
             btnCreateProduction.FlatAppearance.BorderSize = 0;
             btnCreateProduction.FlatStyle = FlatStyle.Flat;
             btnCreateProduction.ForeColor = Color.White;
-            btnCreateProduction.Location = new Point(276, 12);
+            btnCreateProduction.Location = new Point(223, 12);
             btnCreateProduction.Name = "btnCreateProduction";
             btnCreateProduction.Size = new Size(25, 25);
             btnCreateProduction.TabIndex = 1;
@@ -135,9 +140,9 @@ namespace DuckPipe
             btCreateAsset.FlatAppearance.BorderSize = 0;
             btCreateAsset.FlatStyle = FlatStyle.Flat;
             btCreateAsset.ForeColor = Color.White;
-            btCreateAsset.Location = new Point(12, 523);
+            btCreateAsset.Location = new Point(12, 516);
             btCreateAsset.Name = "btCreateAsset";
-            btCreateAsset.Size = new Size(289, 25);
+            btCreateAsset.Size = new Size(236, 25);
             btCreateAsset.TabIndex = 0;
             btCreateAsset.Text = "Add New";
             btCreateAsset.UseVisualStyleBackColor = false;
@@ -155,18 +160,31 @@ namespace DuckPipe
             cbProdList.Items.AddRange(new object[] { "OBSERVER ", "SPARK", "SILENCE" });
             cbProdList.Location = new Point(12, 12);
             cbProdList.Name = "cbProdList";
-            cbProdList.Size = new Size(258, 23);
+            cbProdList.Size = new Size(205, 23);
             cbProdList.TabIndex = 3;
             cbProdList.SelectedIndexChanged += cbProdList_SelectedIndexChanged;
             // 
             // plAssetTaskInfo
             // 
             plAssetTaskInfo.BackColor = Color.FromArgb(55, 55, 55);
+            plAssetTaskInfo.Controls.Add(flpAssetInspect);
             plAssetTaskInfo.Dock = DockStyle.Fill;
             plAssetTaskInfo.Location = new Point(0, 0);
             plAssetTaskInfo.Name = "plAssetTaskInfo";
-            plAssetTaskInfo.Size = new Size(796, 131);
+            plAssetTaskInfo.Size = new Size(206, 475);
             plAssetTaskInfo.TabIndex = 3;
+            // 
+            // flpAssetInspect
+            // 
+            flpAssetInspect.AutoScroll = true;
+            flpAssetInspect.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flpAssetInspect.Dock = DockStyle.Fill;
+            flpAssetInspect.FlowDirection = FlowDirection.TopDown;
+            flpAssetInspect.Location = new Point(0, 0);
+            flpAssetInspect.Name = "flpAssetInspect";
+            flpAssetInspect.Size = new Size(206, 475);
+            flpAssetInspect.TabIndex = 3;
+            flpAssetInspect.WrapContents = false;
             // 
             // lblAssetType
             // 
@@ -199,22 +217,40 @@ namespace DuckPipe
             // 
             pnlPipelineStatus.BackColor = Color.FromArgb(40, 40, 40);
             pnlPipelineStatus.Controls.Add(flpPipelineStatus);
-            pnlPipelineStatus.Dock = DockStyle.Fill;
+            pnlPipelineStatus.Dock = DockStyle.Top;
             pnlPipelineStatus.Location = new Point(0, 0);
             pnlPipelineStatus.Name = "pnlPipelineStatus";
-            pnlPipelineStatus.Size = new Size(796, 347);
+            pnlPipelineStatus.Size = new Size(647, 427);
             pnlPipelineStatus.TabIndex = 4;
             // 
             // flpPipelineStatus
             // 
             flpPipelineStatus.AutoScroll = true;
-            flpPipelineStatus.Dock = DockStyle.Top;
+            flpPipelineStatus.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flpPipelineStatus.Dock = DockStyle.Fill;
             flpPipelineStatus.FlowDirection = FlowDirection.TopDown;
             flpPipelineStatus.Location = new Point(0, 0);
             flpPipelineStatus.Name = "flpPipelineStatus";
-            flpPipelineStatus.Size = new Size(796, 347);
-            flpPipelineStatus.TabIndex = 2;
+            flpPipelineStatus.Size = new Size(647, 427);
+            flpPipelineStatus.TabIndex = 3;
             flpPipelineStatus.WrapContents = false;
+            // 
+            // pnlDeptBtn
+            // 
+            pnlDeptBtn.Controls.Add(flpDeptButton);
+            pnlDeptBtn.Dock = DockStyle.Bottom;
+            pnlDeptBtn.Location = new Point(0, 433);
+            pnlDeptBtn.Name = "pnlDeptBtn";
+            pnlDeptBtn.Size = new Size(647, 42);
+            pnlDeptBtn.TabIndex = 4;
+            // 
+            // flpDeptButton
+            // 
+            flpDeptButton.Dock = DockStyle.Fill;
+            flpDeptButton.Location = new Point(0, 0);
+            flpDeptButton.Name = "flpDeptButton";
+            flpDeptButton.Size = new Size(647, 42);
+            flpDeptButton.TabIndex = 0;
             // 
             // panel2
             // 
@@ -224,7 +260,7 @@ namespace DuckPipe
             panel2.Dock = DockStyle.Top;
             panel2.Location = new Point(0, 0);
             panel2.Name = "panel2";
-            panel2.Size = new Size(796, 74);
+            panel2.Size = new Size(857, 74);
             panel2.TabIndex = 5;
             // 
             // splitContainer2
@@ -241,8 +277,8 @@ namespace DuckPipe
             // 
             splitContainer2.Panel2.Controls.Add(splitContainer3);
             splitContainer2.Panel2.Controls.Add(panel2);
-            splitContainer2.Size = new Size(1112, 556);
-            splitContainer2.SplitterDistance = 312;
+            splitContainer2.Size = new Size(1120, 549);
+            splitContainer2.SplitterDistance = 259;
             splitContainer2.TabIndex = 6;
             // 
             // splitContainer3
@@ -250,17 +286,17 @@ namespace DuckPipe
             splitContainer3.Dock = DockStyle.Fill;
             splitContainer3.Location = new Point(0, 74);
             splitContainer3.Name = "splitContainer3";
-            splitContainer3.Orientation = Orientation.Horizontal;
             // 
             // splitContainer3.Panel1
             // 
+            splitContainer3.Panel1.Controls.Add(pnlDeptBtn);
             splitContainer3.Panel1.Controls.Add(pnlPipelineStatus);
             // 
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(plAssetTaskInfo);
-            splitContainer3.Size = new Size(796, 482);
-            splitContainer3.SplitterDistance = 347;
+            splitContainer3.Size = new Size(857, 475);
+            splitContainer3.SplitterDistance = 647;
             splitContainer3.TabIndex = 6;
             // 
             // AssetManagerForm
@@ -268,14 +304,16 @@ namespace DuckPipe
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(40, 40, 40);
-            ClientSize = new Size(1112, 556);
+            ClientSize = new Size(1120, 549);
             Controls.Add(splitContainer2);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "AssetManagerForm";
             Text = "DuckPipe";
             contextMenuTree.ResumeLayout(false);
             panel1.ResumeLayout(false);
+            plAssetTaskInfo.ResumeLayout(false);
             pnlPipelineStatus.ResumeLayout(false);
+            pnlDeptBtn.ResumeLayout(false);
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
             splitContainer2.Panel1.ResumeLayout(false);
@@ -305,6 +343,9 @@ namespace DuckPipe
         private Panel panel2;
         private SplitContainer splitContainer2;
         private SplitContainer splitContainer3;
+        private FlowLayoutPanel flpAssetInspect;
+        private Panel pnlDeptBtn;
+        private FlowLayoutPanel flpDeptButton;
         private FlowLayoutPanel flpPipelineStatus;
     }
 }

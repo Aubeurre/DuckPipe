@@ -21,14 +21,35 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Tools\Batches\Characters\" />
+    <Folder Include="Tools\Batches\Exec\Characters\" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Tools\Batches\Characters\Rig.bat">
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Tools\Batches\Exec\Characters\Rig.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tools\Batches\Props\Rig.bat">
+    <None Update="Tools\Batches\Exec\Props\Rig.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Batches\Publish\Characters\Rig.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Batches\Publish\Props\Rig.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

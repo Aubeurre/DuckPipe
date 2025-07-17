@@ -34,8 +34,11 @@ namespace DuckPipe
                 string[] files = Directory.GetFiles(workPath);
                 foreach (var file in files)
                 {
-                    listBoxFiles.Items.Add(Path.GetFileName(file));
-                    lbDepartementName.Text = workPath;
+                    if (!file.EndsWith(".json"))
+                    {
+                        listBoxFiles.Items.Add(Path.GetFileName(file));
+                        lbDepartementName.Text = workPath;
+                    }
                 }
             }
         }
@@ -77,5 +80,6 @@ namespace DuckPipe
         {
 
         }
+
     }
 }
