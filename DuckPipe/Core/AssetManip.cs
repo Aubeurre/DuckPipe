@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace DuckPipe.Core
 {
@@ -13,6 +14,7 @@ namespace DuckPipe.Core
         public class AssetContext
         {
             public string FileName { get; set; }
+            public string File { get; set; }
             public string Extension { get; set; }
             public string WorkFolder { get; set; }
             public string AssetRoot { get; set; }
@@ -28,6 +30,7 @@ namespace DuckPipe.Core
             var ctx = new AssetContext
             {
                 FileName = Path.GetFileNameWithoutExtension(assetPath),
+                File = Path.GetFileName(assetPath),
                 Extension = Path.GetExtension(assetPath),
                 WorkFolder = Path.GetDirectoryName(assetPath),
                 RootPath = AssetManagerForm.GetProductionRootPath()
@@ -54,13 +57,8 @@ namespace DuckPipe.Core
             string jsonText = File.ReadAllText(assetJsonPath);
             return JsonDocument.Parse(jsonText);
         }
-
-        public static void GrabAsset(string assetPath)
-        {
-            // LockAssetDepartment.TryLockFile(assetPath);
-        }
         
-        public static void LaunchAsset(string filePath)
+        public static void LaunchAsset(string filePath, AssetManagerForm form)
         {
             Process.Start(new ProcessStartInfo
             {
@@ -114,66 +112,82 @@ namespace DuckPipe.Core
             return maxVersion;
         }
 
-        public static void VersionAsset(string assetPath)
+        public static void VersionAsset(string assetPath, AssetManagerForm form)
         {
-            if (!File.Exists(assetPath))
+            if (LockAssetDepartment.IsLockedByUser(assetPath))
             {
-                MessageBox.Show("Fichier introuvable.");
-                return;
-            }
-
-            var ctx = ExtractAssetContext(assetPath);
-            string incrementalsDir = Path.Combine(ctx.WorkFolder, "incrementals");
-
-            Directory.CreateDirectory(incrementalsDir);
-
-            int newVersion = GetLastWorkVersion(assetPath) + 1;
-            string versionedFileName = $"{ctx.FileName}_v{newVersion:D3}{ctx.Extension}";
-            string destinationPath = Path.Combine(incrementalsDir, versionedFileName);
-
-            File.Copy(assetPath, destinationPath);
-            MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
-        }
-
-        public static void PublishAsset(string assetPath)
-        {
-            VersionAsset(assetPath);
-
-            var ctx = ExtractAssetContext(assetPath);
-
-            string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
-            Directory.CreateDirectory(publishFolder);
-
-            string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
-            string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
-
-            File.Copy(assetPath, publishedFilePath, overwrite: true);
-            MessageBox.Show($"Asset publié : {publishedFileName}", "Succès");
-
-            string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Publish", ctx.AssetType, $"{ctx.Department}.bat");
-            if (File.Exists(batPath))
-            {
-                Process.Start(new ProcessStartInfo
+                if (!File.Exists(assetPath))
                 {
-                    FileName = batPath,
-                    Arguments = $"\"{publishedFilePath}\"",
-                    UseShellExecute = true
-                });
-            }
+                    MessageBox.Show("Fichier introuvable.");
+                    return;
+                }
 
-            int versionName = GetLastWorkVersion(assetPath);
-            var msgPopup = new MessageBoxPopup();
-            if (msgPopup.ShowDialog() == DialogResult.OK)
-            {
-                AddPublishLog(ctx.WorkFolder, versionName, msgPopup.CommitMessage);
+                var ctx = ExtractAssetContext(assetPath);
+                string incrementalsDir = Path.Combine(ctx.WorkFolder, "incrementals");
+
+                Directory.CreateDirectory(incrementalsDir);
+
+                int newVersion = GetLastWorkVersion(assetPath) + 1;
+                string versionedFileName = $"{ctx.FileName}_v{newVersion:D3}{ctx.Extension}";
+                string destinationPath = Path.Combine(incrementalsDir, versionedFileName);
+
+                File.Copy(assetPath, destinationPath);
+                MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
+                form.RefreshRightPanel(ctx.AssetRoot);
             }
-            UpdateAssetMetadata(assetPath, versionName, ctx.Department);
-            MarkDownstreamDepartmentsOutdated(assetPath, ctx.Department);
+            else
+            {
+                MessageBox.Show($"Please Grab Asset First");
+            }
         }
 
-        public static void AddPublishLog(string assetPath, int version, string message)
+        public static void PublishAsset(string assetPath, AssetManagerForm form)
         {
-            string changelogPath = Path.Combine(assetPath, "changelog.json");
+            if (LockAssetDepartment.IsLockedByUser(assetPath))
+            {
+                VersionAsset(assetPath, form);
+
+                var ctx = ExtractAssetContext(assetPath);
+
+                string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
+                Directory.CreateDirectory(publishFolder);
+
+                string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
+                string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
+
+                File.Copy(assetPath, publishedFilePath, overwrite: true);
+                MessageBox.Show($"Asset publié : {publishedFileName}", "Succès");
+
+                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Publish", ctx.AssetType, $"{ctx.Department}.bat");
+                if (File.Exists(batPath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = batPath,
+                        Arguments = $"\"{publishedFilePath}\"",
+                        UseShellExecute = true
+                    });
+                }
+
+                int versionName = GetLastWorkVersion(assetPath);
+                var msgPopup = new MessageBoxPopup();
+                if (msgPopup.ShowDialog() == DialogResult.OK)
+                {
+                    AddPublishLog(ctx.WorkFolder, ctx.FileName, versionName, msgPopup.CommitMessage);
+                }
+                UpdateAssetMetadata(assetPath, versionName, ctx.Department);
+                MarkDownstreamDepartmentsOutdated(assetPath, ctx.Department);
+                form.RefreshRightPanel(ctx.AssetRoot);
+            }
+            else
+            {
+                MessageBox.Show($"Please Grab Asset First");
+            }
+        }
+
+        public static void AddPublishLog(string workPath, string fileName, int version, string message)
+        {
+            string changelogPath = Path.Combine(workPath, $"{fileName}_changelog.json");
 
             if (!File.Exists(changelogPath))
             {
@@ -216,23 +230,30 @@ namespace DuckPipe.Core
             public string Message { get; set; }
         }
 
-        public static void ExecAsset(string assetPath)
+        public static void ExecAsset(string assetPath, AssetManagerForm form)
         {
-            var ctx = ExtractAssetContext(assetPath);
-
-            string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
-            string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
-            string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
-
-            string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Exec", ctx.AssetType, $"{ctx.Department}.bat");
-            if (File.Exists(batPath))
-            {
-                Process.Start(new ProcessStartInfo
+            if (LockAssetDepartment.IsLockedByUser(assetPath))
                 {
-                    FileName = batPath,
-                    Arguments = $"\"{publishedFilePath}\"",
-                    UseShellExecute = true
-                });
+                var ctx = ExtractAssetContext(assetPath);
+
+                string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
+                string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
+                string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
+
+                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Exec", ctx.AssetType, $"{ctx.Department}.bat");
+                if (File.Exists(batPath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = batPath,
+                        Arguments = $"\"{publishedFilePath}\"",
+                        UseShellExecute = true
+                    });
+                }
+            }
+            else
+            {
+                MessageBox.Show($"Please Grab Asset First");
             }
         }
 
@@ -241,29 +262,57 @@ namespace DuckPipe.Core
             var ctx = ExtractAssetContext(assetPath);
             string jsonPath = Path.Combine(ctx.AssetRoot, "asset.json");
 
-            string json = File.ReadAllText(jsonPath);
+            if (!File.Exists(jsonPath))
+                return;
+
+            var json = File.ReadAllText(jsonPath);
             var options = new JsonSerializerOptions { WriteIndented = true };
 
-            var assetData = JsonSerializer.Deserialize<Dictionary<string, object>>(json, options);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
 
-            var deptDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
-                JsonSerializer.Serialize(assetData["departments"])
+            var updatedAssetData = new Dictionary<string, object>();
+
+            var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
+                root.GetProperty("workfile").GetRawText()
             );
 
-            deptDict[deptName]["version"] = $"v{version.ToString("D3")}";
-            deptDict[deptName]["lastModified"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            deptDict[deptName]["status"] = "upToDate";
+            bool updated = false;
 
-            assetData["departments"] = deptDict;
+            var keys = workfileDict.Keys.ToList(); 
+            foreach (var key in keys)
+            {
+                if (Path.GetFileName(key) == ctx.File)
+                {
+                    var data = workfileDict[key];
+                    data["version"] = $"v{version:D3}";
+                    data["lastModified"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                    data["status"] = "upToDate";
+                    data["user"] = Environment.UserName;
+                    updated = true;
+                }
+            }
 
-            string updatedJson = JsonSerializer.Serialize(assetData, options);
-            File.WriteAllText(jsonPath, updatedJson);
+            updatedAssetData["workfile"] = workfileDict;
+
+            foreach (var prop in root.EnumerateObject())
+            {
+                if (prop.Name == "workfile") continue;
+
+                updatedAssetData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
+            }
+
+            if (updated)
+            {
+                string updatedJson = JsonSerializer.Serialize(updatedAssetData, options);
+                File.WriteAllText(jsonPath, updatedJson);
+            }
         }
 
         public static List<CommitEntry> GetAssetCommits(string assetPath)
         {
             var ctx = ExtractAssetContext(assetPath);
-            string changelogPath = Path.Combine(ctx.WorkFolder, "changelog.json");
+            string changelogPath = Path.Combine(ctx.WorkFolder, $"{ctx.FileName}_changelog.json");
             var commits = new List<CommitEntry>();
 
             if (!File.Exists(changelogPath))
@@ -277,7 +326,7 @@ namespace DuckPipe.Core
                 string version = entry.TryGetProperty("Version", out var v) ? v.GetString() : "???";
                 DateTime timestamp = entry.TryGetProperty("Timestamp", out var t) && t.TryGetDateTime(out var dt)
                     ? dt
-                    : DateTime.MinValue; string user = entry.TryGetProperty("user", out var u) ? u.GetString() ?? "(inconnu)" : "(inconnu)";
+                    : DateTime.MinValue; string user = entry.TryGetProperty("User", out var u) ? u.GetString() ?? "(inconnu)" : "(inconnu)";
                 string message = entry.TryGetProperty("Message", out var m) ? m.GetString() ?? "" : "";
 
                 commits.Add(new CommitEntry
@@ -295,47 +344,71 @@ namespace DuckPipe.Core
         public static void MarkDownstreamDepartmentsOutdated(string assetPath, string deptPublished)
         {
             var ctx = ExtractAssetContext(assetPath);
+
             string configPath = Path.Combine(ctx.RootPath, ctx.ProdName, "config.json");
-            MessageBox.Show($"{configPath}");
-
-            var configJson = File.ReadAllText(configPath);
+            string configJson = File.ReadAllText(configPath);
             using var configDoc = JsonDocument.Parse(configJson);
-            var root = configDoc.RootElement;
 
-            if (!root.TryGetProperty("departments", out var departments))
+            if (!configDoc.RootElement.TryGetProperty("departments", out var allDepartments))
                 return;
 
-            if (!departments.TryGetProperty(deptPublished, out var deptInfo))
+            if (!allDepartments.TryGetProperty(deptPublished, out var deptInfo))
                 return;
 
             if (!deptInfo.TryGetProperty("downstream", out var downstreamList))
                 return;
 
-            string assetJsonPath = Path.Combine(ctx.AssetRoot, "asset.json");
+            string jsonPath = Path.Combine(ctx.AssetRoot, "asset.json");
+            if (!File.Exists(jsonPath))
+                return;
 
-            var assetJson = File.ReadAllText(assetJsonPath);
-            var assetDoc = JsonDocument.Parse(assetJson);
-            var assetObj = JsonSerializer.Deserialize<Dictionary<string, object>>(assetJson);
+            var json = File.ReadAllText(jsonPath);
+            var options = new JsonSerializerOptions { WriteIndented = true };
 
-            var departmentsDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
-                assetDoc.RootElement.GetProperty("departments").GetRawText()
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            var updatedAssetData = new Dictionary<string, object>();
+
+            var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
+                root.GetProperty("workfile").GetRawText()
             );
 
-            foreach (var downstreamDept in downstreamList.EnumerateArray())
+            bool updated = false;
+            var keys = workfileDict.Keys.ToList();
+
+            foreach (var key in keys)
             {
-                var name = downstreamDept.GetString();
-                if (departmentsDict.ContainsKey(name))
+                var data = workfileDict[key];
+
+                if (!data.ContainsKey("department"))
+                    continue;
+
+                string departmentName = data["department"]?.ToString();
+                string fileName = Path.GetFileName(key);
+                foreach (var downstream in downstreamList.EnumerateArray())
                 {
-                    departmentsDict[name]["status"] = "outDated";
+                    if (downstream.GetString() == departmentName && fileName != ctx.FileName)
+                    {
+                        data["status"] = "outDated";
+                        updated = true;
+                    }
                 }
             }
 
-            var newData = new Dictionary<string, object>
-            {
-                ["departments"] = departmentsDict
-            };
+            updatedAssetData["workfile"] = workfileDict;
 
-            File.WriteAllText(assetJsonPath, JsonSerializer.Serialize(newData, new JsonSerializerOptions { WriteIndented = true }));
+            foreach (var prop in root.EnumerateObject())
+            {
+                if (prop.Name == "workfile") continue;
+                updatedAssetData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
+            }
+
+            if (updated)
+            {
+                string updatedJson = JsonSerializer.Serialize(updatedAssetData, options);
+                File.WriteAllText(jsonPath, updatedJson);
+            }
         }
     }
 }

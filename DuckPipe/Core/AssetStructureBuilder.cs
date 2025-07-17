@@ -37,10 +37,8 @@ namespace DuckPipe.Core
     {
         public static void CreateAssetStructure(string rootPath, string assetPath, AssetStructure structure, string assetName)
         {
-            if (structure.Name == "Props")
-                CreateAssetPropsJson(rootPath, assetPath, structure, assetName);
-            else if (structure.Name == "Characters")
-                CreateAssetCharactersJson(rootPath, assetPath, structure, assetName);
+            CreateAssetJson(rootPath, assetPath, structure, assetName);
+            if (structure.Name == "Characters")
                 AddCostume(assetPath, "Body");
 
             foreach (var kvp in structure.Structure)
@@ -90,102 +88,60 @@ namespace DuckPipe.Core
             }
         }
 
-        private static void CreateAssetCharactersJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
+        private static void CreateAssetJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
         {
             Directory.CreateDirectory(assetPath);
 
-            var departmentsData = new Dictionary<string, object>();
+            var workfileData = new Dictionary<string, object>();
 
             if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
             {
-                foreach (var child in workNode.Children)
+                foreach (var department in workNode.Children)
                 {
-                    if (child.Key == "_files") continue;
+                    if (department.Key == "_files") continue;
 
-                    string deptName = child.Key;
+                    var deptNode = JsonSerializer.Deserialize<AssetNode>(department.Value.GetRawText());
+                    if (deptNode == null) continue;
 
-                    string incrementalPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName, "incrementals");
+                    string deptName = department.Key;
+                    string deptUpper = deptName.ToUpper();
+                    string deptLower = deptName.ToLower();
+
                     string workPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName);
+                    string incrementalPath = Path.Combine(workPath, "incrementals");
                     string publishPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "dlv");
 
-                    string baseFileName = $"{assetName}_{deptName.ToLower()}";
-
-                    departmentsData[deptName] = new
+                    if (deptNode.Files != null)
                     {
-                        status = "not_started",
-                        version = "v001",
-                        workPath,
-                        incrementalPath,
-                        workFile = baseFileName + ".ma",
-                        publishName = baseFileName + "_pub.ma",
-                        publishPath,
-                        software = "unknown",
-                        user = "",
-                        lastModified = ""
-                    };
+                        foreach (var fileTemplate in deptNode.Files)
+                        {
+                            string workFile = fileTemplate.Replace("assetnamepipeplaceholder", assetName.ToLower());
+                            string extension = Path.GetExtension(workFile);
+                            string baseName = Path.GetFileNameWithoutExtension(workFile);
+                            string publishFile = $"{baseName}_OK{extension}";
+
+                            workfileData[workFile] = new
+                            {
+                                department = deptUpper,
+                                status = "not_started",
+                                version = "v001",
+                                workPath = workPath,
+                                publishPath = publishPath,
+                                incrementalPath = incrementalPath,
+                                workFile = workFile,
+                                publishName = publishFile,
+                                user = "",
+                                lastModified = ""
+                            };
+                        }
+                    }
                 }
             }
 
             var assetJson = new
             {
-                name = assetName,
-                type = structure.Name,
-                created = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-                status = "wip",
-                version = 1,
-                departments = departmentsData,
-                costumes = new List<object>()
-            };
-
-            string jsonPath = Path.Combine(assetPath, "asset.json");
-            string jsonString = JsonSerializer.Serialize(assetJson, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(jsonPath, jsonString);
-        }
-
-        private static void CreateAssetPropsJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
-        {
-            Directory.CreateDirectory(assetPath);
-
-            var departmentsData = new Dictionary<string, object>();
-
-            if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
-            {
-                foreach (var child in workNode.Children)
-                {
-                    if (child.Key == "_files") continue;
-
-                    string deptName = child.Key;
-
-                    string incrementalPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName, "incrementals");
-                    string workPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName);
-                    string publishPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "dlv");
-
-                    string baseFileName = $"{assetName}_{deptName.ToLower()}";
-
-                    departmentsData[deptName] = new
-                    {
-                        status = "not_started",
-                        version = "v001",
-                        workPath,
-                        incrementalPath,
-                        workFile = baseFileName + ".ma",
-                        publishName = baseFileName + "_pub.ma",
-                        publishPath,
-                        software = "unknown",
-                        user = "",
-                        lastModified = ""
-                    };
-                }
-            }
-
-            var assetJson = new
-            {
-                name = assetName,
-                type = structure.Name,
-                created = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-                status = "wip",
-                version = 1,
-                departments = departmentsData,
+                workfile = workfileData,
+                costumes = new List<string>() // Ajouté ici pour éviter bug si AddCostume() est appelé plus tard
             };
 
             string jsonPath = Path.Combine(assetPath, "asset.json");

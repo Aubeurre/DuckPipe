@@ -6,29 +6,65 @@ using System.Threading.Tasks;
 
 namespace DuckPipe.Core
 {
-    internal class LockAssetDepartment
+    public class LockAssetDepartment
     {
-        public static bool TryLockFile(string assetPath, out string lockedByUser)
+        public static void TryLockFile(string assetPath, AssetManagerForm form)
         {
+            string workFolderPath = Path.GetDirectoryName(assetPath);
             string fileName = Path.GetFileNameWithoutExtension(assetPath);
-            string lockFile = Path.Combine(assetPath, $"{fileName}.lock");
+            string lockFile = Path.Combine(workFolderPath, $"{fileName}.lock");
+            string lockedByUser = "";
 
             if (File.Exists(lockFile))
             {
                 lockedByUser = File.ReadAllText(lockFile);
-                return false;
+                return;
             }
 
             lockedByUser = Environment.UserName;
             File.WriteAllText(lockFile, lockedByUser);
-            return true;
+
+            string[] assetParts = assetPath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
+            form.RefreshRightPanel(assetParts[0]);
+            return;
         }
 
-        public static void UnlockFile(string assetPath, string file)
+        public static void UnlockFile(string assetPath, AssetManagerForm form)
         {
-            string lockFile = Path.Combine(assetPath, $"{file}.lock");
+            string workFolderPath = Path.GetDirectoryName(assetPath);
+            string fileName = Path.GetFileNameWithoutExtension(assetPath);
+            string lockFile = Path.Combine(workFolderPath, $"{fileName}.lock");
             if (File.Exists(lockFile))
                 File.Delete(lockFile);
+
+                string[] assetParts = assetPath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
+                form.RefreshRightPanel(assetParts[0]);
         }
+        public static string GetuserLocked(string assetPath)
+        {
+            string workFolderPath = Path.GetDirectoryName(assetPath);
+            string fileName = Path.GetFileNameWithoutExtension(assetPath);
+            string lockFile = Path.Combine(workFolderPath, $"{fileName}.lock");
+            if (!File.Exists(lockFile))
+            {
+                return ""; 
+            }
+            else
+            {
+                string userLocked = File.ReadAllText(lockFile);
+                return userLocked; 
+            }
+        }
+
+        public static bool IsLockedByUser(string assetPath)
+        {
+            string userLock = GetuserLocked(assetPath);
+            if (userLock == Environment.UserName)
+                {
+                    return true;
+                }
+            else { return  false; }
+        }
+        
     }
 }
