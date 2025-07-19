@@ -1,0 +1,48 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+header {
+    background-color: #222;
+    color: white;
+    padding: 1rem;
+}
+
+    header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+    }
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+nav a {
+    color: #ddd;
+    text-decoration: none;
+}
+
+    nav a:hover {
+        text-decoration: underline;
+        color: #fff;
+    }
+
+main {
+    padding: 2rem;
+}
+
+footer {
+    background-color: #eee;
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+    margin-top: 2rem;
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>DuckPipe &#45 Documentation</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>DuckPipe &#45 Documentation</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="assets.html">Assets</a></li>
+                <li><a href="shots.html">Shots</a></li>
+                <li><a href="pipeline.html">Ducky Asset Manager</a></li>
+                <li><a href="nomenclature.html">Nomenclature</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Ducky Asset Manager</h2>
+        <section>
+            <p>
+                <strong>Ducky Asset Manager</strong> permet aux artistes de gérer efficacement tous les éléments d’une production 3D, depuis une interface simple et centralisée.</br>
+                Il offre un accès rapide à la structure du projet, permet de créer des assets, séquences et plans, de versionner les fichiers de travail, de publier des livrables et de verrouiller les fichiers pour éviter les conflits de modification.</br>
+                Tout est conçu pour fluidifier le pipeline de production et automatiser les tâches répétitives en assurant la securitee des fichiers.
+            </p>
+        </section>
+
+        </br><hr></br>
+
+        <h2>Installation</h2>
+
+        <section>
+            Pour une instalation rapide de l'asset manager Ducky, suivez la page <a href="config.html">Install Ducky Asset Manager</a>.
+        </section>
+
+        </br><hr></br>
+
+        <h2>Config</h2>
+        <section>
+            <h3>Configuration des productions</h3>
+            <p>
+                DuckPipe s’appuie sur un fichier <code>config.json</code> pour définir les types d’assets disponibles, les départements de production, les chemins relatifs, et les règles spécifiques au projet.</br>
+                Chaque production dispose de son propre fichier de configuration, copié automatiquement lors de sa création.</br>
+                Modifier ce fichier permet d’adapter le pipeline aux besoins spécifiques d’un projet sans toucher au code source.
+            </p>
+        </section>
+
+        <section>
+            <h3>Structure et configuration : <code>AssetStructure.json</code> & <code>asset.json</code></h3>
+            <p>
+                Le fichier <code>AssetStructure.json</code> définit la structure par défaut des dossiers et fichiers pour chaque type d’asset (ex: Props, Characters, Sequences, Shots).</br>
+                Il indique les départements impliqués, les chemins à créer, ainsi que les modèles de noms de fichiers.</br>
+                Lors de la création d’un nouvel asset, cette structure est utilisée pour générer automatiquement l’arborescence correspondante.</br>
+                </br>
+                Il est donc possible d'editer le fichier afin de constituer une arboressence unique pour chaque production.</br>
+            </p>
+            <p>
+                Le fichier <code>asset.json</code>, quant à lui, est propre à chaque asset. Il est généré à partir de la structure définie dans <code>AssetStructure.json</code> et est mis à jour tout au long de la production.</br>
+                Il contient des informations de suivi comme les statuts de départements, les versions de fichiers de travail, ou les publications.</br>
+                C’est le fichier central que DuckPipe utilise pour gérer l’état d’un asset.</br>
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 DuckPipe &#45 Alexandre Wojtkow - Ichigo Studio</p>
+    </footer>
+</body>
+</html>
