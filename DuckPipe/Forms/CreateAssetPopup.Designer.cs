@@ -33,6 +33,8 @@
             label1 = new Label();
             cbAssetType = new ComboBox();
             label2 = new Label();
+            lbSequence = new Label();
+            cbSeqChoice = new ComboBox();
             SuspendLayout();
             // 
             // btnOK
@@ -68,7 +70,6 @@
             label1.Size = new Size(70, 15);
             label1.TabIndex = 3;
             label1.Text = "Asset Name";
-            label1.Click += label1_Click;
             // 
             // cbAssetType
             // 
@@ -83,6 +84,7 @@
             cbAssetType.Size = new Size(121, 23);
             cbAssetType.TabIndex = 6;
             cbAssetType.Tag = "";
+            cbAssetType.SelectedIndexChanged += cbAssetType_SelectedIndexChanged;
             // 
             // label2
             // 
@@ -94,12 +96,37 @@
             label2.TabIndex = 7;
             label2.Text = "Asset Type";
             // 
+            // lbSequence
+            // 
+            lbSequence.AutoSize = true;
+            lbSequence.ForeColor = Color.White;
+            lbSequence.Location = new Point(12, 68);
+            lbSequence.Name = "lbSequence";
+            lbSequence.Size = new Size(51, 15);
+            lbSequence.TabIndex = 9;
+            lbSequence.Text = "Seqence";
+            // 
+            // cbSeqChoice
+            // 
+            cbSeqChoice.BackColor = Color.FromArgb(30, 30, 30);
+            cbSeqChoice.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbSeqChoice.FlatStyle = FlatStyle.Flat;
+            cbSeqChoice.ForeColor = Color.White;
+            cbSeqChoice.FormattingEnabled = true;
+            cbSeqChoice.Location = new Point(93, 65);
+            cbSeqChoice.Name = "cbSeqChoice";
+            cbSeqChoice.Size = new Size(77, 23);
+            cbSeqChoice.TabIndex = 8;
+            cbSeqChoice.Tag = "";
+            // 
             // CreateAssetPopup
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(45, 45, 45);
             ClientSize = new Size(225, 94);
+            Controls.Add(lbSequence);
+            Controls.Add(cbSeqChoice);
             Controls.Add(label2);
             Controls.Add(cbAssetType);
             Controls.Add(btnOK);
@@ -108,6 +135,7 @@
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Name = "CreateAssetPopup";
             Text = "Create Asset";
+            Load += CreateAssetPopup_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -119,5 +147,7 @@
         private Label label1;
         private ComboBox cbAssetType;
         private Label label2;
+        private Label lbSequence;
+        private ComboBox cbSeqChoice;
     }
 }

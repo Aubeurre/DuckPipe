@@ -28,6 +28,7 @@ namespace DuckPipe
             public string AssetName { get; set; }
             public string? Department { get; set; }
             public string AssetRoot { get; set; }
+            public string SequenceName { get; set; }
         }
 
         public static AssetContext? ExtractAssetContext(string assetPath)
@@ -41,26 +42,43 @@ namespace DuckPipe
                 string relativePath = assetPath.Replace(rootPath, "").Trim('\\');
                 string[] parts = relativePath.Split('\\');
 
-                int assetsIndex = Array.IndexOf(parts, "Assets");
-                if (assetsIndex < 0 || assetsIndex + 2 >= parts.Length)
-                    return null;
-
                 string prodName = parts[0];
-                string assetType = parts[assetsIndex + 1];
-                string assetName = parts[assetsIndex + 2];
+                string firstFolder = parts.ElementAtOrDefault(1);
 
                 var ctx = new AssetContext
                 {
                     RootPath = rootPath,
                     ProductionName = prodName,
                     ProductionPath = Path.Combine(rootPath, prodName),
-                    AssetType = assetType,
-                    AssetName = assetName,
-                    AssetRoot = Path.Combine(rootPath, prodName, "Assets", assetType, assetName)
                 };
 
-                if (parts.Length > assetsIndex + 4)
-                    ctx.Department = parts[assetsIndex + 4];
+                if (firstFolder == "Assets")
+                {
+                    if (parts.Length < 4) return null;
+
+                    ctx.AssetType = parts[2];
+                    ctx.AssetName = parts[3];
+                    ctx.AssetRoot = Path.Combine(rootPath, prodName, "Assets", ctx.AssetType, ctx.AssetName);
+
+                    if (parts.Length > 5)
+                        ctx.Department = parts[5];
+                }
+                else if (firstFolder == "Shots" && parts.ElementAtOrDefault(2) == "Sequences")
+                {
+                    if (parts.Length < 6 || parts[4] != "Shots") return null;
+
+                    ctx.SequenceName = parts[3];
+                    ctx.AssetType = "Shots";
+                    ctx.AssetName = $"S{parts[3]}_P{parts[5]}";
+                    ctx.AssetRoot = Path.Combine(rootPath, prodName, "Shots", "Sequences", ctx.SequenceName, "Shots", ctx.AssetName);
+
+                    if (parts.Length > 6)
+                        ctx.Department = parts[6];
+                }
+                else
+                {
+                    return null; // format inconnu
+                }
 
                 return ctx;
             }
@@ -70,7 +88,6 @@ namespace DuckPipe
                 return null;
             }
         }
-
         private void tvAssetList_AfterSelect(object sender, TreeViewEventArgs e)
         {
             string fullPath = GetFullPathFromNode(e.Node);
@@ -100,7 +117,7 @@ namespace DuckPipe
             lblAssetType.Text = ctx.AssetType;
 
             // config
-            var assetStructures = LoadAssetStructures(ctx.ProductionPath);
+            var assetStructures = AssetStructureBuilder.LoadAssetStructures(ctx.ProductionPath);
             if (assetStructures != null && assetStructures.TryGetValue(ctx.AssetType, out var structure))
             {
                 DisplayPipelineDepartments(fullPath);
@@ -137,15 +154,16 @@ namespace DuckPipe
 
         private void btCreateAsset_Click(object sender, EventArgs e)
         {
-            using (var form = new CreateAssetPopup())
+            using (var form = new CreateAssetPopup(this))
             {
                 if (form.ShowDialog() != DialogResult.OK)
                     return;
 
-                string assetName = form.AssetName.Trim();
-                string assetType = form.AssetType;
+                string newItemName = form.AssetName.Trim();
+                string newItemType = form.AssetType;
+                string seqName = form.SeqName.Trim();
 
-                if (string.IsNullOrEmpty(assetName))
+                if (string.IsNullOrEmpty(newItemName))
                 {
                     MessageBox.Show("Le nom de l'asset ne peut pas etre vide.");
                     return;
@@ -160,29 +178,76 @@ namespace DuckPipe
 
                 string rootPath = GetProductionRootPath();
                 string prodPath = Path.Combine(rootPath, selectedProd);
-                string baseAssetFolder = Path.Combine(prodPath, "Assets", assetType);
-                string assetPath = Path.Combine(baseAssetFolder, assetName);
-
-                if (Directory.Exists(assetPath))
+                if (newItemType == "Props" || newItemType == "Characters" || newItemType == "Environments")
                 {
-                    MessageBox.Show("Cet asset existe déjà.");
-                    return;
+                    string baseAssetFolder = Path.Combine(prodPath, "Assets", newItemType);
+                    string assetPath = Path.Combine(baseAssetFolder, newItemName);
+
+                    if (Directory.Exists(assetPath))
+                    {
+                        MessageBox.Show("Cet asset existe déjà.");
+                        return;
+                    }
+
+                    // Charger structures
+                    var assetStructures = AssetStructureBuilder.LoadAssetStructures(prodPath);
+                    if (assetStructures == null || !assetStructures.TryGetValue(newItemType, out var assetStructure))
+                    {
+                        MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
+                        return;
+                    }
+
+                    // arborescence des fichiers/dossiers
+                    AssetStructureBuilder.CreateAssetStructure(rootPath, assetPath, assetStructure, newItemName);
+
+                    MessageBox.Show($"Asset '{newItemName}' ({newItemType}) créé dans :\n{assetPath}");
                 }
 
-                // Charger les structures
-                var assetStructures = LoadAssetStructures(prodPath);
-                if (assetStructures == null || !assetStructures.TryGetValue(assetType, out var assetStructure))
+                if (newItemType == "Sequences")
                 {
-                    MessageBox.Show($"Structure introuvable pour le type : {assetType}");
-                    return;
+                    string baseSeqFolder = Path.Combine(prodPath, "Shots", newItemType);
+                    string seqPath = Path.Combine(baseSeqFolder, newItemName);
+
+                    if (Directory.Exists(seqPath))
+                    {
+                        MessageBox.Show("Cette Sequence existe déjà.");
+                        return;
+                    }
+
+                    // Charger structures
+                    var assetStructures = AssetStructureBuilder.LoadAssetStructures(prodPath);
+                    if (assetStructures == null || !assetStructures.TryGetValue(newItemType, out var assetStructure))
+                    {
+                        MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
+                        return;
+                    }
+                    AssetStructureBuilder.CreateAssetStructure(rootPath, seqPath, assetStructure, newItemName);
+
                 }
 
-                // Créer l’arborescence des fichiers/dossiers
-                AssetStructureBuilder.CreateAssetStructure(rootPath, assetPath, assetStructure, assetName);
+                if (newItemType == "Shots")
+                {
+                    string baseSeqFolder = Path.Combine(prodPath, "Shots", "Sequences", seqName, newItemType);
+                    string seqPath = Path.Combine(baseSeqFolder, newItemName);
 
-                MessageBox.Show($"Asset '{assetName}' ({assetType}) créé dans :\n{assetPath}");
+                    if (Directory.Exists(seqPath))
+                    {
+                        MessageBox.Show("Cette Sequence existe déjà.");
+                        return;
+                    }
 
-                // Recharger le TreeView
+                    // Charger structures
+                    var assetStructures = AssetStructureBuilder.LoadAssetStructures(prodPath);
+                    if (assetStructures == null || !assetStructures.TryGetValue(newItemType, out var assetStructure))
+                    {
+                        MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
+                        return;
+                    }
+                    AssetStructureBuilder.CreateAssetStructure(rootPath, seqPath, assetStructure, newItemName);
+
+                }
+
+                // Recharger  TreeView
                 LoadTreeViewFromFolder(rootPath, selectedProd);
             }
         }
@@ -244,7 +309,7 @@ namespace DuckPipe
             var folderDepthLimits = new Dictionary<string, int>()
     {
         { "Assets", 3 },
-        { "Sequences", 5 },
+        { "Shots", 5 },
         { "Renders", 1 },
         { "IO", 100 },
         { "Dev", 100 },
@@ -327,52 +392,18 @@ namespace DuckPipe
 
         public void RefreshRightPanel(string assetPath)
         {
-            ClearRightPanel();
+            flpPipelineStatus.Controls.Clear();
+            flpAssetInspect.Controls.Clear();
+            flpDeptButton.Controls.Clear();
             DisplayPipelineDepartments(assetPath);
-        }
-
-        private Dictionary<string, AssetStructure> LoadAssetStructures(string prodPath)
-        {
-            string assetStructPath = Path.Combine(prodPath, "Dev", "AssetStructure.json");
-
-            if (!File.Exists(assetStructPath))
-            {
-                MessageBox.Show($"Fichier AssetStructure.json manquant dans :\n{prodPath}");
-                return null;
-            }
-
-            try
-            {
-                string json = File.ReadAllText(assetStructPath);
-                var rawData = JsonSerializer.Deserialize<Dictionary<string, AssetNode>>(json);
-
-                Dictionary<string, AssetStructure> structures = new();
-
-                foreach (var entry in rawData)
-                {
-                    structures[entry.Key] = new AssetStructure
-                    {
-                        Name = entry.Key,
-                        Structure = entry.Value.Children.ToDictionary(
-                            child => child.Key,
-                            child => JsonSerializer.Deserialize<AssetNode>(child.Value.GetRawText())
-                        )
-                    };
-                }
-
-                return structures;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erreur lors de la lecture de AssetStructure.json :\n{ex.Message}");
-                return null;
-            }
         }
 
         private void DisplayPipelineDepartments(string assetPath)
         {
             flpPipelineStatus.SuspendLayout();
             flpPipelineStatus.Controls.Clear();
+            flpAssetInspect.Controls.Clear();
+            flpDeptButton.Controls.Clear();
 
             flpPipelineStatus.AutoScroll = true;
             flpPipelineStatus.FlowDirection = FlowDirection.TopDown;
@@ -405,7 +436,6 @@ namespace DuckPipe
             foreach (var kvp in departmentMap)
             {
                 string deptName = kvp.Key;
-
                 var departmentPanel = BuildDepartmentPanel(jsonPath, deptName);
                 flpPipelineStatus.Controls.Add(departmentPanel);
             }
@@ -449,8 +479,8 @@ namespace DuckPipe
             listView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
 
             // Ajoute les colonnes
-            listView.Columns.Add("Fichier", flpPipelineStatus.ClientSize.Width - 170);
-            listView.Columns.Add("User", 50);
+            listView.Columns.Add("Fichier", flpPipelineStatus.ClientSize.Width - 200);
+            listView.Columns.Add("User", 70);
             listView.Columns.Add("Statut", 25);
             listView.Columns.Add("Version", 50);
 
@@ -479,7 +509,7 @@ namespace DuckPipe
             departmentPanel.Controls.Add(listContainer);
 
             // Récupère les infos
-            var info = (Tuple<string, string>)listView.Tag; 
+            var info = (Tuple<string, string>)listView.Tag;
             AddAllWorkFilesToDepartementPanel(listView, info.Item1, info.Item2);
 
             return departmentPanel;
@@ -532,7 +562,7 @@ namespace DuckPipe
             commits.Reverse();
 
             foreach (var commit in commits)
-                {
+            {
                 var panel = new Panel
                 {
                     Width = flpAssetInspect.ClientSize.Width - 10,
@@ -595,6 +625,10 @@ namespace DuckPipe
                         {
                             string fileName = Path.GetFileName(file);
                             string userLocked = LockAssetDepartment.GetuserLocked(file);
+                            if (userLocked != "")
+                            {
+                                userLocked = $"🔒 {userLocked}";
+                            }
 
                             string statusIcon = status switch
                             {
@@ -621,6 +655,20 @@ namespace DuckPipe
         {
             selectedAssetPath = selectedItem as string;
             DisplayCommitsPanel(selectedAssetPath);
+        }
+
+        private void btnDoc_Click(object sender, EventArgs e)
+        {
+            string docPath = Path.Combine(Application.StartupPath, "Docs", "index.html");
+            MessageBox.Show(docPath);
+            if (File.Exists(docPath))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = docPath,
+                    UseShellExecute = true
+                });
+            }
         }
     }
 }

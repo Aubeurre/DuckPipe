@@ -6,7 +6,7 @@
         "Work": {
             "Rig": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_rig_v000.ma" ]
+                    "_files": [ "assetnamepipeplaceholder _rig_v000.ma" ]
                 },
                 "_files": [ "assetnamepipeplaceholder_rig.ma" ]
             },
@@ -70,6 +70,52 @@
                     "_files": [ "assetnamepipeplaceholder_model_v000.ma" ]
                 },
                 "_files": [ "assetnamepipeplaceholder_model.ma" ]
+            }
+        }
+    },
+    "Environments": {
+        "preprod": {},
+        "dlv": {},
+        "Work": {
+            "Assemble": {
+                "incrementals": {
+                    "_files": [ "assetnamepipeplaceholder_assemble_v000.ma" ]
+                },
+                "_files": [ "assetnamepipeplaceholder_assemble.ma" ]
+            }
+        }
+    },
+    "Sequences": {
+        "preprod": {},
+        "Shots": {}
+    },
+    "Shots": {
+        "blast": {},
+        "dlv": {},
+        "Work": {
+            "Layout": {
+                "incrementals": {
+                    "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_layout_v000.ma" ]
+                },
+                "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_layout.ma" ]
+            },
+            "Anim": {
+                "incrementals": {
+                    "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_anim_v000.ma" ]
+                },
+                "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_anim.ma" ]
+            },
+            "Cfx": {
+                "incrementals": {
+                    "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_cfx_v000.ma" ]
+                },
+                "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_cfx.ma" ]
+            },
+            "Lighting": {
+                "incrementals": {
+                    "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_light_v000.ma" ]
+                },
+                "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_light.ma" ]
             }
         }
     }

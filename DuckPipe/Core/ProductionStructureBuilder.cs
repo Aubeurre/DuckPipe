@@ -38,6 +38,7 @@ namespace DuckPipe.Core
                 "Assets/Environments",
                 "Assets/Template",
                 "Shots/Template",
+                "Shots/Sequences",
                 "Renders",
                 "IO/In",
                 "IO/Out",

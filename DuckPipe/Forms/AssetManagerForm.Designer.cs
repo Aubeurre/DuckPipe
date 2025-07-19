@@ -51,6 +51,7 @@ namespace DuckPipe
             panel2 = new Panel();
             splitContainer2 = new SplitContainer();
             splitContainer3 = new SplitContainer();
+            btnDoc = new Button();
             contextMenuTree.SuspendLayout();
             panel1.SuspendLayout();
             plAssetTaskInfo.SuspendLayout();
@@ -75,9 +76,9 @@ namespace DuckPipe
             tvAssetList.ContextMenuStrip = contextMenuTree;
             tvAssetList.ForeColor = Color.White;
             tvAssetList.LineColor = Color.White;
-            tvAssetList.Location = new Point(12, 43);
+            tvAssetList.Location = new Point(12, 74);
             tvAssetList.Name = "tvAssetList";
-            tvAssetList.Size = new Size(231, 463);
+            tvAssetList.Size = new Size(230, 432);
             tvAssetList.TabIndex = 0;
             tvAssetList.AfterSelect += tvAssetList_AfterSelect;
             // 
@@ -105,6 +106,7 @@ namespace DuckPipe
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(45, 45, 45);
+            panel1.Controls.Add(btnDoc);
             panel1.Controls.Add(btnCreateProduction);
             panel1.Controls.Add(btCreateAsset);
             panel1.Controls.Add(cbProdList);
@@ -114,7 +116,7 @@ namespace DuckPipe
             panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(254, 543);
+            panel1.Size = new Size(253, 543);
             panel1.TabIndex = 2;
             // 
             // btnCreateProduction
@@ -125,7 +127,7 @@ namespace DuckPipe
             btnCreateProduction.FlatAppearance.BorderSize = 0;
             btnCreateProduction.FlatStyle = FlatStyle.Flat;
             btnCreateProduction.ForeColor = Color.White;
-            btnCreateProduction.Location = new Point(218, 12);
+            btnCreateProduction.Location = new Point(217, 43);
             btnCreateProduction.Name = "btnCreateProduction";
             btnCreateProduction.Size = new Size(25, 25);
             btnCreateProduction.TabIndex = 1;
@@ -142,7 +144,7 @@ namespace DuckPipe
             btCreateAsset.ForeColor = Color.White;
             btCreateAsset.Location = new Point(12, 510);
             btCreateAsset.Name = "btCreateAsset";
-            btCreateAsset.Size = new Size(231, 25);
+            btCreateAsset.Size = new Size(230, 25);
             btCreateAsset.TabIndex = 0;
             btCreateAsset.Text = "Add New";
             btCreateAsset.UseVisualStyleBackColor = false;
@@ -158,9 +160,9 @@ namespace DuckPipe
             cbProdList.ForeColor = Color.White;
             cbProdList.FormattingEnabled = true;
             cbProdList.Items.AddRange(new object[] { "OBSERVER ", "SPARK", "SILENCE" });
-            cbProdList.Location = new Point(12, 12);
+            cbProdList.Location = new Point(12, 43);
             cbProdList.Name = "cbProdList";
-            cbProdList.Size = new Size(200, 23);
+            cbProdList.Size = new Size(199, 23);
             cbProdList.TabIndex = 3;
             cbProdList.SelectedIndexChanged += cbProdList_SelectedIndexChanged;
             // 
@@ -171,7 +173,7 @@ namespace DuckPipe
             plAssetTaskInfo.Dock = DockStyle.Fill;
             plAssetTaskInfo.Location = new Point(0, 0);
             plAssetTaskInfo.Name = "plAssetTaskInfo";
-            plAssetTaskInfo.Size = new Size(204, 469);
+            plAssetTaskInfo.Size = new Size(205, 469);
             plAssetTaskInfo.TabIndex = 3;
             // 
             // flpAssetInspect
@@ -182,7 +184,7 @@ namespace DuckPipe
             flpAssetInspect.FlowDirection = FlowDirection.TopDown;
             flpAssetInspect.Location = new Point(0, 0);
             flpAssetInspect.Name = "flpAssetInspect";
-            flpAssetInspect.Size = new Size(204, 469);
+            flpAssetInspect.Size = new Size(205, 469);
             flpAssetInspect.TabIndex = 3;
             flpAssetInspect.WrapContents = false;
             // 
@@ -260,7 +262,7 @@ namespace DuckPipe
             panel2.Dock = DockStyle.Top;
             panel2.Location = new Point(0, 0);
             panel2.Name = "panel2";
-            panel2.Size = new Size(842, 74);
+            panel2.Size = new Size(843, 74);
             panel2.TabIndex = 5;
             // 
             // splitContainer2
@@ -278,7 +280,7 @@ namespace DuckPipe
             splitContainer2.Panel2.Controls.Add(splitContainer3);
             splitContainer2.Panel2.Controls.Add(panel2);
             splitContainer2.Size = new Size(1100, 543);
-            splitContainer2.SplitterDistance = 254;
+            splitContainer2.SplitterDistance = 253;
             splitContainer2.TabIndex = 6;
             // 
             // splitContainer3
@@ -295,9 +297,23 @@ namespace DuckPipe
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(plAssetTaskInfo);
-            splitContainer3.Size = new Size(842, 469);
+            splitContainer3.Size = new Size(843, 469);
             splitContainer3.SplitterDistance = 634;
             splitContainer3.TabIndex = 6;
+            // 
+            // btnDoc
+            // 
+            btnDoc.BackColor = Color.FromArgb(80, 80, 80);
+            btnDoc.FlatAppearance.BorderSize = 0;
+            btnDoc.FlatStyle = FlatStyle.Flat;
+            btnDoc.ForeColor = Color.White;
+            btnDoc.Location = new Point(12, 6);
+            btnDoc.Name = "btnDoc";
+            btnDoc.Size = new Size(23, 23);
+            btnDoc.TabIndex = 4;
+            btnDoc.Text = "?";
+            btnDoc.UseVisualStyleBackColor = false;
+            btnDoc.Click += btnDoc_Click;
             // 
             // AssetManagerForm
             // 
@@ -330,7 +346,6 @@ namespace DuckPipe
 
         private TreeView tvAssetList;
         private Panel panel1;
-        private ComboBox cbProdList;
         private Button btCreateAsset;
         private Button btnCreateProduction;
         private ContextMenuStrip contextMenuTree;
@@ -347,5 +362,7 @@ namespace DuckPipe
         private Panel pnlDeptBtn;
         private FlowLayoutPanel flpDeptButton;
         private FlowLayoutPanel flpPipelineStatus;
+        public ComboBox cbProdList;
+        private Button btnDoc;
     }
 }

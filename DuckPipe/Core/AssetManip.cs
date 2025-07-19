@@ -388,7 +388,7 @@ namespace DuckPipe.Core
                 string fileName = Path.GetFileName(key);
                 foreach (var downstream in downstreamList.EnumerateArray())
                 {
-                    if (downstream.GetString() == departmentName && fileName != ctx.FileName)
+                    if (downstream.GetString().ToLower() == departmentName.ToLower() && fileName != ctx.FileName)
                     {
                         data["status"] = "outDated";
                         updated = true;

@@ -13,13 +13,19 @@ namespace DuckPipe
 {
     public partial class CreateAssetPopup : Form
     {
-        public CreateAssetPopup()
+        private AssetManagerForm mainForm;
+        public CreateAssetPopup(AssetManagerForm form)
         {
             InitializeComponent();
+            mainForm = form;
+
             cbAssetType.SelectedIndex = 0;
+            cbSeqChoice.Visible = false;
+            lbSequence.Visible = false;
         }
         public string AssetName => txtAssetName.Text.Trim();
         public string AssetType => cbAssetType.SelectedItem?.ToString();
+        public string SeqName => cbSeqChoice.SelectedItem?.ToString() ?? "";
         private void btnOK_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtAssetName.Text))
@@ -27,14 +33,46 @@ namespace DuckPipe
                 MessageBox.Show("Veuillez entrer un nom.");
                 return;
             }
-
             DialogResult = DialogResult.OK;
             Close();
         }
 
-        private void label1_Click(object sender, EventArgs e)
+        private void CreateAssetPopup_Load(object sender, EventArgs e)
         {
+            if (mainForm.cbProdList.SelectedItem == null)
+                return;
 
+            string prodRoot = AssetManagerForm.GetProductionRootPath();
+            string selectedProd = mainForm.cbProdList.SelectedItem.ToString();
+            string sequencesPath = Path.Combine(prodRoot, selectedProd, "Shots", "Sequences");
+
+            if (!Directory.Exists(sequencesPath))
+                return;
+
+            var sequenceFolders = Directory.GetDirectories(sequencesPath)
+                                           .Select(Path.GetFileName)
+                                           .ToArray();
+
+            cbSeqChoice.Items.Clear();
+            cbSeqChoice.Items.AddRange(sequenceFolders);
+            if (cbSeqChoice.Items.Count > 0)
+            {
+                cbSeqChoice.SelectedIndex = 0;
+            }
+        }
+
+        private void cbAssetType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if ((cbAssetType.SelectedItem?.ToString() == "Shots"))
+            {
+                cbSeqChoice.Visible = true;
+                lbSequence.Visible = true;
+            }
+            else
+            {
+                cbSeqChoice.Visible = false;
+                lbSequence.Visible = false;
+            }
         }
     }
 }

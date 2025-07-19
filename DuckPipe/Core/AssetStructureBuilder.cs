@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows.Forms;
 using DuckPipe.Utils;
 using static System.Windows.Forms.Design.AxImporter;
 
@@ -37,7 +38,12 @@ namespace DuckPipe.Core
     {
         public static void CreateAssetStructure(string rootPath, string assetPath, AssetStructure structure, string assetName)
         {
-            CreateAssetJson(rootPath, assetPath, structure, assetName);
+            if (structure.Name == "Characters" || structure.Name == "Props" || structure.Name == "Environments")
+                CreateAssetJson(rootPath, assetPath, structure, assetName);
+
+            if (structure.Name == "Shots")
+                CreateShotJson(rootPath, assetPath, structure, assetName);
+
             if (structure.Name == "Characters")
                 AddCostume(assetPath, "Body");
 
@@ -54,12 +60,15 @@ namespace DuckPipe.Core
             // Créer les fichiers
             if (node.Files != null)
             {
+
+                string sequenceName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(currentPath)));
                 foreach (var file in node.Files)
                 {
                     string fileName = file;
                     if (file.Contains("assetnamepipeplaceholder"))
                     {
-                        fileName = file.Replace("assetnamepipeplaceholder", assetName.ToLower());
+                        fileName = file.Replace("assetnamepipeplaceholder", assetName.ToLower())
+                            .Replace("seqnamepipeplaceholder", sequenceName.ToLower());
                     }
                     string filePath = Path.Combine(currentPath, fileName);
 
@@ -69,7 +78,6 @@ namespace DuckPipe.Core
                     }
                     else
                     {
-                        // Créer un fichier vide
                         File.Create(filePath).Dispose();
                     }
                 }
@@ -141,7 +149,69 @@ namespace DuckPipe.Core
             var assetJson = new
             {
                 workfile = workfileData,
-                costumes = new List<string>() // Ajouté ici pour éviter bug si AddCostume() est appelé plus tard
+            };
+
+            string jsonPath = Path.Combine(assetPath, "asset.json");
+            string jsonString = JsonSerializer.Serialize(assetJson, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(jsonPath, jsonString);
+        }
+
+        private static void CreateShotJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
+        {
+            Directory.CreateDirectory(assetPath);
+
+            var workfileData = new Dictionary<string, object>();
+
+            if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
+            {
+                foreach (var department in workNode.Children)
+                {
+                    if (department.Key == "_files") continue;
+
+                    var deptNode = JsonSerializer.Deserialize<AssetNode>(department.Value.GetRawText());
+                    if (deptNode == null) continue;
+
+                    string deptName = department.Key;
+                    string deptUpper = deptName.ToUpper();
+                    string deptLower = deptName.ToLower();
+                    string sequenceName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(assetPath)));
+
+                    string workPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName);
+                    string incrementalPath = Path.Combine(workPath, "incrementals");
+                    string publishPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "dlv");
+
+                    if (deptNode.Files != null)
+                    {
+                        foreach (var fileTemplate in deptNode.Files)
+                        {
+                            string workFile = fileTemplate
+                                .Replace("assetnamepipeplaceholder", assetName.ToLower())
+                                .Replace("seqnamepipeplaceholder", sequenceName.ToLower());
+                            string extension = Path.GetExtension(workFile);
+                            string baseName = Path.GetFileNameWithoutExtension(workFile);
+                            string publishFile = $"{baseName}_OK{extension}";
+
+                            workfileData[workFile] = new
+                            {
+                                department = deptUpper,
+                                status = "not_started",
+                                version = "v001",
+                                workPath = workPath,
+                                publishPath = publishPath,
+                                incrementalPath = incrementalPath,
+                                workFile = workFile,
+                                publishName = publishFile,
+                                user = "",
+                                lastModified = ""
+                            };
+                        }
+                    }
+                }
+            }
+
+            var assetJson = new
+            {
+                workfile = workfileData,
             };
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
@@ -184,6 +254,44 @@ namespace DuckPipe.Core
 
                 // Écriture dans le fichier
                 File.WriteAllText(assetJsonPath, JsonSerializer.Serialize(newJson, options));
+            }
+        }
+
+        public static Dictionary<string, AssetStructure> LoadAssetStructures(string prodPath)
+        {
+            string assetStructPath = Path.Combine(prodPath, "Dev", "AssetStructure.json");
+
+            if (!File.Exists(assetStructPath))
+            {
+                MessageBox.Show($"Fichier AssetStructure.json manquant dans :\n{prodPath}");
+                return null;
+            }
+
+            try
+            {
+                string json = File.ReadAllText(assetStructPath);
+                var rawData = JsonSerializer.Deserialize<Dictionary<string, AssetNode>>(json);
+
+                Dictionary<string, AssetStructure> structures = new();
+
+                foreach (var entry in rawData)
+                {
+                    structures[entry.Key] = new AssetStructure
+                    {
+                        Name = entry.Key,
+                        Structure = entry.Value.Children.ToDictionary(
+                            child => child.Key,
+                            child => JsonSerializer.Deserialize<AssetNode>(child.Value.GetRawText())
+                        )
+                    };
+                }
+
+                return structures;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de la lecture de AssetStructure.json :\n{ex.Message}");
+                return null;
             }
         }
     }
