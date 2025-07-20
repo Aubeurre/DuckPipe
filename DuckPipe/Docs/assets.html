@@ -30,14 +30,52 @@
                 </br>
                 Vous trouverez dans cette page toutes les informations relatives a votre departement pour pouvoir travailler tout en restant dans le pipeline.
             </p>
+
+            <p>
+                Le fichier <code>asset.json</code>, est propre à chaque asset. Il est généré à partir de la structure définie dans <code>AssetStructure.json</code> et est mis à jour tout au long de la production.</br>
+                Il contient des informations de suivi comme les statuts de départements, les versions de fichiers de travail, ou les publications.</br>
+                C’est le fichier central que DuckPipe utilise pour gérer l’état d’un asset.</br>
+            </p>
         </section>
+        <div class="row">
+            <div class="column">
+                <h4>📁 Exemple d’arborescence générée pour un Props</h4>
+                <pre><code>
+                Assets/
+                └── Props/
+                    └── MonProps/
+                        ├── Modeling/
+                        │   ├── work/
+                        │   │   └── monprops_model_v001.ma
+                        │   └── publish/
+                        ├── Rig/
+                        │   ├── work/
+                        │   └── publish/
+                        └── asset.json
+        </code></pre>
+            </div>
+            <div class="column">
+                <h4>📁 Exemple d’arborescence générée pour un Character</h4>
+                <pre><code>
+                Assets/
+                └── Characters/
+                    └── MonProps/
+                        ├── Modeling/
+                        │   ├── work/
+                        │   │   └── monprops_model_v001.ma
+                        │   └── publish/
+                        ├── Rig/
+                        │   ├── work/
+                        │   └── publish/
+                        └── asset.json
+        </code></pre>
+            </div>
+        </div>
+
         </br><hr></br>
+
         <section>
             <h3>Modeling</h3>
-            <h4>Hierarchie des fichiers</h4>
-            <p>
-                blablabla
-            </p>
             <h4>Scene de travail</h4>
             <p>
                 blablabla
@@ -46,10 +84,6 @@
         </br><hr></br>
         <section>
             <h3>Surfacing</h3>
-            <h4>Hierarchie des fichiers</h4>
-            <p>
-                blablabla
-            </p>
             <h4>Scene de travail</h4>
             <p>
                 blablabla
@@ -58,10 +92,6 @@
         </br><hr></br>
         <section>
             <h3>CFX</h3>
-            <h4>Hierarchie des fichiers</h4>
-            <p>
-                blablabla
-            </p>
             <h4>Scene de travail</h4>
             <p>
                 blablabla
@@ -70,10 +100,6 @@
         </br><hr></br>
         <section>
             <h3>Rigging</h3>
-            <h4>Hierarchie des fichiers</h4>
-            <p>
-                blablabla
-            </p>
             <h4>Scene de travail</h4>
             <p>
                 blablabla

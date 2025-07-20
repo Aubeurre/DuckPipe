@@ -130,7 +130,7 @@ namespace DuckPipe
 
             if (string.IsNullOrEmpty(envPath))
             {
-                envPath = @"D:\ICHIGO\PROD";
+                envPath = UserConfig.Get().ProdBasePath;
             }
 
             if (!Directory.Exists(envPath))
@@ -669,6 +669,11 @@ namespace DuckPipe
                     UseShellExecute = true
                 });
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            UserConfig.OpenConfigFile();
         }
     }
 }

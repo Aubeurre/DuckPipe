@@ -10,6 +10,7 @@ namespace DuckPipe
         {
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
+            UserConfig.LoadOrCreate();
             ApplicationConfiguration.Initialize();
             Application.Run(new AssetManagerForm());
         }

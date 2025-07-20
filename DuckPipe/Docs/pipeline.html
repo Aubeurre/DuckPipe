@@ -50,7 +50,7 @@
         </section>
 
         <section>
-            <h3>Structure et configuration : <code>AssetStructure.json</code> & <code>asset.json</code></h3>
+            <h3>Structure et configuration : <code>AssetStructure.json</code> </h3>
             <p>
                 Le fichier <code>AssetStructure.json</code> définit la structure par défaut des dossiers et fichiers pour chaque type d’asset (ex: Props, Characters, Sequences, Shots).</br>
                 Il indique les départements impliqués, les chemins à créer, ainsi que les modèles de noms de fichiers.</br>
@@ -58,10 +58,27 @@
                 </br>
                 Il est donc possible d'editer le fichier afin de constituer une arboressence unique pour chaque production.</br>
             </p>
+
+            <h4>🛠️ Extrait de <code>AssetStructure.json</code> pour le type <em>Props</em></h4>
+            <pre><code>
+{
+  "Props": {
+    "departments": {
+      "Modeling": {
+        "folders": ["work", "publish"],
+        "files": ["work/xxx_model_v001.ma"]
+      },
+      "Rig": {
+        "folders": ["work", "publish"],
+        "files": []
+      }
+    }
+  }
+}
+    </code></pre>
+
             <p>
-                Le fichier <code>asset.json</code>, quant à lui, est propre à chaque asset. Il est généré à partir de la structure définie dans <code>AssetStructure.json</code> et est mis à jour tout au long de la production.</br>
-                Il contient des informations de suivi comme les statuts de départements, les versions de fichiers de travail, ou les publications.</br>
-                C’est le fichier central que DuckPipe utilise pour gérer l’état d’un asset.</br>
+                Grâce à cette configuration dynamique, le pipeline reste flexible et évolutif selon les besoins du studio.
             </p>
         </section>
     </main>

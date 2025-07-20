@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>ducky.ico</ApplicationIcon>
+    <ApplicationIcon>Icons\ducky.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +17,7 @@
     <Content Include="Data\AssetStructure.Json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="ducky.ico" />
+    <Content Include="Icons\ducky.ico" />
   </ItemGroup>
 
   <ItemGroup>

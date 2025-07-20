@@ -37,6 +37,7 @@ namespace DuckPipe
             tsmiRename = new ToolStripMenuItem();
             tsmiDelete = new ToolStripMenuItem();
             panel1 = new Panel();
+            btnDoc = new Button();
             btnCreateProduction = new Button();
             btCreateAsset = new Button();
             cbProdList = new ComboBox();
@@ -51,7 +52,7 @@ namespace DuckPipe
             panel2 = new Panel();
             splitContainer2 = new SplitContainer();
             splitContainer3 = new SplitContainer();
-            btnDoc = new Button();
+            button1 = new Button();
             contextMenuTree.SuspendLayout();
             panel1.SuspendLayout();
             plAssetTaskInfo.SuspendLayout();
@@ -106,6 +107,7 @@ namespace DuckPipe
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(45, 45, 45);
+            panel1.Controls.Add(button1);
             panel1.Controls.Add(btnDoc);
             panel1.Controls.Add(btnCreateProduction);
             panel1.Controls.Add(btCreateAsset);
@@ -118,6 +120,20 @@ namespace DuckPipe
             panel1.Name = "panel1";
             panel1.Size = new Size(253, 543);
             panel1.TabIndex = 2;
+            // 
+            // btnDoc
+            // 
+            btnDoc.BackColor = Color.FromArgb(80, 80, 80);
+            btnDoc.FlatAppearance.BorderSize = 0;
+            btnDoc.FlatStyle = FlatStyle.Flat;
+            btnDoc.ForeColor = Color.White;
+            btnDoc.Location = new Point(12, 6);
+            btnDoc.Name = "btnDoc";
+            btnDoc.Size = new Size(23, 23);
+            btnDoc.TabIndex = 4;
+            btnDoc.Text = "?";
+            btnDoc.UseVisualStyleBackColor = false;
+            btnDoc.Click += btnDoc_Click;
             // 
             // btnCreateProduction
             // 
@@ -301,19 +317,19 @@ namespace DuckPipe
             splitContainer3.SplitterDistance = 634;
             splitContainer3.TabIndex = 6;
             // 
-            // btnDoc
+            // button1
             // 
-            btnDoc.BackColor = Color.FromArgb(80, 80, 80);
-            btnDoc.FlatAppearance.BorderSize = 0;
-            btnDoc.FlatStyle = FlatStyle.Flat;
-            btnDoc.ForeColor = Color.White;
-            btnDoc.Location = new Point(12, 6);
-            btnDoc.Name = "btnDoc";
-            btnDoc.Size = new Size(23, 23);
-            btnDoc.TabIndex = 4;
-            btnDoc.Text = "?";
-            btnDoc.UseVisualStyleBackColor = false;
-            btnDoc.Click += btnDoc_Click;
+            button1.BackColor = Color.FromArgb(80, 80, 80);
+            button1.FlatAppearance.BorderSize = 0;
+            button1.FlatStyle = FlatStyle.Flat;
+            button1.ForeColor = Color.White;
+            button1.Location = new Point(41, 6);
+            button1.Name = "button1";
+            button1.Size = new Size(136, 23);
+            button1.TabIndex = 5;
+            button1.Text = "Préférences utilisateur";
+            button1.UseVisualStyleBackColor = false;
+            button1.Click += button1_Click;
             // 
             // AssetManagerForm
             // 
@@ -364,5 +380,6 @@ namespace DuckPipe
         private FlowLayoutPanel flpPipelineStatus;
         public ComboBox cbProdList;
         private Button btnDoc;
+        private Button button1;
     }
 }

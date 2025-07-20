@@ -46,3 +46,13 @@ footer {
     font-size: 0.9rem;
     margin-top: 2rem;
 }
+.column {
+    float: left;
+    width: 50%;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
