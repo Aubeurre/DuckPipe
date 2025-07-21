@@ -1,4 +1,5 @@
 🦆 DuckPipe – Asset Manager
+
 DuckPipe est un outil de pipeline conçu pour les studios 3D, facilitant la gestion des assets, des séquences, des plans, et des étapes de production. 
 Il centralise la création, l'organisation, le versioning et la configuration du workflow artistique.
 
