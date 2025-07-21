@@ -22,7 +22,6 @@ Télécharger la dernière version via la section Releases
 
 Lancer DuckPipeSetup.exe
 
-Suivre les instructions de l’installateur
 
 🔧 Fichiers de configuration
 AssetStructure.json (par production)
@@ -38,7 +37,7 @@ La documentation complète se trouve dans le dossier Docs.
 
 
 🚧 Roadmap
- - Intégration de tâches de rendu
+- Intégration de tâches de rendu
  - ecrire la doc
  - je sais pas mais pleins d'autres choses
  
@@ -46,4 +45,3 @@ La documentation complète se trouve dans le dossier Docs.
 🐤 Auteur
 Développé par Alexandre Wojtkow
 🎓 TD & Rig Artist
-LinkedIn
