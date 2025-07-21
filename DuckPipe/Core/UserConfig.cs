@@ -11,6 +11,7 @@ namespace DuckPipe
     {
         public string User { get; set; } = Environment.UserName;
         public string ProdBasePath { get; set; } = @"D:\ICHIGO\PROD";
+        public string userTempFolder { get; set; } = Path.Combine(Path.GetTempPath(), "DuckPipe");
 
         private static UserConfig? _instance;
 

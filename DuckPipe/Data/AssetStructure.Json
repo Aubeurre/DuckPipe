@@ -86,7 +86,12 @@
         }
     },
     "Sequences": {
-        "preprod": {},
+        "Previz": {
+            "incrementals": {
+                "_files": [ "Sassetnamepipeplaceholder_Previz_v000.ma" ]
+            },
+            "_files": [ "Sassetnamepipeplaceholder_Previz.ma" ]
+        },
         "Shots": {}
     },
     "Shots": {

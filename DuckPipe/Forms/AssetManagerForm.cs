@@ -314,6 +314,7 @@ namespace DuckPipe
         { "IO", 100 },
         { "Dev", 100 },
         { "RnD", 100 },
+        { "Preprod", 100 },
     };
 
             foreach (string dir in Directory.GetDirectories(prodPath))
@@ -615,38 +616,33 @@ namespace DuckPipe
                 string workPath = AssetManip.ReplaceEnvVariables(fileData.GetProperty("workPath").GetString());
                 string status = fileData.GetProperty("status").GetString() ?? "not_started";
                 string version = fileData.GetProperty("version").GetString() ?? "v001";
+                string fileName = fileData.GetProperty("workFile").GetString() ?? "";
+                string file = Path.Combine(workPath, fileName);
 
-                if (Directory.Exists(workPath))
+
+                if (!file.EndsWith(".json") && !file.EndsWith(".lock"))
                 {
-                    string[] files = Directory.GetFiles(workPath);
-                    foreach (var file in files)
+                    string userLocked = LockAssetDepartment.GetuserLocked(file);
+                    if (userLocked != "")
                     {
-                        if (!file.EndsWith(".json") && !file.EndsWith(".lock"))
-                        {
-                            string fileName = Path.GetFileName(file);
-                            string userLocked = LockAssetDepartment.GetuserLocked(file);
-                            if (userLocked != "")
-                            {
-                                userLocked = $"🔒 {userLocked}";
-                            }
-
-                            string statusIcon = status switch
-                            {
-                                "not_started" => "⊙",
-                                "outDated" => "⇦",
-                                "upToDate" => "🆗",
-                                _ => ""
-                            };
-
-                            ListViewItem item = new ListViewItem(fileName);
-                            item.SubItems.Add(userLocked);
-                            item.SubItems.Add(statusIcon);
-                            item.SubItems.Add(version);
-
-                            item.Tag = file;
-                            listView.Items.Add(item);
-                        }
+                        userLocked = $"🔒 {userLocked}";
                     }
+
+                    string statusIcon = status switch
+                    {
+                        "not_started" => "⊙",
+                        "outDated" => "⇦",
+                        "upToDate" => "🆗",
+                        _ => ""
+                    };
+
+                    ListViewItem item = new ListViewItem(fileName);
+                    item.SubItems.Add(userLocked);
+                    item.SubItems.Add(statusIcon);
+                    item.SubItems.Add(version);
+
+                    item.Tag = file;
+                    listView.Items.Add(item);
                 }
             }
         }
@@ -657,7 +653,25 @@ namespace DuckPipe
             DisplayCommitsPanel(selectedAssetPath);
         }
 
-        private void btnDoc_Click(object sender, EventArgs e)
+        private void userSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UserConfig.OpenConfigFile();
+        }
+
+        private void assetSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string rootPath = GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string path = Path.Combine(rootPath, selectedProd, "Dev", "AssetStructure.json");
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
+        }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
             string docPath = Path.Combine(Application.StartupPath, "Docs", "index.html");
             MessageBox.Show(docPath);
@@ -671,9 +685,38 @@ namespace DuckPipe
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void prodSettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            UserConfig.OpenConfigFile();
+            string rootPath = GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string path = Path.Combine(rootPath, selectedProd, "config.json");
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
+        }
+
+        private void viewInExplorerToolStripMenuItem_Click(object sender, EventArgs e)
+
+        {
+            if (tvAssetList.SelectedNode == null)
+                return;
+
+            string selectedPath = tvAssetList.SelectedNode.Tag as string;
+            if (string.IsNullOrEmpty(selectedPath))
+                return;
+
+            if (Directory.Exists(selectedPath) || File.Exists(selectedPath))
+            {
+                string argument = Directory.Exists(selectedPath) ? selectedPath : $"/select,\"{selectedPath}\"";
+                System.Diagnostics.Process.Start("explorer.exe", argument);
+            }
+            else
+            {
+                MessageBox.Show("Le chemin n'existe pas ou plus.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
     }
 }

@@ -17,7 +17,9 @@
     <Content Include="Data\AssetStructure.Json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Icons\ducky.ico" />
+    <Content Include="Icons\ducky.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

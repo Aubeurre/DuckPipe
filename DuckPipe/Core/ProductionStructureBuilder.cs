@@ -44,6 +44,10 @@ namespace DuckPipe.Core
                 "IO/Out",
                 "Dev",
                 "RnD",
+                "Preprod/Concept/Characters",
+                "Preprod/Concept/Props",
+                "Preprod/Concept/Environments",
+                "Preprod/Board",
             };
 
             foreach (string folder in folders)

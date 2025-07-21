@@ -60,11 +60,23 @@ namespace DuckPipe.Core
         
         public static void LaunchAsset(string filePath, AssetManagerForm form)
         {
-            Process.Start(new ProcessStartInfo
+            string LocalFile = GetTempPath(filePath);
+            if (File.Exists(LocalFile))
             {
-                FileName = filePath,
-                UseShellExecute = true
-            });
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = LocalFile,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = filePath,
+                    UseShellExecute = true
+                });
+            }
 
         }
 
@@ -116,9 +128,11 @@ namespace DuckPipe.Core
         {
             if (LockAssetDepartment.IsLockedByUser(assetPath))
             {
+
+                string LocalFile = GetTempPath(assetPath);
                 if (!File.Exists(assetPath))
                 {
-                    MessageBox.Show("Fichier introuvable.");
+                    MessageBox.Show("Fichier Local introuvable.");
                     return;
                 }
 
@@ -131,7 +145,8 @@ namespace DuckPipe.Core
                 string versionedFileName = $"{ctx.FileName}_v{newVersion:D3}{ctx.Extension}";
                 string destinationPath = Path.Combine(incrementalsDir, versionedFileName);
 
-                File.Copy(assetPath, destinationPath);
+                File.Copy(LocalFile, destinationPath);
+                File.Copy(LocalFile, assetPath, true);
                 MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
                 form.RefreshRightPanel(ctx.AssetRoot);
             }
@@ -236,6 +251,7 @@ namespace DuckPipe.Core
                 {
                 var ctx = ExtractAssetContext(assetPath);
 
+                string LocalFile = GetTempPath(assetPath);
                 string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
                 string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
                 string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
@@ -409,6 +425,42 @@ namespace DuckPipe.Core
                 string updatedJson = JsonSerializer.Serialize(updatedAssetData, options);
                 File.WriteAllText(jsonPath, updatedJson);
             }
+        }
+
+        public static string GetTempPath(string assetPath)
+        {
+            var ctx = ExtractAssetContext(assetPath);
+            string tempRoot = Path.Combine(UserConfig.Get().userTempFolder, ctx.FileName);
+
+            string tempFilePath = assetPath.Replace(ctx.AssetRoot, tempRoot);
+
+            return tempFilePath;
+        }
+
+        public static void CopyAssetToTemp(string assetPath)
+        {
+            var ctx = ExtractAssetContext(assetPath);
+
+            string tempRoot = Path.Combine(UserConfig.Get().userTempFolder, ctx.FileName);
+
+            if (Directory.Exists(tempRoot))
+                Directory.Delete(tempRoot, true);
+
+            string tempFilePath = assetPath.Replace(ctx.AssetRoot, tempRoot);
+            string tempDir = Path.GetDirectoryName(tempFilePath)!;
+
+            Directory.CreateDirectory(tempDir);
+            File.Copy(assetPath, tempFilePath, true);
+        }
+
+        public static void DeleteTemp(string assetPath)
+        {
+            var ctx = ExtractAssetContext(assetPath);
+
+            string tempRoot = Path.Combine(UserConfig.Get().userTempFolder, ctx.FileName);
+
+            if (Directory.Exists(tempRoot))
+                Directory.Delete(tempRoot, true);
         }
     }
 }
