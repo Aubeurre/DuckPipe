@@ -38,19 +38,44 @@ namespace DuckPipe.Core
     {
         public static void CreateAssetStructure(string rootPath, string assetPath, AssetStructure structure, string assetName)
         {
+
             if (structure.Name == "Characters" || structure.Name == "Props" || structure.Name == "Environments")
+            {
+                Directory.CreateDirectory(assetPath);
                 CreateAssetJson(rootPath, assetPath, structure, assetName);
 
+                foreach (var kvp in structure.Structure)
+                {
+                    CreateNode(Path.Combine(assetPath, kvp.Key), kvp.Value, assetName);
+                }
+            }
+
             if (structure.Name == "Shots")
-                CreateShotJson(rootPath, assetPath, structure, assetName);
+            {
+                string cleanPath = Path.Combine(Path.GetDirectoryName(assetPath), $"P{assetName}");
+                Directory.CreateDirectory(cleanPath);
+                CreateShotJson(rootPath, cleanPath, structure, assetName);
+
+                foreach (var kvp in structure.Structure)
+                {
+                    CreateNode(Path.Combine(cleanPath, kvp.Key), kvp.Value, assetName);
+                }
+            }
+
+            if (structure.Name == "Sequences")
+            {
+                string cleanPath = Path.Combine(Path.GetDirectoryName(assetPath), $"S{assetName}");
+                Directory.CreateDirectory(cleanPath);
+                CreateSeqJson(rootPath, cleanPath, structure, assetName);
+
+                foreach (var kvp in structure.Structure)
+                {
+                    CreateNode(Path.Combine(cleanPath, kvp.Key), kvp.Value, assetName);
+                }
+            }
 
             if (structure.Name == "Characters")
                 AddCostume(assetPath, "Body");
-
-            foreach (var kvp in structure.Structure)
-            {
-                CreateNode(Path.Combine(assetPath, kvp.Key), kvp.Value, assetName);
-            }
         }
 
         private static void CreateNode(string currentPath, AssetNode node, string assetName)
@@ -61,14 +86,16 @@ namespace DuckPipe.Core
             if (node.Files != null)
             {
 
-                string sequenceName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(currentPath)));
+                string[] parts = currentPath.Split('\\');
+                string sequenceFolder = parts[6];
+                string sequenceName = sequenceFolder.StartsWith("S") ? sequenceFolder.Substring(1) : sequenceFolder;
                 foreach (var file in node.Files)
                 {
                     string fileName = file;
-                    if (file.Contains("assetnamepipeplaceholder"))
+                    if (file.Contains("{assetnamepipeplaceholder}"))
                     {
-                        fileName = file.Replace("assetnamepipeplaceholder", assetName.ToLower())
-                            .Replace("seqnamepipeplaceholder", sequenceName.ToLower());
+                        fileName = file.Replace("{assetnamepipeplaceholder}", assetName.ToLower())
+                            .Replace("{seqnamepipeplaceholder}", sequenceName.ToLower());
                     }
                     string filePath = Path.Combine(currentPath, fileName);
 
@@ -98,8 +125,6 @@ namespace DuckPipe.Core
 
         private static void CreateAssetJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
         {
-            Directory.CreateDirectory(assetPath);
-
             var workfileData = new Dictionary<string, object>();
 
             if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
@@ -123,7 +148,7 @@ namespace DuckPipe.Core
                     {
                         foreach (var fileTemplate in deptNode.Files)
                         {
-                            string workFile = fileTemplate.Replace("assetnamepipeplaceholder", assetName.ToLower());
+                            string workFile = fileTemplate.Replace("{assetnamepipeplaceholder}", assetName.ToLower());
                             string extension = Path.GetExtension(workFile);
                             string baseName = Path.GetFileNameWithoutExtension(workFile);
                             string publishFile = $"{baseName}_OK{extension}";
@@ -174,6 +199,72 @@ namespace DuckPipe.Core
                     string deptName = department.Key;
                     string deptUpper = deptName.ToUpper();
                     string deptLower = deptName.ToLower();
+                    string sequenceFolder = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(assetPath)));
+
+                    string sequenceName = sequenceFolder.StartsWith("S") ? sequenceFolder.Substring(1) : sequenceFolder;
+
+
+                    string workPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName);
+                    string incrementalPath = Path.Combine(workPath, "incrementals");
+                    string publishPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "dlv");
+
+                    if (deptNode.Files != null)
+                    {
+                        foreach (var fileTemplate in deptNode.Files)
+                        {
+                            string workFile = fileTemplate
+                                .Replace("{assetnamepipeplaceholder}", assetName.ToLower())
+                                .Replace("{seqnamepipeplaceholder}", sequenceName.ToLower());
+                            string extension = Path.GetExtension(workFile);
+                            string baseName = Path.GetFileNameWithoutExtension(workFile);
+                            string publishFile = $"{baseName}_OK{extension}";
+
+                            workfileData[workFile] = new
+                            {
+                                department = deptUpper,
+                                status = "not_started",
+                                version = "v001",
+                                workPath = workPath,
+                                publishPath = publishPath,
+                                incrementalPath = incrementalPath,
+                                workFile = workFile,
+                                publishName = publishFile,
+                                user = "",
+                                lastModified = ""
+                            };
+                        }
+                    }
+                }
+            }
+
+            var assetJson = new
+            {
+                workfile = workfileData,
+            };
+
+            string jsonPath = Path.Combine(assetPath, "asset.json");
+            string jsonString = JsonSerializer.Serialize(assetJson, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(jsonPath, jsonString);
+        }
+
+        private static void CreateSeqJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
+        {
+            Directory.CreateDirectory(assetPath);
+
+            var workfileData = new Dictionary<string, object>();
+
+            if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
+            {
+                foreach (var department in workNode.Children)
+                {
+                    if (department.Key == "_files") continue;
+
+                    var deptNode = JsonSerializer.Deserialize<AssetNode>(department.Value.GetRawText());
+                    if (deptNode == null) continue;
+
+                    string deptName = department.Key;
+                    string deptUpper = deptName.ToUpper();
+                    string deptLower = deptName.ToLower();
                     string sequenceName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(assetPath)));
 
                     string workPath = Path.Combine(assetPath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName);
@@ -185,8 +276,8 @@ namespace DuckPipe.Core
                         foreach (var fileTemplate in deptNode.Files)
                         {
                             string workFile = fileTemplate
-                                .Replace("assetnamepipeplaceholder", assetName.ToLower())
-                                .Replace("seqnamepipeplaceholder", sequenceName.ToLower());
+                                .Replace("{assetnamepipeplaceholder}", assetName.ToLower())
+                                .Replace("{seqnamepipeplaceholder}", sequenceName.ToLower());
                             string extension = Path.GetExtension(workFile);
                             string baseName = Path.GetFileNameWithoutExtension(workFile);
                             string publishFile = $"{baseName}_OK{extension}";

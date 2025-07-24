@@ -1,18 +1,45 @@
+using DuckPipe.Core;
+using System;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
 namespace DuckPipe
 {
     internal static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
+        public static IStorageProvider Storage { get; private set; }
+
         [STAThread]
-        static void Main()
+        static async Task Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            UserConfig.LoadOrCreate();
             ApplicationConfiguration.Initialize();
+            UserConfig.LoadOrCreate();
+
+            Storage = await CreateStorageProviderAsync();
+
             Application.Run(new AssetManagerForm());
+
+        }
+
+        private static async Task<IStorageProvider> CreateStorageProviderAsync()
+        {
+            const string nasUrl = "https://100.107.223.82:5001a";
+            const string nasUser = "AlexBis";
+            const string nasPassword = "Alexine_041016";
+
+            try
+            {
+                var session = await SynologySession.CreateAsync(nasUrl, nasUser, nasPassword);
+                var fileStation = new SynologyFileStation(session);
+                return new SynologyStorageProvider(fileStation);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Connexion au NAS échouée : {ex.Message}\nPassage en mode local.",
+                                "Mode local", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return new LocalStorageProvider();
+            }
         }
     }
 }

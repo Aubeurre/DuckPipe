@@ -67,6 +67,9 @@
     <None Update="Install\DuckPipeInstaller.iss">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="synoapi.py">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
     <None Update="Tools\Batches\Exec\Characters\Rig.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

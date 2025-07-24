@@ -29,7 +29,7 @@ namespace DuckPipe.Core
             SaveProductionConfig(prodPath);
         }
 
-        private void CreateDefaultFolders(string prodPath)
+        private async Task CreateDefaultFolders(string prodPath)
         {
             string[] folders =
             {
@@ -51,17 +51,17 @@ namespace DuckPipe.Core
             };
 
             foreach (string folder in folders)
-                Directory.CreateDirectory(Path.Combine(prodPath, folder));
+                await Program.Storage.CreateFolderAsync(Path.Combine(prodPath, folder));
         }
 
-        private void CopyAssetStructure(string prodPath)
+        private async Task CopyAssetStructure(string prodPath)
         {
             string assetStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "AssetStructure.json");
             string targetPath = Path.Combine(prodPath, "Dev", "AssetStructure.json");
-            File.Copy(assetStructurePath, targetPath, overwrite: true);
+            await Program.Storage.CopyFileAsync(assetStructurePath, targetPath);
         }
 
-        private void CopyTools(string prodPath)
+        private async Task CopyTools(string prodPath)
         {
             string sourceToolPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
             string targetToolPath = Path.Combine(prodPath, "Dev");
@@ -69,17 +69,18 @@ namespace DuckPipe.Core
             foreach (string dirPath in Directory.GetDirectories(sourceToolPath, "*", SearchOption.AllDirectories))
             {
                 string relativePath = Path.GetRelativePath(sourceToolPath, dirPath);
-                Directory.CreateDirectory(Path.Combine(targetToolPath, relativePath));
+                await Program.Storage.CreateFolderAsync(Path.Combine(targetToolPath, relativePath));
             }
 
             foreach (string filePath in Directory.GetFiles(sourceToolPath, "*.*", SearchOption.AllDirectories))
             {
                 string relativePath = Path.GetRelativePath(sourceToolPath, filePath);
-                File.Copy(filePath, Path.Combine(targetToolPath, relativePath), overwrite: true);
+                await Program.Storage.CopyFileAsync(filePath, Path.Combine(targetToolPath, relativePath));
+
             }
         }
 
-        private void InitializeDefaultDepartments()
+        private async Task InitializeDefaultDepartments()
         {
             departments = new Dictionary<string, DepartmentStructure>
             {
@@ -92,7 +93,7 @@ namespace DuckPipe.Core
             };
         }
 
-        private void SaveProductionConfig(string prodPath)
+        private async Task SaveProductionConfig(string prodPath)
         {
             var config = new
             {
@@ -102,10 +103,13 @@ namespace DuckPipe.Core
                 departments
             };
 
-            string configPath = Path.Combine(prodPath, "config.json");
+            string configPath = Path.Combine(prodPath, "config.json").Replace('\\', '/');
             var options = new JsonSerializerOptions { WriteIndented = true };
-            File.WriteAllText(configPath, JsonSerializer.Serialize(config, options));
+            string json = JsonSerializer.Serialize(config, options);
+            byte[] content = System.Text.Encoding.UTF8.GetBytes(json);
+            await Program.Storage.CreateFileAsync(configPath, content);
         }
+
     }
 
     public class DepartmentStructure
