@@ -57,7 +57,7 @@ namespace DuckPipe.Core
             string jsonText = File.ReadAllText(assetJsonPath);
             return JsonDocument.Parse(jsonText);
         }
-        
+
         public static void LaunchAsset(string filePath, AssetManagerForm form)
         {
             string LocalFile = GetTempPath(filePath);
@@ -82,14 +82,16 @@ namespace DuckPipe.Core
 
         public static string ReplaceEnvVariables(string path)
         {
-            string envPath = Environment.GetEnvironmentVariable("DUCKPIPE_ROOT");
+            string envPath = UserConfig.Get().ProdBasePath;
 
-            if (string.IsNullOrEmpty(envPath))
+            if (!Directory.Exists(envPath))
             {
-                envPath = @"D:\ICHIGO\PROD";
+                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n{envPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
             }
 
             return path.Replace("${DUCKPIPE_ROOT}", envPath ?? "");
+
         }
 
         public static int GetLastWorkVersion(string assetPath)
@@ -221,7 +223,7 @@ namespace DuckPipe.Core
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Erreur lors de la lecture du changelog :\n{ex.Message}");
-                    entries = new(); 
+                    entries = new();
                 }
             }
 
@@ -248,7 +250,7 @@ namespace DuckPipe.Core
         public static void ExecAsset(string assetPath, AssetManagerForm form)
         {
             if (LockAssetDepartment.IsLockedByUser(assetPath))
-                {
+            {
                 var ctx = ExtractAssetContext(assetPath);
 
                 string LocalFile = GetTempPath(assetPath);
@@ -295,7 +297,7 @@ namespace DuckPipe.Core
 
             bool updated = false;
 
-            var keys = workfileDict.Keys.ToList(); 
+            var keys = workfileDict.Keys.ToList();
             foreach (var key in keys)
             {
                 if (Path.GetFileName(key) == ctx.File)
@@ -429,38 +431,30 @@ namespace DuckPipe.Core
 
         public static string GetTempPath(string assetPath)
         {
-            var ctx = ExtractAssetContext(assetPath);
-            string tempRoot = Path.Combine(UserConfig.Get().userTempFolder, ctx.FileName);
+            string tempAssetlPath = assetPath.Replace(UserConfig.Get().ProdBasePath, UserConfig.Get().userTempFolder);
 
-            string tempFilePath = assetPath.Replace(ctx.AssetRoot, tempRoot);
-
-            return tempFilePath;
+            return tempAssetlPath;
         }
 
         public static void CopyAssetToTemp(string assetPath)
         {
-            var ctx = ExtractAssetContext(assetPath);
+            string tempAssetlPath = GetTempPath(assetPath);
+            string tempDirPath = Path.GetDirectoryName(tempAssetlPath)!;
 
-            string tempRoot = Path.Combine(UserConfig.Get().userTempFolder, ctx.FileName);
+            if (Directory.Exists(tempDirPath))
+                Directory.Delete(tempDirPath, true);
 
-            if (Directory.Exists(tempRoot))
-                Directory.Delete(tempRoot, true);
-
-            string tempFilePath = assetPath.Replace(ctx.AssetRoot, tempRoot);
-            string tempDir = Path.GetDirectoryName(tempFilePath)!;
-
-            Directory.CreateDirectory(tempDir);
-            File.Copy(assetPath, tempFilePath, true);
+            Directory.CreateDirectory(tempDirPath);
+            File.Copy(assetPath, tempAssetlPath, true);
         }
 
         public static void DeleteTemp(string assetPath)
         {
-            var ctx = ExtractAssetContext(assetPath);
+            string tempAssetlPath = GetTempPath(assetPath);
+            string tempDirPath = Path.GetDirectoryName(tempAssetlPath)!;
 
-            string tempRoot = Path.Combine(UserConfig.Get().userTempFolder, ctx.FileName);
-
-            if (Directory.Exists(tempRoot))
-                Directory.Delete(tempRoot, true);
+            if (Directory.Exists(tempDirPath))
+                Directory.Delete(tempDirPath, true);
         }
     }
 }

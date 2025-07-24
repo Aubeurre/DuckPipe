@@ -6,27 +6,27 @@
         "Work": {
             "Rig": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder _rig_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_rig_v000.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_rig.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_rig.ma" ]
             },
             "Cfx": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_cfx_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_cfx_v000.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_cfx.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_cfx.ma" ]
             },
             "Surf": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_look_v000.spp" ]
+                    "_files": [ "{assetnamepipeplaceholder}_look_v000.spp" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_look.spp" ]
+                "_files": [ "{assetnamepipeplaceholder}_look.spp" ]
             },
             "Modeling": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_model_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_model_v000.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_model.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_model.ma" ]
             }
         }
     },
@@ -37,39 +37,39 @@
         "Work": {
             "Rig": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_rig_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_rig_v000.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_rig.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_rig.ma" ]
             },
             "Groom": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_groom_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_groom_v000.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_groom.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_groom.ma" ]
             },
             "Cfx": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_cfx_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_cfx_v000.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_cfx.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_cfx.ma" ]
             },
             "Facial": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_facial_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_facial_v000.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_facial.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_facial.ma" ]
             },
             "Surf": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_look_v000.spp" ]
+                    "_files": [ "{assetnamepipeplaceholder}_look_v000.spp" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_look.spp" ]
+                "_files": [ "{assetnamepipeplaceholder}_look.spp" ]
             },
             "Modeling": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_model_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_model_v000.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_model.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_model.ma" ]
             }
         }
     },
@@ -79,18 +79,20 @@
         "Work": {
             "Assemble": {
                 "incrementals": {
-                    "_files": [ "assetnamepipeplaceholder_assemble_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_assemble_v000.ma" ]
                 },
-                "_files": [ "assetnamepipeplaceholder_assemble.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_assemble.ma" ]
             }
         }
     },
     "Sequences": {
-        "Previz": {
-            "incrementals": {
-                "_files": [ "Sassetnamepipeplaceholder_Previz_v000.ma" ]
-            },
-            "_files": [ "Sassetnamepipeplaceholder_Previz.ma" ]
+        "Work": {
+            "Previz": {
+                "incrementals": {
+                    "_files": [ "S{assetnamepipeplaceholder}_Previz_v000.ma" ]
+                },
+                "_files": [ "S{assetnamepipeplaceholder}_Previz.ma" ]
+            }
         },
         "Shots": {}
     },
@@ -100,27 +102,27 @@
         "Work": {
             "Layout": {
                 "incrementals": {
-                    "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_layout_v000.ma" ]
+                    "_files": [ "S{seqnamepipeplaceholder}_P{assetnamepipeplaceholder}_layout_v000.ma" ]
                 },
-                "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_layout.ma" ]
+                "_files": [ "S{seqnamepipeplaceholder}_P{assetnamepipeplaceholder}_layout.ma" ]
             },
             "Anim": {
                 "incrementals": {
-                    "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_anim_v000.ma" ]
+                    "_files": [ "S{seqnamepipeplaceholder}_P{assetnamepipeplaceholder}_anim_v000.ma" ]
                 },
-                "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_anim.ma" ]
+                "_files": [ "S{seqnamepipeplaceholder}_P{assetnamepipeplaceholder}_anim.ma" ]
             },
             "Cfx": {
                 "incrementals": {
-                    "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_cfx_v000.ma" ]
+                    "_files": [ "S{seqnamepipeplaceholder}_P{assetnamepipeplaceholder}_cfx_v000.ma" ]
                 },
-                "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_cfx.ma" ]
+                "_files": [ "S{seqnamepipeplaceholder}_P{assetnamepipeplaceholder}_cfx.ma" ]
             },
             "Lighting": {
                 "incrementals": {
-                    "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_light_v000.ma" ]
+                    "_files": [ "S{seqnamepipeplaceholder}_P{assetnamepipeplaceholder}_light_v000.ma" ]
                 },
-                "_files": [ "Sseqnamepipeplaceholder_Passetnamepipeplaceholder_light.ma" ]
+                "_files": [ "S{seqnamepipeplaceholder}_P{assetnamepipeplaceholder}_light.ma" ]
             }
         }
     }

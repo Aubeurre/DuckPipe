@@ -13,6 +13,7 @@ namespace DuckPipe
     public partial class AssetManagerForm : Form
     {
         private string selectedAssetPath = null!;
+
         public AssetManagerForm()
         {
             InitializeComponent();
@@ -54,31 +55,42 @@ namespace DuckPipe
 
                 if (firstFolder == "Assets")
                 {
-                    if (parts.Length < 4) return null;
+                    if (parts.Length == 4)
+                    {
+                        ctx.AssetType = parts[2];
+                        ctx.AssetName = parts[3];
+                        ctx.AssetRoot = Path.Combine(rootPath, prodName, "Assets", ctx.AssetType, ctx.AssetName);
+                    }
+                    else return null;
 
-                    ctx.AssetType = parts[2];
-                    ctx.AssetName = parts[3];
-                    ctx.AssetRoot = Path.Combine(rootPath, prodName, "Assets", ctx.AssetType, ctx.AssetName);
-
-                    if (parts.Length > 5)
-                        ctx.Department = parts[5];
                 }
-                else if (firstFolder == "Shots" && parts.ElementAtOrDefault(2) == "Sequences")
+                else if (firstFolder == "Shots")
                 {
-                    if (parts.Length < 6 || parts[4] != "Shots") return null;
+                    if (parts.Length == 4)
+                    {
 
-                    ctx.SequenceName = parts[3];
-                    ctx.AssetType = "Shots";
-                    ctx.AssetName = $"S{parts[3]}_P{parts[5]}";
-                    ctx.AssetRoot = Path.Combine(rootPath, prodName, "Shots", "Sequences", ctx.SequenceName, "Shots", ctx.AssetName);
+                        ctx.SequenceName = parts[3];
+                        ctx.AssetType = "Sequences";
+                        ctx.AssetName = $"{parts[3]}";
+                        ctx.AssetRoot = Path.Combine(rootPath, prodName, "Shots", "Sequences", ctx.SequenceName);
+                    }
+                    else if (parts[4] == "Shots")
+                    {
+                        if (parts.Length == 6)
+                        {
 
-                    if (parts.Length > 6)
-                        ctx.Department = parts[6];
+                            ctx.SequenceName = parts[3];
+                            ctx.AssetType = "Shots";
+                            ctx.AssetName = $"{parts[3]}_{parts[5]}";
+                            ctx.AssetRoot = Path.Combine(rootPath, prodName, "Shots", "Sequences", ctx.SequenceName, "Shots", ctx.AssetName);
+                        }
+                        else return null;
+
+                    }
+                    else return null;
+
                 }
-                else
-                {
-                    return null; // format inconnu
-                }
+                else return null;
 
                 return ctx;
             }
@@ -126,12 +138,7 @@ namespace DuckPipe
 
         public static string GetProductionRootPath()
         {
-            string envPath = Environment.GetEnvironmentVariable("DUCKPIPE_ROOT");
-
-            if (string.IsNullOrEmpty(envPath))
-            {
-                envPath = UserConfig.Get().ProdBasePath;
-            }
+            string envPath = UserConfig.Get().ProdBasePath;
 
             if (!Directory.Exists(envPath))
             {
@@ -140,6 +147,7 @@ namespace DuckPipe
             }
 
             return envPath;
+
         }
 
         private void cbProdList_SelectedIndexChanged(object sender, EventArgs e)
@@ -293,6 +301,8 @@ namespace DuckPipe
                 cbProdList.SelectedIndex = 0; // Sélectionne la 1ère prod par défaut
         }
 
+
+
         private void LoadTreeViewFromFolder(string rootPath, string prodName)
         {
             string prodPath = Path.Combine(rootPath, prodName);
@@ -329,6 +339,7 @@ namespace DuckPipe
                     maxDepth = depth;
 
                 AddDirectoriesToTreeWithDepth(dir, node, 1, maxDepth);
+
             }
 
             rootNode.Expand();
@@ -341,11 +352,14 @@ namespace DuckPipe
 
             foreach (string dir in Directory.GetDirectories(folderPath))
             {
-                TreeNode node = new TreeNode(Path.GetFileName(dir));
-                node.Tag = dir;
-                parentNode.Nodes.Add(node);
+                if (!dir.Contains("Work"))
+                {
+                    TreeNode node = new TreeNode(Path.GetFileName(dir));
+                    node.Tag = dir;
+                    parentNode.Nodes.Add(node);
 
-                AddDirectoriesToTreeWithDepth(dir, node, currentDepth + 1, maxDepth);
+                    AddDirectoriesToTreeWithDepth(dir, node, currentDepth + 1, maxDepth);
+                }
             }
         }
 

@@ -10,6 +10,7 @@ namespace DuckPipe.Core
     {
         public static void TryLockFile(string assetPath, AssetManagerForm form)
         {
+            MessageBox.Show(assetPath);
             string workFolderPath = Path.GetDirectoryName(assetPath);
             string fileName = Path.GetFileNameWithoutExtension(assetPath);
             string FileExt = Path.GetExtension(assetPath);
