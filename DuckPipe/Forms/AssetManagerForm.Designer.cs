@@ -36,6 +36,7 @@ namespace DuckPipe
             contextMenuTree = new ContextMenuStrip(components);
             tsmiRename = new ToolStripMenuItem();
             tsmiDelete = new ToolStripMenuItem();
+            viewInExplorerToolStripMenuItem = new ToolStripMenuItem();
             panel1 = new Panel();
             btnCreateProduction = new Button();
             btCreateAsset = new Button();
@@ -54,17 +55,17 @@ namespace DuckPipe
             flpPipelineStatus = new FlowLayoutPanel();
             pnlDeptBtn = new Panel();
             flpDeptButton = new FlowLayoutPanel();
-            panel2 = new Panel();
+            pnlTopRight = new Panel();
+            btnEditAsset = new Button();
             splitContainer2 = new SplitContainer();
             splitContainer3 = new SplitContainer();
-            viewInExplorerToolStripMenuItem = new ToolStripMenuItem();
             contextMenuTree.SuspendLayout();
             panel1.SuspendLayout();
             menuStrip1.SuspendLayout();
             plAssetTaskInfo.SuspendLayout();
             pnlPipelineStatus.SuspendLayout();
             pnlDeptBtn.SuspendLayout();
-            panel2.SuspendLayout();
+            pnlTopRight.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
@@ -93,22 +94,29 @@ namespace DuckPipe
             // 
             contextMenuTree.Items.AddRange(new ToolStripItem[] { tsmiRename, tsmiDelete, viewInExplorerToolStripMenuItem });
             contextMenuTree.Name = "contextMenuTree";
-            contextMenuTree.Size = new Size(181, 92);
+            contextMenuTree.Size = new Size(158, 70);
             contextMenuTree.Opening += contextMenuTree_Opening;
             // 
             // tsmiRename
             // 
             tsmiRename.Name = "tsmiRename";
-            tsmiRename.Size = new Size(180, 22);
+            tsmiRename.Size = new Size(157, 22);
             tsmiRename.Text = "Rename";
             tsmiRename.Click += tsmiRename_Click;
             // 
             // tsmiDelete
             // 
             tsmiDelete.Name = "tsmiDelete";
-            tsmiDelete.Size = new Size(180, 22);
+            tsmiDelete.Size = new Size(157, 22);
             tsmiDelete.Text = "Delete";
             tsmiDelete.Click += tsmiDelete_Click;
+            // 
+            // viewInExplorerToolStripMenuItem
+            // 
+            viewInExplorerToolStripMenuItem.Name = "viewInExplorerToolStripMenuItem";
+            viewInExplorerToolStripMenuItem.Size = new Size(157, 22);
+            viewInExplorerToolStripMenuItem.Text = "View in explorer";
+            viewInExplorerToolStripMenuItem.Click += viewInExplorerToolStripMenuItem_Click;
             // 
             // panel1
             // 
@@ -198,7 +206,7 @@ namespace DuckPipe
             userSettingsToolStripMenuItem.DisplayStyle = ToolStripItemDisplayStyle.Text;
             userSettingsToolStripMenuItem.ForeColor = Color.White;
             userSettingsToolStripMenuItem.Name = "userSettingsToolStripMenuItem";
-            userSettingsToolStripMenuItem.Size = new Size(180, 22);
+            userSettingsToolStripMenuItem.Size = new Size(147, 22);
             userSettingsToolStripMenuItem.Text = "User Settings";
             userSettingsToolStripMenuItem.Click += userSettingsToolStripMenuItem_Click;
             // 
@@ -208,7 +216,7 @@ namespace DuckPipe
             assetSettingsToolStripMenuItem.DisplayStyle = ToolStripItemDisplayStyle.Text;
             assetSettingsToolStripMenuItem.ForeColor = Color.White;
             assetSettingsToolStripMenuItem.Name = "assetSettingsToolStripMenuItem";
-            assetSettingsToolStripMenuItem.Size = new Size(180, 22);
+            assetSettingsToolStripMenuItem.Size = new Size(147, 22);
             assetSettingsToolStripMenuItem.Text = "Asset Settings";
             assetSettingsToolStripMenuItem.Click += assetSettingsToolStripMenuItem_Click;
             // 
@@ -218,7 +226,7 @@ namespace DuckPipe
             prodSettingsToolStripMenuItem.DisplayStyle = ToolStripItemDisplayStyle.Text;
             prodSettingsToolStripMenuItem.ForeColor = Color.White;
             prodSettingsToolStripMenuItem.Name = "prodSettingsToolStripMenuItem";
-            prodSettingsToolStripMenuItem.Size = new Size(180, 22);
+            prodSettingsToolStripMenuItem.Size = new Size(147, 22);
             prodSettingsToolStripMenuItem.Text = "Prod Settings";
             prodSettingsToolStripMenuItem.Click += prodSettingsToolStripMenuItem_Click;
             // 
@@ -318,16 +326,32 @@ namespace DuckPipe
             flpDeptButton.Size = new Size(634, 42);
             flpDeptButton.TabIndex = 0;
             // 
-            // panel2
+            // pnlTopRight
             // 
-            panel2.BackColor = Color.FromArgb(65, 65, 65);
-            panel2.Controls.Add(lblAssetType);
-            panel2.Controls.Add(lblAssetName);
-            panel2.Dock = DockStyle.Top;
-            panel2.Location = new Point(0, 0);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(843, 74);
-            panel2.TabIndex = 5;
+            pnlTopRight.BackColor = Color.FromArgb(65, 65, 65);
+            pnlTopRight.Controls.Add(btnEditAsset);
+            pnlTopRight.Controls.Add(lblAssetType);
+            pnlTopRight.Controls.Add(lblAssetName);
+            pnlTopRight.Dock = DockStyle.Top;
+            pnlTopRight.Location = new Point(0, 0);
+            pnlTopRight.Name = "pnlTopRight";
+            pnlTopRight.Size = new Size(843, 74);
+            pnlTopRight.TabIndex = 5;
+            // 
+            // btnEditAsset
+            // 
+            btnEditAsset.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            btnEditAsset.BackColor = Color.FromArgb(80, 80, 80);
+            btnEditAsset.FlatAppearance.BorderSize = 0;
+            btnEditAsset.FlatStyle = FlatStyle.Flat;
+            btnEditAsset.Font = new Font("Segoe UI", 15F);
+            btnEditAsset.ForeColor = Color.White;
+            btnEditAsset.Location = new Point(776, 12);
+            btnEditAsset.Name = "btnEditAsset";
+            btnEditAsset.Size = new Size(55, 52);
+            btnEditAsset.TabIndex = 3;
+            btnEditAsset.Text = "Edit";
+            btnEditAsset.UseVisualStyleBackColor = false;
             // 
             // splitContainer2
             // 
@@ -342,7 +366,7 @@ namespace DuckPipe
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.Controls.Add(splitContainer3);
-            splitContainer2.Panel2.Controls.Add(panel2);
+            splitContainer2.Panel2.Controls.Add(pnlTopRight);
             splitContainer2.Size = new Size(1100, 543);
             splitContainer2.SplitterDistance = 253;
             splitContainer2.TabIndex = 6;
@@ -365,13 +389,6 @@ namespace DuckPipe
             splitContainer3.SplitterDistance = 634;
             splitContainer3.TabIndex = 6;
             // 
-            // viewInExplorerToolStripMenuItem
-            // 
-            viewInExplorerToolStripMenuItem.Name = "viewInExplorerToolStripMenuItem";
-            viewInExplorerToolStripMenuItem.Size = new Size(180, 22);
-            viewInExplorerToolStripMenuItem.Text = "View in explorer";
-            viewInExplorerToolStripMenuItem.Click += viewInExplorerToolStripMenuItem_Click;
-            // 
             // AssetManagerForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -391,8 +408,8 @@ namespace DuckPipe
             plAssetTaskInfo.ResumeLayout(false);
             pnlPipelineStatus.ResumeLayout(false);
             pnlDeptBtn.ResumeLayout(false);
-            panel2.ResumeLayout(false);
-            panel2.PerformLayout();
+            pnlTopRight.ResumeLayout(false);
+            pnlTopRight.PerformLayout();
             splitContainer2.Panel1.ResumeLayout(false);
             splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
@@ -416,7 +433,7 @@ namespace DuckPipe
         private Label lblAssetType;
         private Label lblAssetName;
         private Panel pnlPipelineStatus;
-        private Panel panel2;
+        private Panel pnlTopRight;
         private SplitContainer splitContainer2;
         private SplitContainer splitContainer3;
         private FlowLayoutPanel flpAssetInspect;
@@ -431,5 +448,6 @@ namespace DuckPipe
         private ToolStripMenuItem prodSettingsToolStripMenuItem;
         private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem viewInExplorerToolStripMenuItem;
+        private Button btnEditAsset;
     }
 }

@@ -100,6 +100,7 @@ namespace DuckPipe
                 return null;
             }
         }
+
         private void tvAssetList_AfterSelect(object sender, TreeViewEventArgs e)
         {
             string fullPath = GetFullPathFromNode(e.Node);
@@ -127,6 +128,19 @@ namespace DuckPipe
             // maj labels
             lblAssetName.Text = ctx.AssetName;
             lblAssetType.Text = ctx.AssetType;
+
+            // maj bouton edit asset
+            btnEditAsset.Visible = true;
+            btnEditAsset.Click += (s, e) =>
+            {
+                string path = Path.Combine(fullPath, "Asset.json");
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true
+                });
+            };
 
             // config
             var assetStructures = AssetStructureBuilder.LoadAssetStructures(ctx.ProductionPath);
@@ -301,8 +315,6 @@ namespace DuckPipe
                 cbProdList.SelectedIndex = 0; // Sélectionne la 1ère prod par défaut
         }
 
-
-
         private void LoadTreeViewFromFolder(string rootPath, string prodName)
         {
             string prodPath = Path.Combine(rootPath, prodName);
@@ -400,6 +412,7 @@ namespace DuckPipe
         {
             lblAssetName.Text = "";
             lblAssetType.Text = "";
+            btnEditAsset.Visible = false;
             flpPipelineStatus.Controls.Clear();
             flpAssetInspect.Controls.Clear();
             flpDeptButton.Controls.Clear();
@@ -434,6 +447,7 @@ namespace DuckPipe
 
             var departmentMap = new Dictionary<string, (string status, string version)>();
 
+
             foreach (JsonProperty fileEntry in workfiles.EnumerateObject())
             {
                 JsonElement fileData = fileEntry.Value;
@@ -454,6 +468,12 @@ namespace DuckPipe
                 var departmentPanel = BuildDepartmentPanel(jsonPath, deptName);
                 flpPipelineStatus.Controls.Add(departmentPanel);
             }
+
+            if (jsonPath.Contains("\\Shots\\"))
+            {
+                DisplayPlayBlastPanel(assetPath);
+            }
+
 
             AddActionButtons();
             flpPipelineStatus.ResumeLayout();
@@ -610,6 +630,58 @@ namespace DuckPipe
             }
 
             flpAssetInspect.ResumeLayout();
+        }
+
+        private void DisplayPlayBlastPanel(string assetPath)
+        {
+            flpPipelineStatus.SuspendLayout();
+
+            Panel pbpPnel = new()
+            {
+                AutoSize = false,
+                Size = new Size(flpPipelineStatus.ClientSize.Width - 30, 100),
+                BackColor = Color.FromArgb(80, 80, 80),
+                Padding = new Padding(5),
+                Margin = new Padding(5)
+            };
+
+            // Label
+            pbpPnel.Controls.Add(new Label
+            {
+                Text = " - Playblasts",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(5, 5),
+                ForeColor = Color.White,
+            });
+
+            var playblasts = ShotManip.GetAllPlayblats(assetPath);
+
+            int offsetX = 10;
+            foreach (var playblast in playblasts)
+            {
+                var image = new PictureBox
+                {
+                    ImageLocation = ShotManip.GenerateThumbnail(playblast.FullPath),
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    Size = new Size(100, 60),
+                    Cursor = Cursors.Hand,
+                    Tag = playblast.FullPath,
+                    Location = new Point(offsetX, 30)
+                };
+
+                image.DoubleClick += (s, e) =>
+                {
+                    MessageBox.Show($"Ouverture de: {Path.GetFileName(playblast.FullPath)}, soyez patient");
+                    Process.Start("explorer", $"\"{playblast.FullPath}\"");
+                };
+
+                pbpPnel.Controls.Add(image);
+                offsetX += 170;
+            }
+
+            flpPipelineStatus.Controls.Add(pbpPnel);
+            flpPipelineStatus.ResumeLayout();
         }
 
         private void AddAllWorkFilesToDepartementPanel(ListView listView, string assetJsonPath, string department)

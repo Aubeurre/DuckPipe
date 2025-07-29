@@ -54,12 +54,15 @@ namespace DuckPipe.Core
             {
                 string cleanPath = Path.Combine(Path.GetDirectoryName(assetPath), $"P{assetName}");
                 Directory.CreateDirectory(cleanPath);
-                CreateShotJson(rootPath, cleanPath, structure, assetName);
+                string jsonPath = CreateShotJson(rootPath, cleanPath, structure, assetName);
 
                 foreach (var kvp in structure.Structure)
                 {
                     CreateNode(Path.Combine(cleanPath, kvp.Key), kvp.Value, assetName);
                 }
+                AddAssetIntoShot(jsonPath, "", "Characters");
+                AddAssetIntoShot(jsonPath, "", "Props");
+                AddAssetIntoShot(jsonPath, "", "Environments");
             }
 
             if (structure.Name == "Sequences")
@@ -181,7 +184,7 @@ namespace DuckPipe.Core
             File.WriteAllText(jsonPath, jsonString);
         }
 
-        private static void CreateShotJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
+        private static string CreateShotJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
         {
             Directory.CreateDirectory(assetPath);
 
@@ -245,6 +248,7 @@ namespace DuckPipe.Core
             string jsonPath = Path.Combine(assetPath, "asset.json");
             string jsonString = JsonSerializer.Serialize(assetJson, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(jsonPath, jsonString);
+            return jsonPath;
         }
 
         private static void CreateSeqJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
@@ -346,6 +350,55 @@ namespace DuckPipe.Core
                 // Écriture dans le fichier
                 File.WriteAllText(assetJsonPath, JsonSerializer.Serialize(newJson, options));
             }
+        }
+
+        public static void AddAssetIntoShot(string assetJsonPath, string assetName, string assetType)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            Dictionary<string, object> newJson = new();
+
+            // Lire le JSON
+            string jsonText = File.ReadAllText(assetJsonPath);
+            var doc = JsonDocument.Parse(jsonText);
+            var root = doc.RootElement;
+
+            // Copie
+            foreach (var prop in root.EnumerateObject())
+            {
+                if (prop.Name != "assets")
+                {
+                    newJson[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
+                }
+            }
+
+            // Section assets 
+            Dictionary<string, List<string>> assetsDict = new();
+
+            if (root.TryGetProperty("assets", out var assetsProp) && assetsProp.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var typeEntry in assetsProp.EnumerateObject())
+                {
+                    var entries = typeEntry.Value.EnumerateArray()
+                                             .Select(v => v.GetString() ?? "")
+                                             .ToList();
+                    assetsDict[typeEntry.Name] = entries;
+                }
+            }
+
+            // Ajouter
+            assetType = assetType.ToLower();
+            if (!assetsDict.ContainsKey(assetType))
+                assetsDict[assetType] = new List<string>();
+
+            if (!assetsDict[assetType].Contains(assetName))
+                assetsDict[assetType].Add(assetName);
+
+            // Reinjecter
+            newJson["assets"] = assetsDict;
+
+            // Sauvegarde
+            string newJsonString = JsonSerializer.Serialize(newJson, options);
+            File.WriteAllText(assetJsonPath, newJsonString);
         }
 
         public static Dictionary<string, AssetStructure> LoadAssetStructures(string prodPath)
