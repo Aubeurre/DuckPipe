@@ -79,6 +79,7 @@
             Controls.Add(btnOpen);
             Controls.Add(listBoxFiles);
             Name = "FileSelectionPopup";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "FileSelectionPopup";
             Load += FileSelectionPopup_Load;
             ResumeLayout(false);

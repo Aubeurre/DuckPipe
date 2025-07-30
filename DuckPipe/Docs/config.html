@@ -15,23 +15,95 @@
                 <li><a href="shots.html">Shots</a></li>
                 <li><a href="pipeline.html">Ducky Asset Manager</a></li>
                 <li><a href="nomenclature.html">Nomenclature</a></li>
+                <li><a href="storage.html">Connexion au NAS & stockage local</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
         <h2>Installation</h2>
+
         <section>
             <p>
-                Ce guide vous guidera dans l'instalation des outils de production.</br>
-                Pour la configuration du pipeline, vous pouvez vous referer a cette page: <a href="pipeline.html">Ducky Asset Manager</a></br>
-                <h5>Ducky Asset Manager a ete concu dans un concept de production studio, </br>
-                Il n'est pas fini, et donc n'est pas encore robuste.</br>
-                Aussi, il n'est pas simple a installer et necessite des reglages pour chaques utilisateurs car nous ne travaillons pas sur la meme infra. </h5>
+                Ce guide vous guidera dans l'installation des outils de production.<br>
+                Pour la configuration du pipeline, vous pouvez vous référer à cette page : <a href="pipeline.html">Ducky Asset Manager</a>
+            </p>
+            <h5>
+                Ducky Asset Manager a été conçu dans un concept de production studio.<br>
+                Il n'est pas fini, et donc n'est pas encore robuste.
+            </h5>
+        </section>
+
+        <hr>
+
+        <section>
+            <h3>Installation de l'application</h3>
+            <p>
+                DuckPipe peut être installé via un installeur ou lancé manuellement depuis l’exécutable.<br>
+                Un fichier <code>user_config.json</code> sera généré à la première ouverture dans ton dossier utilisateur.<br>
+                Tu peux l’éditer directement dans le tool (il comprend notamment le chemin vers les disques de prod, donc il faut y avoir accès pour que le tool se lance proprement).
+            </p>
+            <p>
+                📦 Dernière version : <a href="https://github.com/Aubeurre/DuckPipe/releases/tag/v1.2.1" target="_blank">v1.2.1</a>
+            </p>
+            <p>
+                🔄 Pour les mises à jour : DuckPipe vous indique si vous êtes à jour. Il faudra désinstaller puis réinstaller la dernière version depuis l’exécutable disponible sur GitHub.
             </p>
         </section>
 
+        <section>
+            <h3>Prérequis</h3>
+            <p>Pour utiliser DuckPipe dans de bonnes conditions, suivez ces étapes d’installation :</p>
+        </section>
 
+        <section>
+            <h4>1. Installation de Tailscale</h4>
+            <p>DuckPipe utilise <strong>Tailscale</strong> pour accéder au NAS du studio à distance de façon sécurisée.</p>
+            <ol>
+                <li>Télécharge l'application Tailscale ici : <a href="https://tailscale.com/download" target="_blank">https://tailscale.com/download</a></li>
+                <li>Installe l'application et connecte-toi (via Google ou GitHub par exemple).</li>
+                <li>Laisse Tailscale ouvert en arrière-plan : vous êtes maintenant connecté au réseau privé Ichigo ✨</li>
+            </ol>
+        </section>
+
+        <section>
+            <h4>2. Accès au NAS (Interface Web)</h4>
+            <p>Tu peux accéder au NAS depuis ton navigateur à l’adresse :</p>
+            <pre><a href="https://ichigo-nas.tailf74707.ts.net:5001/" target="_blank">https://ichigo-nas.tailf74707.ts.net:5001/</a></pre>
+            <p>⚠ Si une alerte "connexion non sécurisée" apparaît, clique sur <strong>“Avancé”</strong> puis <strong>“Continuer vers le site”</strong>. C’est normal, la sécurité est assurée par Tailscale.</p>
+            <p>Connecte-toi avec tes identifiants DSM.</p>
+        </section>
+
+        <section>
+            <h4>3. Montage du lecteur réseau</h4>
+            <p>Pour que DuckPipe fonctionne correctement, le dossier <code>PROD</code> doit être monté comme un lecteur réseau dans l’explorateur Windows :</p>
+            <ol>
+                <li>Ouvre l’<strong>Explorateur de fichiers</strong> (Win + E).</li>
+                <li>Dans le menu de gauche, clique sur <strong>Ce PC</strong>.</li>
+                <li>En haut, clique sur <strong>Ordinateur</strong> → <strong>Connecter un lecteur réseau</strong>.</li>
+                <li>Choisis une lettre de lecteur (ex : <code>I:</code>).</li>
+                <li>Dans le champ dossier, entre : <code>\\100.107.223.82\PROD</code></li>
+                <li>Coche <strong>Reconnecter à l’ouverture de session</strong>.</li>
+                <li>Connecte-toi avec ton identifiant DSM + mot de passe.</li>
+            </ol>
+            <p>⚠ En cas de conflit de lettre, choisis-en une autre (J:, K:...) et configure DuckPipe en conséquence via <code>UserConfig.json</code>.</p>
+        </section>
+
+        <hr>
+
+        <section>
+            <h3>Notes Importantes</h3>
+            <ul>
+                <li>Le montage réseau ne fonctionne que si Tailscale est actif ou que vous êtes connecté au réseau du studio.</li>
+                <li>DuckPipe est prévu pour éviter de naviguer manuellement dans l’arborescence — tout passe par l’interface !</li>
+                <li>Actuellement, DuckPipe se connecte automatiquement avec l’utilisateur <code>AlexBis</code> pour simplifier le setup (ce nom sera renommé plus tard en <code>DuckyPipe</code>).</li>
+            </ul>
+        </section>
+
+        <section>
+            <h3>Besoin d’aide ?</h3>
+            <p>Contactez Alexandre ou l’administrateur technique en cas de problème d’accès ou d’installation.</p>
+        </section>
     </main>
 
     <footer>

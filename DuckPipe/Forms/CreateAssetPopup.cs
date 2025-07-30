@@ -22,10 +22,17 @@ namespace DuckPipe
             cbAssetType.SelectedIndex = 0;
             cbSeqChoice.Visible = false;
             lbSequence.Visible = false;
+            lbRange.Visible = false;
+            tbRangeIn.Visible = false;
+            tbRangeOut.Visible = false;
+            lbRangeSeparator.Visible = false;
         }
         public string AssetName => txtAssetName.Text.Trim();
         public string AssetType => cbAssetType.SelectedItem?.ToString();
         public string SeqName => cbSeqChoice.SelectedItem?.ToString() ?? "";
+        public string Description => tbDescription.Text.Trim();
+        public string rangeIn => tbRangeIn.Text.Trim();
+        public string rangeOut => tbRangeOut.Text.Trim();
         private void btnOK_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtAssetName.Text))
@@ -67,11 +74,19 @@ namespace DuckPipe
             {
                 cbSeqChoice.Visible = true;
                 lbSequence.Visible = true;
+                lbRange.Visible = true;
+                tbRangeIn.Visible = true;
+                tbRangeOut.Visible = true;
+                lbRangeSeparator.Visible = true;
             }
             else
             {
                 cbSeqChoice.Visible = false;
                 lbSequence.Visible = false;
+                lbRange.Visible = false;
+                tbRangeIn.Visible = false;
+                tbRangeOut.Visible = false;
+                lbRangeSeparator.Visible = false;
             }
         }
     }

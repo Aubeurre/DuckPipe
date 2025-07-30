@@ -1,7 +1,12 @@
 [Setup]
 AppName=DuckPipe
-AppVersion=1.0
+AppVersion=1.2.1
+AppPublisher=Alexandre Wojtkow
 DefaultDirName={pf}\DuckPipe
+AppPublisherURL=https://github.com/Aubeurre/DuckPipe
+AppSupportURL=https://github.com/Aubeurre/DuckPipe/issues
+AppUpdatesURL=https://github.com/Aubeurre/DuckPipe/releases
+AppCopyright=© 2025 Alexandre Wojtkow
 DefaultGroupName=DuckPipe
 OutputBaseFilename=DuckPipeSetup
 Compression=lzma

@@ -75,6 +75,7 @@
             Controls.Add(label1);
             Controls.Add(btnRename);
             Name = "RenamerForm";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "RenamerForm";
             ResumeLayout(false);
             PerformLayout();

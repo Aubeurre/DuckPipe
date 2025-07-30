@@ -37,6 +37,7 @@
             // 
             rtbMessage.BackColor = Color.FromArgb(30, 30, 30);
             rtbMessage.BorderStyle = BorderStyle.FixedSingle;
+            rtbMessage.ForeColor = Color.White;
             rtbMessage.Location = new Point(12, 27);
             rtbMessage.Name = "rtbMessage";
             rtbMessage.Size = new Size(305, 97);
@@ -77,6 +78,7 @@
             Controls.Add(btnSend);
             Controls.Add(rtbMessage);
             Name = "MessageBoxPopup";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "MessageBoxPopup";
             ResumeLayout(false);
             PerformLayout();

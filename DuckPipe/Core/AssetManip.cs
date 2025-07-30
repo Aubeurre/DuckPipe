@@ -158,6 +158,19 @@ namespace DuckPipe.Core
             }
         }
 
+        public static void AddNote(string assetPath, AssetManagerForm form)
+        {
+            var ctx = ExtractAssetContext(assetPath);
+
+            int versionName = GetLastWorkVersion(assetPath);
+            var msgPopup = new MessageBoxPopup();
+            if (msgPopup.ShowDialog() == DialogResult.OK)
+            {
+                AddPublishLog(ctx.WorkFolder, ctx.FileName, versionName, msgPopup.CommitMessage);
+            }
+            UpdateAssetMetadata(assetPath, versionName, ctx.Department);
+            form.RefreshRightPanel(ctx.AssetRoot);
+        }
         public static void PublishAsset(string assetPath, AssetManagerForm form)
         {
             if (LockAssetDepartment.IsLockedByUser(assetPath))
@@ -185,14 +198,7 @@ namespace DuckPipe.Core
                         UseShellExecute = true
                     });
                 }
-
-                int versionName = GetLastWorkVersion(assetPath);
-                var msgPopup = new MessageBoxPopup();
-                if (msgPopup.ShowDialog() == DialogResult.OK)
-                {
-                    AddPublishLog(ctx.WorkFolder, ctx.FileName, versionName, msgPopup.CommitMessage);
-                }
-                UpdateAssetMetadata(assetPath, versionName, ctx.Department);
+                AddNote(assetPath, form);
                 MarkDownstreamDepartmentsOutdated(assetPath, ctx.Department);
                 form.RefreshRightPanel(ctx.AssetRoot);
             }
@@ -346,6 +352,7 @@ namespace DuckPipe.Core
                     ? dt
                     : DateTime.MinValue; string user = entry.TryGetProperty("User", out var u) ? u.GetString() ?? "(inconnu)" : "(inconnu)";
                 string message = entry.TryGetProperty("Message", out var m) ? m.GetString() ?? "" : "";
+                message = message.Replace("\u000B", Environment.NewLine);
 
                 commits.Add(new CommitEntry
                 {

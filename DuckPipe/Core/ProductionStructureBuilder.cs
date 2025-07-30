@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace DuckPipe.Core
 {
@@ -44,10 +45,14 @@ namespace DuckPipe.Core
                 "IO/Out",
                 "Dev",
                 "RnD",
-                "Preprod/Concept/Characters",
-                "Preprod/Concept/Props",
-                "Preprod/Concept/Environments",
-                "Preprod/Board",
+                "Preprod/Concept/Characters/Work",
+                "Preprod/Concept/Props/Work",
+                "Preprod/Concept/Environments/Work",
+                "Preprod/Concept/Characters/dlv",
+                "Preprod/Concept/Props/dlv",
+                "Preprod/Concept/Environments/dlv",
+                "Preprod/Board/dlv",
+                "Preprod/Board/Work",
             };
 
             foreach (string folder in folders)
@@ -99,12 +104,26 @@ namespace DuckPipe.Core
                 name,
                 created,
                 version,
-                departments
+                departments,
+                status = new Dictionary<string, string>
+        {
+            { "not_started", "icons/NEW.png" },
+            { "outDated", "icons/OLD.png" },
+            { "upToDate", "icons/APP.png" },
+            { "rtk", "icons/RTK.png" }
+        }
             };
 
             string configPath = Path.Combine(prodPath, "config.json");
             var options = new JsonSerializerOptions { WriteIndented = true };
             File.WriteAllText(configPath, JsonSerializer.Serialize(config, options));
+        }
+
+        public void Check(string prodName, string prodPath)
+        {
+            string fullPath = Path.Combine(prodPath, prodName);
+            CreateDefaultFolders(fullPath);
+            CopyTools(fullPath);
         }
     }
 

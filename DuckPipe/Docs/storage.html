@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>DuckPipe &#45 Documentation</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>DuckPipe &#45 Documentation</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="assets.html">Assets</a></li>
+                <li><a href="shots.html">Shots</a></li>
+                <li><a href="pipeline.html">Ducky Asset Manager</a></li>
+                <li><a href="nomenclature.html">Nomenclature</a></li>
+                <li><a href="storage.html">Connexion au NAS & stockage local</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Connexion au NAS & stockage local</h2>
+
+        <p>DuckPipe fonctionne avec un système de stockage unifié, qui peut être :</p>
+        <ul>
+            <li><strong>Local :</strong> utilisé en mode fallback, pour les tests hors réseau.</li>
+            <li><strong>NAS Synology :</strong> utilisé pour les productions en réseau, via le protocole DSM.</li>
+        </ul>
+
+        <h2>Installation de Tailscale (accès au NAS)</h2>
+        <ol>
+            <li>Télécharge et installe <a href="https://tailscale.com/download" target="_blank">Tailscale</a>.</li>
+            <li>Crée un compte ou connecte-toi avec Google/GitHub.</li>
+            <li>Laisse l'application ouverte en arrière-plan. Tu es maintenant connecté au réseau Ichigo !</li>
+        </ol>
+
+        <h2>Accès au NAS via le navigateur (optionnel)</h2>
+        <p><strong>Note :</strong> cette méthode est <em>déconseillée</em> pour travailler avec DuckPipe. Elle est fournie à titre informatif uniquement.</p>
+        <ul>
+            <li>Va sur : <a href="https://ichigo-nas.tailf74707.ts.net:5001/" target="_blank">ichigo-nas.tailf74707.ts.net:5001</a></li>
+            <li>Ignore l'alerte de sécurité et continue vers le site.</li>
+            <li>Connecte-toi avec tes identifiants DSM.</li>
+        </ul>
+
+        <h2>Montage du NAS comme lecteur réseau (recommandé)</h2>
+        <p>Cette méthode permet à DuckPipe d’accéder directement à la structure de production :</p>
+        <ol>
+            <li>Ouvre l’explorateur Windows (Win + E).</li>
+            <li>Va dans <strong>Ce PC</strong>, puis clique sur <strong>Connecter un lecteur réseau</strong>.</li>
+            <li>Choisis une lettre (I: recommandé), et entre le chemin : <code>\\100.107.223.82\PROD</code></li>
+            <li>Coche “Se reconnecter à l’ouverture de session”.</li>
+            <li>
+                Connecte-toi avec :
+                <ul>
+                    <li><strong>Nom d’utilisateur :</strong> ton identifiant DSM</li>
+                    <li><strong>Mot de passe :</strong> ton mot de passe DSM</li>
+                </ul>
+            </li>
+            <li>(Optionnel) Coche "Mémoriser mes identifiants"</li>
+        </ol>
+
+        <h3>Important</h3>
+        <ul>
+            <li>Si la lettre I: est prise, choisis-en une autre et édite ton <code>UserConfig.json</code></li>
+            <li>Le lecteur réseau ne fonctionne que si Tailscale est actif ou si tu es au studio.</li>
+            <li>Tu ne dois PAS naviguer manuellement dans les sous-dossiers de <code>PROD</code>. Utilise DuckPipe !</li>
+        </ul>
+
+        <h2>Fallback local</h2>
+        <p>Si aucun NAS n’est détecté, DuckPipe bascule automatiquement en mode local avec un dossier de travail sur ton disque.</p>
+
+        <h2>Besoin d’aide ?</h2>
+        <p>
+            Contacte l’administrateur système pour les problèmes de droits d’accès.<br>
+            Pour tout ce qui concerne DuckPipe, contacte <strong>Alexandre</strong>.
+        </p>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2025 DuckPipe &#45 Alexandre Wojtkow - Ichigo Studio</p>
+    </footer>
+</body>
+</html>

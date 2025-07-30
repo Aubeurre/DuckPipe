@@ -36,13 +36,13 @@ namespace DuckPipe.Core
 
     public static class AssetStructureBuilder
     {
-        public static void CreateAssetStructure(string rootPath, string assetPath, AssetStructure structure, string assetName)
+        public static void CreateAssetStructure(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description, string rangeIn, string rangeOut)
         {
 
             if (structure.Name == "Characters" || structure.Name == "Props" || structure.Name == "Environments")
             {
                 Directory.CreateDirectory(assetPath);
-                CreateAssetJson(rootPath, assetPath, structure, assetName);
+                CreateAssetJson(rootPath, assetPath, structure, assetName, Description);
 
                 foreach (var kvp in structure.Structure)
                 {
@@ -54,7 +54,7 @@ namespace DuckPipe.Core
             {
                 string cleanPath = Path.Combine(Path.GetDirectoryName(assetPath), $"P{assetName}");
                 Directory.CreateDirectory(cleanPath);
-                string jsonPath = CreateShotJson(rootPath, cleanPath, structure, assetName);
+                string jsonPath = CreateShotJson(rootPath, cleanPath, structure, assetName, Description, rangeIn, rangeOut);
 
                 foreach (var kvp in structure.Structure)
                 {
@@ -69,7 +69,7 @@ namespace DuckPipe.Core
             {
                 string cleanPath = Path.Combine(Path.GetDirectoryName(assetPath), $"S{assetName}");
                 Directory.CreateDirectory(cleanPath);
-                CreateSeqJson(rootPath, cleanPath, structure, assetName);
+                CreateSeqJson(rootPath, cleanPath, structure, assetName, Description);
 
                 foreach (var kvp in structure.Structure)
                 {
@@ -126,7 +126,7 @@ namespace DuckPipe.Core
             }
         }
 
-        private static void CreateAssetJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
+        private static void CreateAssetJson(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description)
         {
             var workfileData = new Dictionary<string, object>();
 
@@ -177,6 +177,11 @@ namespace DuckPipe.Core
             var assetJson = new
             {
                 workfile = workfileData,
+                assetInfos = new
+                {
+                    status = "WIP",
+                    description = Description
+                }
             };
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
@@ -184,7 +189,7 @@ namespace DuckPipe.Core
             File.WriteAllText(jsonPath, jsonString);
         }
 
-        private static string CreateShotJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
+        private static string CreateShotJson(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description, string rangeIn, string rangeOut)
         {
             Directory.CreateDirectory(assetPath);
 
@@ -243,6 +248,13 @@ namespace DuckPipe.Core
             var assetJson = new
             {
                 workfile = workfileData,
+                assetInfos = new
+                {
+                    inFrame = rangeIn,
+                    outFrame = rangeOut,
+                    status = "WIP",
+                    description = Description
+                }
             };
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
@@ -251,7 +263,7 @@ namespace DuckPipe.Core
             return jsonPath;
         }
 
-        private static void CreateSeqJson(string rootPath, string assetPath, AssetStructure structure, string assetName)
+        private static void CreateSeqJson(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description)
         {
             Directory.CreateDirectory(assetPath);
 
@@ -307,6 +319,11 @@ namespace DuckPipe.Core
             var assetJson = new
             {
                 workfile = workfileData,
+                assetInfos = new
+                {
+                    status = "WIP",
+                    description = Description
+                }
             };
 
             string jsonPath = Path.Combine(assetPath, "asset.json");

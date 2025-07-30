@@ -20,6 +20,7 @@ namespace DuckPipe
             LoadProductionList();
             ClearRightPanel();
         }
+
         public class AssetContext
         {
             public string RootPath { get; set; }
@@ -125,23 +126,6 @@ namespace DuckPipe
                 return;
             }
 
-            // maj labels
-            lblAssetName.Text = ctx.AssetName;
-            lblAssetType.Text = ctx.AssetType;
-
-            // maj bouton edit asset
-            btnEditAsset.Visible = true;
-            btnEditAsset.Click += (s, e) =>
-            {
-                string path = Path.Combine(fullPath, "Asset.json");
-
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = path,
-                    UseShellExecute = true
-                });
-            };
-
             // config
             var assetStructures = AssetStructureBuilder.LoadAssetStructures(ctx.ProductionPath);
             if (assetStructures != null && assetStructures.TryGetValue(ctx.AssetType, out var structure))
@@ -184,6 +168,9 @@ namespace DuckPipe
                 string newItemName = form.AssetName.Trim();
                 string newItemType = form.AssetType;
                 string seqName = form.SeqName.Trim();
+                string Description = form.Description.Trim();
+                string rangeIn = form.rangeIn.Trim();
+                string rangeOut = form.rangeOut.Trim();
 
                 if (string.IsNullOrEmpty(newItemName))
                 {
@@ -220,7 +207,7 @@ namespace DuckPipe
                     }
 
                     // arborescence des fichiers/dossiers
-                    AssetStructureBuilder.CreateAssetStructure(rootPath, assetPath, assetStructure, newItemName);
+                    AssetStructureBuilder.CreateAssetStructure(rootPath, assetPath, assetStructure, newItemName, Description, rangeIn, rangeOut);
 
                     MessageBox.Show($"Asset '{newItemName}' ({newItemType}) créé dans :\n{assetPath}");
                 }
@@ -243,7 +230,7 @@ namespace DuckPipe
                         MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
                         return;
                     }
-                    AssetStructureBuilder.CreateAssetStructure(rootPath, seqPath, assetStructure, newItemName);
+                    AssetStructureBuilder.CreateAssetStructure(rootPath, seqPath, assetStructure, newItemName, Description, rangeIn, rangeOut);
 
                 }
 
@@ -265,7 +252,7 @@ namespace DuckPipe
                         MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
                         return;
                     }
-                    AssetStructureBuilder.CreateAssetStructure(rootPath, seqPath, assetStructure, newItemName);
+                    AssetStructureBuilder.CreateAssetStructure(rootPath, seqPath, assetStructure, newItemName, Description, rangeIn, rangeOut);
 
                 }
 
@@ -412,6 +399,7 @@ namespace DuckPipe
         {
             lblAssetName.Text = "";
             lblAssetType.Text = "";
+            lbDescription.Text = "";
             btnEditAsset.Visible = false;
             flpPipelineStatus.Controls.Clear();
             flpAssetInspect.Controls.Clear();
@@ -433,15 +421,54 @@ namespace DuckPipe
             flpAssetInspect.Controls.Clear();
             flpDeptButton.Controls.Clear();
 
-            flpPipelineStatus.AutoScroll = true;
-            flpPipelineStatus.FlowDirection = FlowDirection.TopDown;
-            flpPipelineStatus.WrapContents = false;
-            flpPipelineStatus.Dock = DockStyle.Fill;
-
             string jsonPath = Path.Combine(assetPath, "asset.json");
             string json = File.ReadAllText(jsonPath);
             using var doc = JsonDocument.Parse(json);
+            string[] parts = jsonPath.Split('\\');
 
+            var ctx = ExtractAssetContext(assetPath);
+
+            // maj labels
+            lblAssetName.Text = $"{ctx.AssetName} |";
+            lblAssetType.Text = ctx.AssetType;
+
+            // maj bouton edit asset
+            btnEditAsset.Visible = true;
+            btnEditAsset.Click += (s, e) =>
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = jsonPath,
+                    UseShellExecute = true
+                });
+            };
+
+            // maj Description
+            if (doc.RootElement.TryGetProperty("assetInfos", out JsonElement assetInfos))
+            {
+                if (assetInfos.TryGetProperty("description", out JsonElement descriptionElement))
+                {
+                    if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
+                    {
+                        string rangeIn = "";
+                        string rangeOut = "";
+
+                        if (assetInfos.TryGetProperty("inFrame", out JsonElement inFrameElement))
+                            rangeIn = inFrameElement.GetRawText().Replace("\"", "");
+
+                        if (assetInfos.TryGetProperty("outFrame", out JsonElement outFrameElement))
+                            rangeOut = outFrameElement.GetRawText().Replace("\"", "");
+
+                        lbDescription.Text = $"[ {rangeIn} - {rangeOut} ] {descriptionElement.GetString()}";
+                    }
+                    else
+                    {
+                        lbDescription.Text = descriptionElement.GetString();
+                    }
+                }
+            }
+
+            // maj tasks
             if (!doc.RootElement.TryGetProperty("workfile", out JsonElement workfiles))
                 return;
 
@@ -469,25 +496,27 @@ namespace DuckPipe
                 flpPipelineStatus.Controls.Add(departmentPanel);
             }
 
-            if (jsonPath.Contains("\\Shots\\"))
+            if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
             {
                 DisplayPlayBlastPanel(assetPath);
             }
-
-
-            AddActionButtons();
             flpPipelineStatus.ResumeLayout();
-        }
+            }
 
         private Panel BuildDepartmentPanel(string jsonPath, string deptName)
         {
-            Panel departmentPanel = new()
+
+            var departmentPanel = new RoundedPanel
             {
                 AutoSize = false,
                 Size = new Size(flpPipelineStatus.ClientSize.Width - 30, 80),
                 BackColor = Color.FromArgb(80, 80, 80),
-                Padding = new Padding(5),
-                Margin = new Padding(5)
+                Padding = new Padding(8),
+                Margin = new Padding(5),
+                Location = new Point(20, 20),
+                BorderColor = Color.FromArgb(90, 90, 90),
+                BorderRadius = 5,
+                BorderThickness = 0,
             };
 
             // Label
@@ -514,9 +543,8 @@ namespace DuckPipe
             listView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
 
             // Ajoute les colonnes
-            listView.Columns.Add("Fichier", flpPipelineStatus.ClientSize.Width - 200);
+            listView.Columns.Add("Fichier", flpPipelineStatus.ClientSize.Width - 180);
             listView.Columns.Add("User", 70);
-            listView.Columns.Add("Statut", 25);
             listView.Columns.Add("Version", 50);
 
             listView.MouseClick += (s, e) =>
@@ -550,8 +578,9 @@ namespace DuckPipe
             return departmentPanel;
         }
 
-        private void AddActionButtons()
+        private void AddActionButtons(string assetPath)
         {
+            flpDeptButton.Controls.Clear();
             void AddButton(string label, Action<string, AssetManagerForm> onValidSelection, AssetManagerForm form)
             {
                 var btn = new Button
@@ -579,13 +608,33 @@ namespace DuckPipe
                 flpDeptButton.Controls.Add(btn);
             }
 
-
-            AddButton("Grab", LockAssetDepartment.TryLockFile, this);
+            // on check le lock pour voir quelles actions l'user peut faire.
+            // on ajoutera un SuperUser plus tard
+            string workFolderPath = Path.GetDirectoryName(assetPath);
+            string fileName = Path.GetFileNameWithoutExtension(assetPath);
+            string FileExt = Path.GetExtension(assetPath);
+            string lockFile = Path.Combine(workFolderPath, $"{fileName}{FileExt}.lock");
+            string lockedByUser = "";
+            if (!File.Exists(lockFile))
+            {
+                AddButton("Grab", LockAssetDepartment.TryLockFile, this); //if no lock file
+            }
+            else
+            {
+                lockedByUser = File.ReadAllText(lockFile);
+                if (lockedByUser == Environment.UserName)
+                {
+                    AddButton("Ungrab", LockAssetDepartment.UnlockFile, this); //if user is grabbed
+                }
+            }
             AddButton("Run", AssetManip.LaunchAsset, this);
-            AddButton("Exec", AssetManip.ExecAsset, this);
-            AddButton("Increment", AssetManip.VersionAsset, this);
-            AddButton("Publish", AssetManip.PublishAsset, this);
-            AddButton("Ungrab", LockAssetDepartment.UnlockFile, this);
+            if (File.Exists(lockFile))
+            {
+                // AddButton("Exec", AssetManip.ExecAsset, this); // A voir avec les scripts, pour initialiser la scene
+                AddButton("Increment", AssetManip.VersionAsset, this); //if user is grabbed
+                AddButton("Publish", AssetManip.PublishAsset, this); //if user is grabbed
+            }
+            AddButton("Add Note", AssetManip.AddNote, this);
         }
 
         private void DisplayCommitsPanel(string assetPath)
@@ -688,9 +737,44 @@ namespace DuckPipe
         {
             listView.Items.Clear();
 
+            // asset.json
             JsonDocument doc = AssetManip.LoadAssetJson(assetJsonPath);
             if (!doc.RootElement.TryGetProperty("workfile", out JsonElement workfiles)) return;
 
+            // config.json
+            string rootPath = GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string configPath = Path.Combine(rootPath, selectedProd, "config.json");
+
+            Dictionary<string, string> statusIcons = new();
+
+            using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
+            if (configDoc.RootElement.TryGetProperty("status", out JsonElement statusElement))
+            {
+                foreach (var kv in statusElement.EnumerateObject())
+                {
+                    statusIcons[kv.Name] = kv.Value.GetString() ?? "";
+                }
+            }
+
+            // icônes
+            ImageList statusImageList = new ImageList();
+            statusImageList.ImageSize = new Size(16, 16);
+
+            foreach (var pair in statusIcons)
+            {
+                string statusKey = pair.Key;
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, pair.Value);
+
+                if (File.Exists(iconPath))
+                {
+                    statusImageList.Images.Add(statusKey, Image.FromFile(iconPath));
+                }
+            }
+
+            listView.SmallImageList = statusImageList;
+
+            // workfiles
             foreach (JsonProperty fileEntry in workfiles.EnumerateObject())
             {
                 JsonElement fileData = fileEntry.Value;
@@ -701,10 +785,9 @@ namespace DuckPipe
 
                 string workPath = AssetManip.ReplaceEnvVariables(fileData.GetProperty("workPath").GetString());
                 string status = fileData.GetProperty("status").GetString() ?? "not_started";
-                string version = fileData.GetProperty("version").GetString() ?? "v001";
+                string version = fileData.GetProperty("version").GetString() ?? "v000";
                 string fileName = fileData.GetProperty("workFile").GetString() ?? "";
                 string file = Path.Combine(workPath, fileName);
-
 
                 if (!file.EndsWith(".json") && !file.EndsWith(".lock"))
                 {
@@ -714,18 +797,14 @@ namespace DuckPipe
                         userLocked = $"🔒 {userLocked}";
                     }
 
-                    string statusIcon = status switch
-                    {
-                        "not_started" => "⊙",
-                        "outDated" => "⇦",
-                        "upToDate" => "🆗",
-                        _ => ""
-                    };
-
-                    ListViewItem item = new ListViewItem(fileName);
+                    ListViewItem item = new ListViewItem($" |  {fileName}");
                     item.SubItems.Add(userLocked);
-                    item.SubItems.Add(statusIcon);
                     item.SubItems.Add(version);
+
+                    if (statusImageList.Images.ContainsKey(status))
+                    {
+                        item.ImageKey = status;
+                    }
 
                     item.Tag = file;
                     listView.Items.Add(item);
@@ -733,10 +812,11 @@ namespace DuckPipe
             }
         }
 
-        public void OnAssetItemSelected(string selectedItem)
+        public void OnAssetItemSelected(string assetPath)
         {
-            selectedAssetPath = selectedItem as string;
-            DisplayCommitsPanel(selectedAssetPath);
+            selectedAssetPath = assetPath as string;
+            DisplayCommitsPanel(assetPath);
+            AddActionButtons(assetPath);
         }
 
         private void userSettingsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -804,5 +884,16 @@ namespace DuckPipe
                 MessageBox.Show("Le chemin n'existe pas ou plus.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
+        private void checkFoldersStructureToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string rootPath = GetProductionRootPath();
+            string ProdName = cbProdList.SelectedItem?.ToString();
+
+            var productionConfig = new ProductionStructureBuilder { name = ProdName };
+            productionConfig.Check(ProdName, rootPath);
+        }
+
+
     }
 }

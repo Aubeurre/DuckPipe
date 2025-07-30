@@ -29,10 +29,10 @@
         private void InitializeComponent()
         {
             splitContainer1 = new SplitContainer();
-            btnRemove = new Button();
+            tvSource = new TreeView();
             btnAdd = new Button();
             tvDest = new TreeView();
-            tvSource = new TreeView();
+            btnRemove = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -58,19 +58,16 @@
             splitContainer1.SplitterDistance = 365;
             splitContainer1.TabIndex = 0;
             // 
-            // btnRemove
+            // tvSource
             // 
-            btnRemove.BackColor = Color.FromArgb(80, 80, 80);
-            btnRemove.Dock = DockStyle.Bottom;
-            btnRemove.FlatAppearance.BorderSize = 0;
-            btnRemove.FlatStyle = FlatStyle.Flat;
-            btnRemove.ForeColor = Color.White;
-            btnRemove.Location = new Point(0, 462);
-            btnRemove.Name = "btnRemove";
-            btnRemove.Size = new Size(370, 23);
-            btnRemove.TabIndex = 0;
-            btnRemove.Text = "Remove Selected";
-            btnRemove.UseVisualStyleBackColor = false;
+            tvSource.BackColor = Color.FromArgb(30, 30, 30);
+            tvSource.BorderStyle = BorderStyle.None;
+            tvSource.Dock = DockStyle.Fill;
+            tvSource.Location = new Point(0, 0);
+            tvSource.Name = "tvSource";
+            tvSource.Size = new Size(365, 462);
+            tvSource.TabIndex = 2;
+            tvSource.AfterSelect += tvSource_AfterSelect;
             // 
             // btnAdd
             // 
@@ -96,16 +93,19 @@
             tvDest.Size = new Size(370, 462);
             tvDest.TabIndex = 1;
             // 
-            // tvSource
+            // btnRemove
             // 
-            tvSource.BackColor = Color.FromArgb(30, 30, 30);
-            tvSource.BorderStyle = BorderStyle.None;
-            tvSource.Dock = DockStyle.Fill;
-            tvSource.Location = new Point(0, 0);
-            tvSource.Name = "tvSource";
-            tvSource.Size = new Size(365, 462);
-            tvSource.TabIndex = 2;
-            tvSource.AfterSelect += tvSource_AfterSelect;
+            btnRemove.BackColor = Color.FromArgb(80, 80, 80);
+            btnRemove.Dock = DockStyle.Bottom;
+            btnRemove.FlatAppearance.BorderSize = 0;
+            btnRemove.FlatStyle = FlatStyle.Flat;
+            btnRemove.ForeColor = Color.White;
+            btnRemove.Location = new Point(0, 462);
+            btnRemove.Name = "btnRemove";
+            btnRemove.Size = new Size(370, 23);
+            btnRemove.TabIndex = 0;
+            btnRemove.Text = "Remove Selected";
+            btnRemove.UseVisualStyleBackColor = false;
             // 
             // AddAssetIntoShot
             // 
@@ -115,6 +115,7 @@
             ClientSize = new Size(739, 485);
             Controls.Add(splitContainer1);
             Name = "AddAssetIntoShot";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "AddAssetIntoShot";
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);

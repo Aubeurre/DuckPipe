@@ -46,6 +46,8 @@ namespace DuckPipe
             userSettingsToolStripMenuItem = new ToolStripMenuItem();
             assetSettingsToolStripMenuItem = new ToolStripMenuItem();
             prodSettingsToolStripMenuItem = new ToolStripMenuItem();
+            toolsToolStripMenuItem = new ToolStripMenuItem();
+            checkFoldersStructureToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripMenuItem();
             plAssetTaskInfo = new Panel();
             flpAssetInspect = new FlowLayoutPanel();
@@ -56,6 +58,8 @@ namespace DuckPipe
             pnlDeptBtn = new Panel();
             flpDeptButton = new FlowLayoutPanel();
             pnlTopRight = new Panel();
+            flpAssetDescription = new FlowLayoutPanel();
+            lbDescription = new Label();
             btnEditAsset = new Button();
             splitContainer2 = new SplitContainer();
             splitContainer3 = new SplitContainer();
@@ -66,6 +70,7 @@ namespace DuckPipe
             pnlPipelineStatus.SuspendLayout();
             pnlDeptBtn.SuspendLayout();
             pnlTopRight.SuspendLayout();
+            flpAssetDescription.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
@@ -86,7 +91,7 @@ namespace DuckPipe
             tvAssetList.LineColor = Color.White;
             tvAssetList.Location = new Point(12, 65);
             tvAssetList.Name = "tvAssetList";
-            tvAssetList.Size = new Size(230, 441);
+            tvAssetList.Size = new Size(217, 449);
             tvAssetList.TabIndex = 0;
             tvAssetList.AfterSelect += tvAssetList_AfterSelect;
             // 
@@ -131,7 +136,7 @@ namespace DuckPipe
             panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(253, 543);
+            panel1.Size = new Size(240, 551);
             panel1.TabIndex = 2;
             // 
             // btnCreateProduction
@@ -142,7 +147,7 @@ namespace DuckPipe
             btnCreateProduction.FlatAppearance.BorderSize = 0;
             btnCreateProduction.FlatStyle = FlatStyle.Flat;
             btnCreateProduction.ForeColor = Color.White;
-            btnCreateProduction.Location = new Point(217, 34);
+            btnCreateProduction.Location = new Point(204, 34);
             btnCreateProduction.Name = "btnCreateProduction";
             btnCreateProduction.Size = new Size(25, 25);
             btnCreateProduction.TabIndex = 1;
@@ -157,9 +162,9 @@ namespace DuckPipe
             btCreateAsset.FlatAppearance.BorderSize = 0;
             btCreateAsset.FlatStyle = FlatStyle.Flat;
             btCreateAsset.ForeColor = Color.White;
-            btCreateAsset.Location = new Point(12, 510);
+            btCreateAsset.Location = new Point(12, 518);
             btCreateAsset.Name = "btCreateAsset";
-            btCreateAsset.Size = new Size(230, 25);
+            btCreateAsset.Size = new Size(217, 25);
             btCreateAsset.TabIndex = 0;
             btCreateAsset.Text = "Add New";
             btCreateAsset.UseVisualStyleBackColor = false;
@@ -177,17 +182,17 @@ namespace DuckPipe
             cbProdList.Items.AddRange(new object[] { "OBSERVER ", "SPARK", "SILENCE" });
             cbProdList.Location = new Point(12, 34);
             cbProdList.Name = "cbProdList";
-            cbProdList.Size = new Size(199, 23);
+            cbProdList.Size = new Size(186, 23);
             cbProdList.TabIndex = 3;
             cbProdList.SelectedIndexChanged += cbProdList_SelectedIndexChanged;
             // 
             // menuStrip1
             // 
             menuStrip1.BackColor = Color.FromArgb(80, 80, 80);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, toolStripMenuItem1 });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, toolsToolStripMenuItem, toolStripMenuItem1 });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(253, 24);
+            menuStrip1.Size = new Size(240, 24);
             menuStrip1.TabIndex = 7;
             menuStrip1.Text = "menuStrip1";
             // 
@@ -230,6 +235,23 @@ namespace DuckPipe
             prodSettingsToolStripMenuItem.Text = "Prod Settings";
             prodSettingsToolStripMenuItem.Click += prodSettingsToolStripMenuItem_Click;
             // 
+            // toolsToolStripMenuItem
+            // 
+            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { checkFoldersStructureToolStripMenuItem });
+            toolsToolStripMenuItem.ForeColor = Color.White;
+            toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            toolsToolStripMenuItem.Size = new Size(47, 20);
+            toolsToolStripMenuItem.Text = "Tools";
+            // 
+            // checkFoldersStructureToolStripMenuItem
+            // 
+            checkFoldersStructureToolStripMenuItem.BackColor = Color.FromArgb(64, 64, 64);
+            checkFoldersStructureToolStripMenuItem.ForeColor = Color.White;
+            checkFoldersStructureToolStripMenuItem.Name = "checkFoldersStructureToolStripMenuItem";
+            checkFoldersStructureToolStripMenuItem.Size = new Size(196, 22);
+            checkFoldersStructureToolStripMenuItem.Text = "CheckFolders Structure";
+            checkFoldersStructureToolStripMenuItem.Click += checkFoldersStructureToolStripMenuItem_Click;
+            // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.ForeColor = Color.White;
@@ -245,18 +267,19 @@ namespace DuckPipe
             plAssetTaskInfo.Dock = DockStyle.Fill;
             plAssetTaskInfo.Location = new Point(0, 0);
             plAssetTaskInfo.Name = "plAssetTaskInfo";
-            plAssetTaskInfo.Size = new Size(205, 469);
+            plAssetTaskInfo.Size = new Size(197, 477);
             plAssetTaskInfo.TabIndex = 3;
             // 
             // flpAssetInspect
             // 
             flpAssetInspect.AutoScroll = true;
             flpAssetInspect.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flpAssetInspect.BackColor = Color.Transparent;
             flpAssetInspect.Dock = DockStyle.Fill;
             flpAssetInspect.FlowDirection = FlowDirection.TopDown;
             flpAssetInspect.Location = new Point(0, 0);
             flpAssetInspect.Name = "flpAssetInspect";
-            flpAssetInspect.Size = new Size(205, 469);
+            flpAssetInspect.Size = new Size(197, 477);
             flpAssetInspect.TabIndex = 3;
             flpAssetInspect.WrapContents = false;
             // 
@@ -266,7 +289,7 @@ namespace DuckPipe
             lblAssetType.BackColor = Color.Transparent;
             lblAssetType.Font = new Font("Nirmala UI", 12F, FontStyle.Bold | FontStyle.Italic);
             lblAssetType.ForeColor = Color.Silver;
-            lblAssetType.Location = new Point(10, 43);
+            lblAssetType.Location = new Point(16, 44);
             lblAssetType.Margin = new Padding(0);
             lblAssetType.Name = "lblAssetType";
             lblAssetType.Size = new Size(101, 21);
@@ -279,12 +302,12 @@ namespace DuckPipe
             lblAssetName.BackColor = Color.Transparent;
             lblAssetName.Font = new Font("Nirmala UI", 20F, FontStyle.Bold);
             lblAssetName.ForeColor = Color.White;
-            lblAssetName.Location = new Point(6, 6);
+            lblAssetName.Location = new Point(0, 0);
             lblAssetName.Margin = new Padding(0);
             lblAssetName.Name = "lblAssetName";
-            lblAssetName.Size = new Size(206, 37);
+            lblAssetName.Size = new Size(222, 37);
             lblAssetName.TabIndex = 1;
-            lblAssetName.Text = "PLACEHOLDER";
+            lblAssetName.Text = "PLACEHOLDER |";
             lblAssetName.TextAlign = ContentAlignment.BottomLeft;
             // 
             // pnlPipelineStatus
@@ -294,7 +317,7 @@ namespace DuckPipe
             pnlPipelineStatus.Controls.Add(flpPipelineStatus);
             pnlPipelineStatus.Location = new Point(0, 0);
             pnlPipelineStatus.Name = "pnlPipelineStatus";
-            pnlPipelineStatus.Size = new Size(634, 421);
+            pnlPipelineStatus.Size = new Size(602, 429);
             pnlPipelineStatus.TabIndex = 4;
             // 
             // flpPipelineStatus
@@ -305,7 +328,7 @@ namespace DuckPipe
             flpPipelineStatus.FlowDirection = FlowDirection.TopDown;
             flpPipelineStatus.Location = new Point(0, 0);
             flpPipelineStatus.Name = "flpPipelineStatus";
-            flpPipelineStatus.Size = new Size(634, 421);
+            flpPipelineStatus.Size = new Size(602, 429);
             flpPipelineStatus.TabIndex = 3;
             flpPipelineStatus.WrapContents = false;
             // 
@@ -313,9 +336,9 @@ namespace DuckPipe
             // 
             pnlDeptBtn.Controls.Add(flpDeptButton);
             pnlDeptBtn.Dock = DockStyle.Bottom;
-            pnlDeptBtn.Location = new Point(0, 427);
+            pnlDeptBtn.Location = new Point(0, 435);
             pnlDeptBtn.Name = "pnlDeptBtn";
-            pnlDeptBtn.Size = new Size(634, 42);
+            pnlDeptBtn.Size = new Size(602, 42);
             pnlDeptBtn.TabIndex = 4;
             // 
             // flpDeptButton
@@ -323,34 +346,60 @@ namespace DuckPipe
             flpDeptButton.Dock = DockStyle.Fill;
             flpDeptButton.Location = new Point(0, 0);
             flpDeptButton.Name = "flpDeptButton";
-            flpDeptButton.Size = new Size(634, 42);
+            flpDeptButton.Size = new Size(602, 42);
             flpDeptButton.TabIndex = 0;
             // 
             // pnlTopRight
             // 
             pnlTopRight.BackColor = Color.FromArgb(65, 65, 65);
-            pnlTopRight.Controls.Add(btnEditAsset);
             pnlTopRight.Controls.Add(lblAssetType);
-            pnlTopRight.Controls.Add(lblAssetName);
+            pnlTopRight.Controls.Add(flpAssetDescription);
+            pnlTopRight.Controls.Add(btnEditAsset);
             pnlTopRight.Dock = DockStyle.Top;
             pnlTopRight.Location = new Point(0, 0);
             pnlTopRight.Name = "pnlTopRight";
-            pnlTopRight.Size = new Size(843, 74);
+            pnlTopRight.Size = new Size(803, 74);
             pnlTopRight.TabIndex = 5;
+            // 
+            // flpAssetDescription
+            // 
+            flpAssetDescription.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            flpAssetDescription.Controls.Add(lblAssetName);
+            flpAssetDescription.Controls.Add(lbDescription);
+            flpAssetDescription.Location = new Point(7, 3);
+            flpAssetDescription.Name = "flpAssetDescription";
+            flpAssetDescription.Size = new Size(711, 68);
+            flpAssetDescription.TabIndex = 5;
+            // 
+            // lbDescription
+            // 
+            lbDescription.AutoSize = true;
+            lbDescription.BackColor = Color.Transparent;
+            lbDescription.Font = new Font("Nirmala UI", 10F);
+            lbDescription.ForeColor = Color.Silver;
+            lbDescription.Location = new Point(222, 10);
+            lbDescription.Margin = new Padding(0, 10, 0, 0);
+            lbDescription.Name = "lbDescription";
+            lbDescription.Size = new Size(156, 19);
+            lbDescription.TabIndex = 4;
+            lbDescription.Text = "description Place Holder";
             // 
             // btnEditAsset
             // 
             btnEditAsset.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            btnEditAsset.BackColor = Color.FromArgb(80, 80, 80);
+            btnEditAsset.BackColor = Color.Transparent;
+            btnEditAsset.Cursor = Cursors.Hand;
             btnEditAsset.FlatAppearance.BorderSize = 0;
+            btnEditAsset.FlatAppearance.MouseDownBackColor = Color.Transparent;
+            btnEditAsset.FlatAppearance.MouseOverBackColor = Color.Transparent;
             btnEditAsset.FlatStyle = FlatStyle.Flat;
             btnEditAsset.Font = new Font("Segoe UI", 15F);
             btnEditAsset.ForeColor = Color.White;
-            btnEditAsset.Location = new Point(776, 12);
+            btnEditAsset.Image = Properties.Resources.EditBtnIcon;
+            btnEditAsset.Location = new Point(736, 12);
             btnEditAsset.Name = "btnEditAsset";
             btnEditAsset.Size = new Size(55, 52);
             btnEditAsset.TabIndex = 3;
-            btnEditAsset.Text = "Edit";
             btnEditAsset.UseVisualStyleBackColor = false;
             // 
             // splitContainer2
@@ -367,8 +416,8 @@ namespace DuckPipe
             // 
             splitContainer2.Panel2.Controls.Add(splitContainer3);
             splitContainer2.Panel2.Controls.Add(pnlTopRight);
-            splitContainer2.Size = new Size(1100, 543);
-            splitContainer2.SplitterDistance = 253;
+            splitContainer2.Size = new Size(1047, 551);
+            splitContainer2.SplitterDistance = 240;
             splitContainer2.TabIndex = 6;
             // 
             // splitContainer3
@@ -385,8 +434,8 @@ namespace DuckPipe
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(plAssetTaskInfo);
-            splitContainer3.Size = new Size(843, 469);
-            splitContainer3.SplitterDistance = 634;
+            splitContainer3.Size = new Size(803, 477);
+            splitContainer3.SplitterDistance = 602;
             splitContainer3.TabIndex = 6;
             // 
             // AssetManagerForm
@@ -394,11 +443,12 @@ namespace DuckPipe
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(40, 40, 40);
-            ClientSize = new Size(1100, 543);
+            ClientSize = new Size(1047, 551);
             Controls.Add(splitContainer2);
             Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = menuStrip1;
             Name = "AssetManagerForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "DuckPipe";
             contextMenuTree.ResumeLayout(false);
             panel1.ResumeLayout(false);
@@ -410,6 +460,8 @@ namespace DuckPipe
             pnlDeptBtn.ResumeLayout(false);
             pnlTopRight.ResumeLayout(false);
             pnlTopRight.PerformLayout();
+            flpAssetDescription.ResumeLayout(false);
+            flpAssetDescription.PerformLayout();
             splitContainer2.Panel1.ResumeLayout(false);
             splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
@@ -449,5 +501,9 @@ namespace DuckPipe
         private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem viewInExplorerToolStripMenuItem;
         private Button btnEditAsset;
+        private ToolStripMenuItem toolsToolStripMenuItem;
+        private ToolStripMenuItem checkFoldersStructureToolStripMenuItem;
+        private Label lbDescription;
+        private FlowLayoutPanel flpAssetDescription;
     }
 }

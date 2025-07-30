@@ -78,6 +78,7 @@
             Controls.Add(label1);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Name = "CreateProductionPopup";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "CreateProductionForm";
             ResumeLayout(false);
             PerformLayout();
