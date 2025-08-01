@@ -7,18 +7,25 @@ using DuckPipe.Core;
 using WinFormsListView = System.Windows.Forms.ListView;
 using static DuckPipe.Core.AssetManip;
 using System;
+using Microsoft.VisualBasic.ApplicationServices;
+using Microsoft.VisualBasic;
 
 namespace DuckPipe
 {
     public partial class AssetManagerForm : Form
     {
         private string selectedAssetPath = null!;
+        private EventHandler? saveClickHandler;
 
+
+
+        #region MAIN PROC
         public AssetManagerForm()
         {
             InitializeComponent();
             LoadProductionList();
-            ClearRightPanel();
+            WorkTabClearPanel();
+            AssetTabClearPanel();
         }
 
         public class AssetContext
@@ -102,38 +109,6 @@ namespace DuckPipe
             }
         }
 
-        private void tvAssetList_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-            string fullPath = GetFullPathFromNode(e.Node);
-
-            if (string.IsNullOrEmpty(fullPath) || !Directory.Exists(fullPath))
-            {
-                ClearRightPanel();
-                return;
-            }
-
-            var ctx = ExtractAssetContext(fullPath);
-            if (ctx == null)
-            {
-                ClearRightPanel();
-                return;
-            }
-
-            if (Path.GetFileName(fullPath).Equals(ctx.AssetType, StringComparison.OrdinalIgnoreCase))
-            {
-                ClearRightPanel();
-                Debug.WriteLine("Sélection d'un groupe d'assets.");
-                return;
-            }
-
-            // config
-            var assetStructures = AssetStructureBuilder.LoadAssetStructures(ctx.ProductionPath);
-            if (assetStructures != null && assetStructures.TryGetValue(ctx.AssetType, out var structure))
-            {
-                DisplayPipelineDepartments(fullPath);
-            }
-        }
-
         public static string GetProductionRootPath()
         {
             string envPath = UserConfig.Get().ProdBasePath;
@@ -147,6 +122,319 @@ namespace DuckPipe
             return envPath;
 
         }
+
+        private void LoadProductionList()
+        {
+            string rootPath = GetProductionRootPath();
+
+            if (!Directory.Exists(rootPath))
+                return;
+
+            string[] productions = Directory.GetDirectories(rootPath);
+
+            cbProdList.Items.Clear(); // Vide le ComboBox
+            foreach (string prodPath in productions)
+            {
+                string prodName = Path.GetFileName(prodPath);
+                cbProdList.Items.Add(prodName);
+            }
+
+            if (cbProdList.Items.Count > 0)
+                cbProdList.SelectedIndex = 0; // Sélectionne la 1ère prod par défaut
+        }
+
+        private string GetFullPathFromNode(TreeNode node)
+        {
+            List<string> parts = new();
+            TreeNode current = node;
+            while (current != null)
+            {
+                parts.Insert(0, current.Text);
+                current = current.Parent;
+            }
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string rootPath = GetProductionRootPath();
+            return Path.Combine(rootPath, Path.Combine(parts.ToArray()));
+
+        }
+
+        private Dictionary<string, string> LoadStatusIcons()
+        {
+            Dictionary<string, string> statusIcons = new();
+
+            string rootPath = GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+
+            string configPath = Path.Combine(rootPath, selectedProd, "config.json");
+
+            using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
+            if (configDoc.RootElement.TryGetProperty("status", out JsonElement statusElement))
+            {
+                foreach (var kv in statusElement.EnumerateObject())
+                {
+                    statusIcons[kv.Name] = kv.Value.GetString() ?? "";
+                }
+            }
+
+            return statusIcons;
+        }
+
+        private List<string> LoadProdUsers()
+        {
+            List<string> prodUser = new();
+
+            string rootPath = GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+
+            string configPath = Path.Combine(rootPath, selectedProd, "config.json");
+
+            using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
+            if (configDoc.RootElement.TryGetProperty("Users", out JsonElement userArray))
+            {
+                foreach (var user in userArray.EnumerateArray())
+                {
+                    prodUser.Add(user.GetString() ?? "");
+                }
+            }
+
+            return prodUser;
+        }
+
+        private ImageList LoadStatusIconsIntoImageList(out Dictionary<string, string> statusIcons)
+        {
+            statusIcons = LoadStatusIcons();
+
+            ImageList statusImageList = new ImageList
+            {
+                ImageSize = new Size(16, 16),
+                ColorDepth = ColorDepth.Depth32Bit
+            };
+
+            foreach (var pair in statusIcons)
+            {
+                string statusKey = pair.Key;
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, pair.Value);
+
+                if (File.Exists(iconPath))
+                {
+                    statusImageList.Images.Add(statusKey, Image.FromFile(iconPath));
+                }
+            }
+
+            return statusImageList;
+        }
+        #endregion
+
+
+        #region TAB BTN
+        private void btnTab1_Click(object sender, EventArgs e)
+        {
+            tabCtrlMain.SelectedIndex = 0;
+        }
+
+        private void btnTab2_Click(object sender, EventArgs e)
+        {
+            tabCtrlMain.SelectedIndex = 1;
+        }
+        #endregion
+
+
+        #region  MENU HEADER
+        private void userSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UserConfig.OpenConfigFile();
+        }
+
+        private void assetSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string rootPath = GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string path = Path.Combine(rootPath, selectedProd, "Dev", "AssetStructure.json");
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
+        }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            string docPath = Path.Combine(Application.StartupPath, "Docs", "index.html");
+            MessageBox.Show(docPath);
+            if (File.Exists(docPath))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = docPath,
+                    UseShellExecute = true
+                });
+            }
+        }
+
+        private void prodSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string rootPath = GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string path = Path.Combine(rootPath, selectedProd, "config.json");
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
+        }
+
+        private void checkFoldersStructureToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string rootPath = GetProductionRootPath();
+            string ProdName = cbProdList.SelectedItem?.ToString();
+
+            var productionConfig = new ProductionStructureBuilder { name = ProdName };
+            productionConfig.Check(ProdName, rootPath);
+        }
+        #endregion
+
+
+        #region  LEFT ZONE / LIST ASSET / PROD SELECTION
+        #region  LIST ASSET
+        private void tvAssetList_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            string fullPath = GetFullPathFromNode(e.Node);
+
+            if (string.IsNullOrEmpty(fullPath) || !Directory.Exists(fullPath))
+            {
+                WorkTabClearPanel();
+                AssetTabClearPanel();
+                return;
+            }
+
+            var ctx = ExtractAssetContext(fullPath);
+            if (ctx == null)
+            {
+                WorkTabClearPanel();
+                AssetTabClearPanel();
+                return;
+            }
+
+            if (Path.GetFileName(fullPath).Equals(ctx.AssetType, StringComparison.OrdinalIgnoreCase))
+            {
+                WorkTabClearPanel();
+                AssetTabClearPanel();
+                Debug.WriteLine("Sélection d'un groupe d'assets.");
+                return;
+            }
+
+            // config
+            var assetStructures = AssetStructureBuilder.LoadAssetStructures(ctx.ProductionPath);
+            if (assetStructures != null && assetStructures.TryGetValue(ctx.AssetType, out var structure))
+            {
+                WorkTabDisplayDepartments(fullPath);
+                AssetTabDisplayDepartments(fullPath);
+                WorkTabDisplayHeader(fullPath);
+                AssetTabDisplayHeader(fullPath);
+            }
+        }
+
+        private void LoadTreeViewFromFolder(string rootPath, string prodName)
+        {
+            string prodPath = Path.Combine(rootPath, prodName);
+
+            if (!Directory.Exists(prodPath)) return;
+
+            tvAssetList.Nodes.Clear();
+
+            TreeNode rootNode = new TreeNode(prodName);
+            rootNode.Tag = prodPath;
+            tvAssetList.Nodes.Add(rootNode);
+
+            // Config de profondeur par dossier
+            var folderDepthLimits = new Dictionary<string, int>()
+    {
+        { "Assets", 3 },
+        { "Shots", 5 },
+        { "Renders", 1 },
+        { "IO", 100 },
+        { "Dev", 100 },
+        { "RnD", 100 },
+        { "Preprod", 100 },
+    };
+
+            foreach (string dir in Directory.GetDirectories(prodPath))
+            {
+                string folderName = Path.GetFileName(dir);
+                TreeNode node = new TreeNode(folderName);
+                node.Tag = dir;
+                rootNode.Nodes.Add(node);
+
+                int maxDepth = 1;
+                if (folderDepthLimits.TryGetValue(folderName, out int depth))
+                    maxDepth = depth;
+
+                AddDirectoriesToTreeWithDepth(dir, node, 1, maxDepth);
+
+            }
+
+            rootNode.Expand();
+        }
+
+        private void AddDirectoriesToTreeWithDepth(string folderPath, TreeNode parentNode, int currentDepth, int maxDepth)
+        {
+            if (currentDepth >= maxDepth)
+                return;
+
+            foreach (string dir in Directory.GetDirectories(folderPath))
+            {
+                if (!dir.Contains("Work"))
+                {
+                    TreeNode node = new TreeNode(Path.GetFileName(dir));
+                    node.Tag = dir;
+                    parentNode.Nodes.Add(node);
+
+                    AddDirectoriesToTreeWithDepth(dir, node, currentDepth + 1, maxDepth);
+                }
+            }
+        }
+
+        private void contextMenuTree_Opening(object sender, CancelEventArgs e)
+        {
+            if (tvAssetList.SelectedNode == null)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void tsmiRename_Click(object sender, EventArgs e)
+        {
+            // TODO: 
+        }
+
+        private void tsmiDelete_Click(object sender, EventArgs e)
+        {
+            // TODO: 
+        }
+
+        private void viewInExplorerToolStripMenuItem_Click(object sender, EventArgs e)
+
+        {
+            if (tvAssetList.SelectedNode == null)
+                return;
+
+            string selectedPath = tvAssetList.SelectedNode.Tag as string;
+            if (string.IsNullOrEmpty(selectedPath))
+                return;
+
+            if (Directory.Exists(selectedPath) || File.Exists(selectedPath))
+            {
+                string argument = Directory.Exists(selectedPath) ? selectedPath : $"/select,\"{selectedPath}\"";
+                System.Diagnostics.Process.Start("explorer.exe", argument);
+            }
+            else
+            {
+                MessageBox.Show("Le chemin n'existe pas ou plus.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        #endregion
 
         private void cbProdList_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -281,146 +569,31 @@ namespace DuckPipe
                 }
             }
         }
+        #endregion
 
-        private void LoadProductionList()
-        {
-            string rootPath = GetProductionRootPath();
 
-            if (!Directory.Exists(rootPath))
-                return;
-
-            string[] productions = Directory.GetDirectories(rootPath);
-
-            cbProdList.Items.Clear(); // Vide le ComboBox
-            foreach (string prodPath in productions)
-            {
-                string prodName = Path.GetFileName(prodPath);
-                cbProdList.Items.Add(prodName);
-            }
-
-            if (cbProdList.Items.Count > 0)
-                cbProdList.SelectedIndex = 0; // Sélectionne la 1ère prod par défaut
-        }
-
-        private void LoadTreeViewFromFolder(string rootPath, string prodName)
-        {
-            string prodPath = Path.Combine(rootPath, prodName);
-
-            if (!Directory.Exists(prodPath)) return;
-
-            tvAssetList.Nodes.Clear();
-
-            TreeNode rootNode = new TreeNode(prodName);
-            rootNode.Tag = prodPath;
-            tvAssetList.Nodes.Add(rootNode);
-
-            // Config de profondeur par dossier
-            var folderDepthLimits = new Dictionary<string, int>()
-    {
-        { "Assets", 3 },
-        { "Shots", 5 },
-        { "Renders", 1 },
-        { "IO", 100 },
-        { "Dev", 100 },
-        { "RnD", 100 },
-        { "Preprod", 100 },
-    };
-
-            foreach (string dir in Directory.GetDirectories(prodPath))
-            {
-                string folderName = Path.GetFileName(dir);
-                TreeNode node = new TreeNode(folderName);
-                node.Tag = dir;
-                rootNode.Nodes.Add(node);
-
-                int maxDepth = 1;
-                if (folderDepthLimits.TryGetValue(folderName, out int depth))
-                    maxDepth = depth;
-
-                AddDirectoriesToTreeWithDepth(dir, node, 1, maxDepth);
-
-            }
-
-            rootNode.Expand();
-        }
-
-        private void AddDirectoriesToTreeWithDepth(string folderPath, TreeNode parentNode, int currentDepth, int maxDepth)
-        {
-            if (currentDepth >= maxDepth)
-                return;
-
-            foreach (string dir in Directory.GetDirectories(folderPath))
-            {
-                if (!dir.Contains("Work"))
-                {
-                    TreeNode node = new TreeNode(Path.GetFileName(dir));
-                    node.Tag = dir;
-                    parentNode.Nodes.Add(node);
-
-                    AddDirectoriesToTreeWithDepth(dir, node, currentDepth + 1, maxDepth);
-                }
-            }
-        }
-
-        private void contextMenuTree_Opening(object sender, CancelEventArgs e)
-        {
-            if (tvAssetList.SelectedNode == null)
-            {
-                e.Cancel = true;
-            }
-        }
-
-        private void tsmiRename_Click(object sender, EventArgs e)
-        {
-            // TODO: 
-        }
-
-        private void tsmiDelete_Click(object sender, EventArgs e)
-        {
-            // TODO: 
-        }
-
-        private string GetFullPathFromNode(TreeNode node)
-        {
-            List<string> parts = new();
-            TreeNode current = node;
-            while (current != null)
-            {
-                parts.Insert(0, current.Text);
-                current = current.Parent;
-            }
-            string selectedProd = cbProdList.SelectedItem?.ToString();
-            string rootPath = GetProductionRootPath();
-            return Path.Combine(rootPath, Path.Combine(parts.ToArray()));
-
-        }
-
-        private void ClearRightPanel()
+        #region  WORK PANNEL
+        private void WorkTabClearPanel()
         {
             lblAssetName.Text = "";
             lblAssetType.Text = "";
             lbDescription.Text = "";
-            btnEditAsset.Visible = false;
             flpPipelineStatus.Controls.Clear();
             flpAssetInspect.Controls.Clear();
             flpDeptButton.Controls.Clear();
         }
 
-        public void RefreshRightPanel(string assetPath)
+        public void WorkTabRefreshPanel(string assetPath)
         {
             flpPipelineStatus.Controls.Clear();
             flpAssetInspect.Controls.Clear();
             flpDeptButton.Controls.Clear();
-            DisplayPipelineDepartments(assetPath);
+            WorkTabDisplayHeader(assetPath);
+            WorkTabDisplayDepartments(assetPath);
         }
 
-        private void DisplayPipelineDepartments(string assetPath)
+        private void WorkTabDisplayHeader(string assetPath)
         {
-            flpPipelineStatus.SuspendLayout();
-            flpPipelineStatus.Controls.Clear();
-            flpAssetInspect.Controls.Clear();
-            flpDeptButton.Controls.Clear();
-
             string jsonPath = Path.Combine(assetPath, "asset.json");
             string json = File.ReadAllText(jsonPath);
             using var doc = JsonDocument.Parse(json);
@@ -431,17 +604,6 @@ namespace DuckPipe
             // maj labels
             lblAssetName.Text = $"{ctx.AssetName} |";
             lblAssetType.Text = ctx.AssetType;
-
-            // maj bouton edit asset
-            btnEditAsset.Visible = true;
-            btnEditAsset.Click += (s, e) =>
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = jsonPath,
-                    UseShellExecute = true
-                });
-            };
 
             // maj Description
             if (doc.RootElement.TryGetProperty("assetInfos", out JsonElement assetInfos))
@@ -467,13 +629,26 @@ namespace DuckPipe
                     }
                 }
             }
+        }
+
+        private void WorkTabDisplayDepartments(string assetPath)
+        {
+            flpPipelineStatus.SuspendLayout();
+            flpPipelineStatus.Controls.Clear();
+            flpAssetInspect.Controls.Clear();
+            flpDeptButton.Controls.Clear();
+
+            string jsonPath = Path.Combine(assetPath, "asset.json");
+            string json = File.ReadAllText(jsonPath);
+            using var doc = JsonDocument.Parse(json);
+            string[] parts = jsonPath.Split('\\');
+
 
             // maj tasks
             if (!doc.RootElement.TryGetProperty("workfile", out JsonElement workfiles))
                 return;
 
             var departmentMap = new Dictionary<string, (string status, string version)>();
-
 
             foreach (JsonProperty fileEntry in workfiles.EnumerateObject())
             {
@@ -492,18 +667,13 @@ namespace DuckPipe
             foreach (var kvp in departmentMap)
             {
                 string deptName = kvp.Key;
-                var departmentPanel = BuildDepartmentPanel(jsonPath, deptName);
+                var departmentPanel = WorkTabBuildWorkDepartmentsPanel(jsonPath, deptName);
                 flpPipelineStatus.Controls.Add(departmentPanel);
             }
-
-            if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
-            {
-                DisplayPlayBlastPanel(assetPath);
-            }
             flpPipelineStatus.ResumeLayout();
-            }
+        }
 
-        private Panel BuildDepartmentPanel(string jsonPath, string deptName)
+        private Panel WorkTabBuildWorkDepartmentsPanel(string jsonPath, string deptName)
         {
 
             var departmentPanel = new RoundedPanel
@@ -573,12 +743,12 @@ namespace DuckPipe
 
             // Récupère les infos
             var info = (Tuple<string, string>)listView.Tag;
-            AddAllWorkFilesToDepartementPanel(listView, info.Item1, info.Item2);
+            WorkTabFillDepartementPanel(listView, info.Item1, info.Item2);
 
             return departmentPanel;
         }
 
-        private void AddActionButtons(string assetPath)
+        private void WorkTabAddActionButtons(string assetPath)
         {
             flpDeptButton.Controls.Clear();
             void AddButton(string label, Action<string, AssetManagerForm> onValidSelection, AssetManagerForm form)
@@ -637,7 +807,7 @@ namespace DuckPipe
             AddButton("Add Note", AssetManip.AddNote, this);
         }
 
-        private void DisplayCommitsPanel(string assetPath)
+        private void WorkTabDisplayCommitsPanel(string assetPath)
         {
             flpAssetInspect.SuspendLayout();
             flpAssetInspect.Controls.Clear();
@@ -681,59 +851,7 @@ namespace DuckPipe
             flpAssetInspect.ResumeLayout();
         }
 
-        private void DisplayPlayBlastPanel(string assetPath)
-        {
-            flpPipelineStatus.SuspendLayout();
-
-            Panel pbpPnel = new()
-            {
-                AutoSize = false,
-                Size = new Size(flpPipelineStatus.ClientSize.Width - 30, 100),
-                BackColor = Color.FromArgb(80, 80, 80),
-                Padding = new Padding(5),
-                Margin = new Padding(5)
-            };
-
-            // Label
-            pbpPnel.Controls.Add(new Label
-            {
-                Text = " - Playblasts",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Location = new Point(5, 5),
-                ForeColor = Color.White,
-            });
-
-            var playblasts = ShotManip.GetAllPlayblats(assetPath);
-
-            int offsetX = 10;
-            foreach (var playblast in playblasts)
-            {
-                var image = new PictureBox
-                {
-                    ImageLocation = ShotManip.GenerateThumbnail(playblast.FullPath),
-                    SizeMode = PictureBoxSizeMode.Zoom,
-                    Size = new Size(100, 60),
-                    Cursor = Cursors.Hand,
-                    Tag = playblast.FullPath,
-                    Location = new Point(offsetX, 30)
-                };
-
-                image.DoubleClick += (s, e) =>
-                {
-                    MessageBox.Show($"Ouverture de: {Path.GetFileName(playblast.FullPath)}, soyez patient");
-                    Process.Start("explorer", $"\"{playblast.FullPath}\"");
-                };
-
-                pbpPnel.Controls.Add(image);
-                offsetX += 170;
-            }
-
-            flpPipelineStatus.Controls.Add(pbpPnel);
-            flpPipelineStatus.ResumeLayout();
-        }
-
-        private void AddAllWorkFilesToDepartementPanel(ListView listView, string assetJsonPath, string department)
+        private void WorkTabFillDepartementPanel(ListView listView, string assetJsonPath, string department)
         {
             listView.Items.Clear();
 
@@ -746,31 +864,9 @@ namespace DuckPipe
             string selectedProd = cbProdList.SelectedItem?.ToString();
             string configPath = Path.Combine(rootPath, selectedProd, "config.json");
 
-            Dictionary<string, string> statusIcons = new();
-
-            using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
-            if (configDoc.RootElement.TryGetProperty("status", out JsonElement statusElement))
-            {
-                foreach (var kv in statusElement.EnumerateObject())
-                {
-                    statusIcons[kv.Name] = kv.Value.GetString() ?? "";
-                }
-            }
 
             // icônes
-            ImageList statusImageList = new ImageList();
-            statusImageList.ImageSize = new Size(16, 16);
-
-            foreach (var pair in statusIcons)
-            {
-                string statusKey = pair.Key;
-                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, pair.Value);
-
-                if (File.Exists(iconPath))
-                {
-                    statusImageList.Images.Add(statusKey, Image.FromFile(iconPath));
-                }
-            }
+            ImageList statusImageList = LoadStatusIconsIntoImageList(out Dictionary<string, string> statusIcons);
 
             listView.SmallImageList = statusImageList;
 
@@ -815,85 +911,358 @@ namespace DuckPipe
         public void OnAssetItemSelected(string assetPath)
         {
             selectedAssetPath = assetPath as string;
-            DisplayCommitsPanel(assetPath);
-            AddActionButtons(assetPath);
+            WorkTabDisplayCommitsPanel(assetPath);
+            WorkTabAddActionButtons(assetPath);
+        }
+        #endregion
+
+
+        #region  ASSET PANNEL
+        private void AssetTabClearPanel()
+        {
+            lblAssetName2.Text = "";
+            lblAssetType2.Text = "";
+            lbDescription2.Text = "";
+            btnEditAsset.Visible = false;
+            flpAssetTask.Controls.Clear();
         }
 
-        private void userSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AssetTabDisplayHeader(string assetPath)
         {
-            UserConfig.OpenConfigFile();
-        }
+            string jsonPath = Path.Combine(assetPath, "asset.json");
+            string json = File.ReadAllText(jsonPath);
+            using var doc = JsonDocument.Parse(json);
+            string[] parts = jsonPath.Split('\\');
 
-        private void assetSettingsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            string rootPath = GetProductionRootPath();
-            string selectedProd = cbProdList.SelectedItem?.ToString();
-            string path = Path.Combine(rootPath, selectedProd, "Dev", "AssetStructure.json");
+            var ctx = ExtractAssetContext(assetPath);
 
-            Process.Start(new ProcessStartInfo
+            // maj labels
+            lblAssetName2.Text = $"{ctx.AssetName} |";
+            lblAssetType2.Text = ctx.AssetType;
+
+            // maj bouton edit asset
+            btnEditAsset.Visible = true;
+
+            // maj Description
+            if (doc.RootElement.TryGetProperty("assetInfos", out JsonElement assetInfos))
             {
-                FileName = path,
-                UseShellExecute = true
-            });
-        }
-
-        private void toolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            string docPath = Path.Combine(Application.StartupPath, "Docs", "index.html");
-            MessageBox.Show(docPath);
-            if (File.Exists(docPath))
-            {
-                Process.Start(new ProcessStartInfo
+                if (assetInfos.TryGetProperty("description", out JsonElement descriptionElement))
                 {
-                    FileName = docPath,
-                    UseShellExecute = true
-                });
+                    if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
+                    {
+                        string rangeIn = "";
+                        string rangeOut = "";
+
+                        if (assetInfos.TryGetProperty("inFrame", out JsonElement inFrameElement))
+                            rangeIn = inFrameElement.GetRawText().Replace("\"", "");
+
+                        if (assetInfos.TryGetProperty("outFrame", out JsonElement outFrameElement))
+                            rangeOut = outFrameElement.GetRawText().Replace("\"", "");
+
+                        lbDescription2.Text = $"[ {rangeIn} - {rangeOut} ] {descriptionElement.GetString()}";
+                    }
+                    else
+                    {
+                        lbDescription2.Text = descriptionElement.GetString();
+                    }
+                }
             }
         }
 
-        private void prodSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AssetTabDisplayDepartments(string assetPath)
         {
-            string rootPath = GetProductionRootPath();
-            string selectedProd = cbProdList.SelectedItem?.ToString();
-            string path = Path.Combine(rootPath, selectedProd, "config.json");
+            flpAssetTask.SuspendLayout();
+            flpAssetTask.Controls.Clear();
 
-            Process.Start(new ProcessStartInfo
+            string jsonPath = Path.Combine(assetPath, "asset.json");
+            string json = File.ReadAllText(jsonPath);
+            using var doc = JsonDocument.Parse(json);
+            string[] parts = jsonPath.Split('\\');
+
+
+            // maj tasks
+            if (!doc.RootElement.TryGetProperty("Tasks", out JsonElement tasks))
+                return;
+
+            var tasksMap = new Dictionary<string, (string status, string user, string startDate, string dueDate)>();
+
+            foreach (JsonProperty fileEntry in tasks.EnumerateObject())
             {
-                FileName = path,
-                UseShellExecute = true
+                JsonElement fileData = fileEntry.Value;
+
+                string dept = fileEntry.Name;
+                string status = fileData.GetProperty("status").GetString() ?? "not_started";
+                string user = fileData.GetProperty("user").GetString() ?? "";
+                string startDate = fileData.GetProperty("startDate").GetString() ?? "";
+                string dueDate = fileData.GetProperty("dueDate").GetString() ?? "";
+
+                tasksMap[dept] = (status, user, startDate, dueDate);
+            }
+
+            foreach (var kvp in tasksMap)
+            {
+                var taskPanel = AssetTabDisplayPanel(jsonPath, kvp);
+                flpAssetTask.Controls.Add(taskPanel);
+            }
+
+            if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
+            {
+               AssetTabDisplayPlayBlastPanel(assetPath);
+            }
+
+            flpAssetTask.ResumeLayout();
+
+            // on refresh le bouton pour garder flpAssetTask plein
+            if (saveClickHandler != null)
+                btnEditAsset.Click -= saveClickHandler;
+            saveClickHandler = (s, e) => AssetManip.SaveTaskDataFromUI(jsonPath, flpAssetTask);
+            btnEditAsset.Click += saveClickHandler;
+        }
+
+        private Panel AssetTabDisplayPanel(string assetJsonPath, KeyValuePair<string, (string status, string user, string startDate, string dueDate)> taskData)
+        {
+            string deptName = taskData.Key;
+            var (status, user, startDate, dueDate) = taskData.Value;
+
+            ImageList statusImageList = LoadStatusIconsIntoImageList(out Dictionary<string, string> statusIcons);
+            List<String> Users = LoadProdUsers();
+
+            var departmentPanel = new RoundedPanel
+            {
+                AutoSize = false,
+                Size = new Size(flpAssetTask.ClientSize.Width - 30, 80),
+                BackColor = Color.FromArgb(80, 80, 80),
+                Padding = new Padding(8),
+                Margin = new Padding(5),
+                BorderColor = Color.FromArgb(90, 90, 90),
+                BorderRadius = 5,
+                BorderThickness = 0,
+            };
+
+            // Main Tablayout
+            var MainTable = new TableLayoutPanel
+            {
+                ColumnCount = 2,
+                RowCount = 1,
+                Dock = DockStyle.Fill,
+            };
+            MainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
+            MainTable.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            MainTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 60));
+            departmentPanel.Controls.Add(MainTable);
+
+            // label département
+            Label lblDept = new Label
+            {
+                Text = $" - {deptName}",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = Color.White,
+            };
+
+            // BIG Tablayout
+            var bigTable = new TableLayoutPanel
+            {
+                ColumnCount = 4,
+                RowCount = 2,
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(60, 60, 60),
+                Padding = new Padding(3),
+                Margin = new Padding(5),
+                BorderStyle = BorderStyle.FixedSingle,
+            };
+            bigTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30));
+            bigTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+            bigTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+            bigTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30));
+            bigTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+            bigTable.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            // Label User
+            Label lblUser = new Label
+            {
+                Text = "Assigned to:",
+                ForeColor = Color.FromArgb(120, 120, 120),
+                Anchor = AnchorStyles.Left,
+                Dock = DockStyle.Fill,
+                Tag = deptName,
+            };
+
+            // ComboBox de User
+            var cbUser = new IconComboBox
+            {
+                Anchor = AnchorStyles.Left,
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(60, 60, 60),
+                FlatStyle = FlatStyle.Flat,
+                Dock = DockStyle.Fill,
+                Tag = deptName,
+                Name = "cbUser",
+            };
+            cbUser.Items.AddRange(Users.ToArray());
+            cbUser.SelectedItem = user;
+
+            // Label In
+            Label lblIn = new Label
+            {
+                Text = "Start Date:",
+                ForeColor = Color.FromArgb(120, 120, 120),
+                Anchor = AnchorStyles.Left,
+                Dock = DockStyle.Fill,
+                Tag = deptName,
+            };
+
+            // TextBox startDate
+            DateTimePicker dtpStart = new DateTimePicker
+            {
+                Format = DateTimePickerFormat.Custom,
+                CustomFormat = "dd-MM-yyyy", // ou "dd/MM/yyyy"
+                Value = DateTime.TryParse(startDate, out var parsedstartDate) ? parsedstartDate : DateTime.Today,
+                Anchor = AnchorStyles.Left,
+                Dock = DockStyle.Fill,
+                CalendarForeColor = Color.White,
+                CalendarMonthBackground = Color.FromArgb(60, 60, 60),
+                CalendarTitleBackColor = Color.FromArgb(90, 90, 90),
+                CalendarTitleForeColor = Color.White,
+                CalendarTrailingForeColor = Color.Gray,
+                Tag = deptName,
+                Name = "dtpStartDate"
+            };
+            dtpStart.BackColor = Color.FromArgb(60, 60, 60);
+            dtpStart.ForeColor = Color.White;
+            dtpStart.Font = new Font("Segoe UI", 9);
+            // dtpStart.BorderStyle = BorderStyle.None;
+
+            // Label Out
+            Label lblOut = new Label
+            {
+                Text = "Due Date:",
+                ForeColor = Color.FromArgb(120, 120, 120),
+                Anchor = AnchorStyles.Left,
+                Dock = DockStyle.Fill,
+                Tag = deptName,
+            };
+
+            // TextBox dueDate
+            DateTimePicker dtpOut = new DateTimePicker
+            {
+                Format = DateTimePickerFormat.Custom,
+                CustomFormat = "dd-MM-yyyy", // ou "dd/MM/yyyy"
+                Value = DateTime.TryParse(dueDate, out var parsedOutDate) ? parsedOutDate : DateTime.Today,
+                Anchor = AnchorStyles.Left,
+                Dock = DockStyle.Fill,
+                CalendarForeColor = Color.White,
+                CalendarMonthBackground = Color.FromArgb(60, 60, 60),
+                CalendarTitleBackColor = Color.FromArgb(90, 90, 90),
+                CalendarTitleForeColor = Color.White,
+                CalendarTrailingForeColor = Color.Gray,
+                Tag = deptName,
+                Name = "dtpDueDate"
+            };
+            dtpStart.BackColor = Color.FromArgb(60, 60, 60);
+            dtpStart.ForeColor = Color.White;
+            dtpStart.Font = new Font("Segoe UI", 9);
+
+            // Label Out
+            Label lblStatus = new Label
+            {
+                Text = "Status:",
+                ForeColor = Color.FromArgb(120, 120, 120),
+                Anchor = AnchorStyles.Left,
+                Dock = DockStyle.Fill,
+                Tag = deptName,
+            };
+
+            // ComboBox de statut
+            var cbStatus = new IconComboBox
+            {
+                Anchor = AnchorStyles.Left,
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(60, 60, 60),
+                FlatStyle = FlatStyle.Flat,
+                Dock = DockStyle.Fill,
+                Tag = deptName,
+                Name = "cbStatus",
+            };
+
+            cbStatus.Items.AddRange(statusIcons.Keys.ToArray());
+            cbStatus.IconMap = statusIcons.ToDictionary(kv => kv.Key, kv => Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, kv.Value)));
+            cbStatus.SelectedItem = status;
+
+            // add into panel
+            MainTable.Controls.Add(lblDept, 0, 0);
+            MainTable.Controls.Add(bigTable, 1, 0);
+
+            bigTable.Controls.Add(lblUser, 0, 0);
+            bigTable.Controls.Add(lblStatus, 3, 0);
+            bigTable.Controls.Add(lblIn, 1, 0);
+            bigTable.Controls.Add(lblOut, 2, 0);
+
+            bigTable.Controls.Add(cbUser, 0, 1);
+            bigTable.Controls.Add(cbStatus, 3, 1);
+            bigTable.Controls.Add(dtpStart, 1, 1);
+            bigTable.Controls.Add(dtpOut, 2, 1);
+
+            return departmentPanel;
+        }
+
+        private void AssetTabDisplayPlayBlastPanel(string assetPath)
+        {
+            flpAssetTask.SuspendLayout();
+
+            Panel pbpPnel = new()
+            {
+                AutoSize = false,
+                Size = new Size(flpAssetTask.ClientSize.Width - 30, 100),
+                BackColor = Color.FromArgb(80, 80, 80),
+                Padding = new Padding(5),
+                Margin = new Padding(5)
+            };
+
+            // Label
+            pbpPnel.Controls.Add(new Label
+            {
+                Text = " - Playblasts",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(5, 5),
+                ForeColor = Color.White,
             });
-        }
 
-        private void viewInExplorerToolStripMenuItem_Click(object sender, EventArgs e)
+            var playblasts = ShotManip.GetAllPlayblats(assetPath);
 
-        {
-            if (tvAssetList.SelectedNode == null)
-                return;
-
-            string selectedPath = tvAssetList.SelectedNode.Tag as string;
-            if (string.IsNullOrEmpty(selectedPath))
-                return;
-
-            if (Directory.Exists(selectedPath) || File.Exists(selectedPath))
+            int offsetX = 10;
+            foreach (var playblast in playblasts)
             {
-                string argument = Directory.Exists(selectedPath) ? selectedPath : $"/select,\"{selectedPath}\"";
-                System.Diagnostics.Process.Start("explorer.exe", argument);
+                var image = new PictureBox
+                {
+                    ImageLocation = ShotManip.GenerateThumbnail(playblast.FullPath),
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    Size = new Size(100, 60),
+                    Cursor = Cursors.Hand,
+                    Tag = playblast.FullPath,
+                    Location = new Point(offsetX, 30)
+                };
+
+                image.DoubleClick += (s, e) =>
+                {
+                    MessageBox.Show($"Ouverture de: {Path.GetFileName(playblast.FullPath)}, soyez patient");
+                    Process.Start("explorer", $"\"{playblast.FullPath}\"");
+                };
+
+                pbpPnel.Controls.Add(image);
+                offsetX += 170;
             }
-            else
-            {
-                MessageBox.Show("Le chemin n'existe pas ou plus.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+
+            flpAssetTask.Controls.Add(pbpPnel);
+            flpAssetTask.ResumeLayout();
         }
 
-        private void checkFoldersStructureToolStripMenuItem_Click(object sender, EventArgs e)
+        #endregion
+
+        private void btnEditAsset_Click(object sender, EventArgs e)
         {
-            string rootPath = GetProductionRootPath();
-            string ProdName = cbProdList.SelectedItem?.ToString();
 
-            var productionConfig = new ProductionStructureBuilder { name = ProdName };
-            productionConfig.Check(ProdName, rootPath);
         }
-
-
     }
 }

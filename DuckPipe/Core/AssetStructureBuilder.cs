@@ -129,6 +129,7 @@ namespace DuckPipe.Core
         private static void CreateAssetJson(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description)
         {
             var workfileData = new Dictionary<string, object>();
+            var taskData = new Dictionary<string, object>();
 
             if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
             {
@@ -170,6 +171,14 @@ namespace DuckPipe.Core
                                 lastModified = ""
                             };
                         }
+
+                        taskData[deptUpper] = new
+                        {
+                            status = "not_started",
+                            user = "",
+                            startDate = "",
+                            dueDate = ""
+                        };
                     }
                 }
             }
@@ -180,8 +189,9 @@ namespace DuckPipe.Core
                 assetInfos = new
                 {
                     status = "WIP",
-                    description = Description
-                }
+                    description = Description,
+                },
+                Tasks = taskData
             };
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
@@ -194,6 +204,7 @@ namespace DuckPipe.Core
             Directory.CreateDirectory(assetPath);
 
             var workfileData = new Dictionary<string, object>();
+            var taskData = new Dictionary<string, object>();
 
             if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
             {
@@ -241,6 +252,14 @@ namespace DuckPipe.Core
                                 lastModified = ""
                             };
                         }
+
+                        taskData[deptUpper] = new
+                        {
+                            status = "not_started",
+                            user = "",
+                            startDate = "",
+                            dueDate = ""
+                        };
                     }
                 }
             }
@@ -254,7 +273,8 @@ namespace DuckPipe.Core
                     outFrame = rangeOut,
                     status = "WIP",
                     description = Description
-                }
+                },
+                Tasks = taskData
             };
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
@@ -268,6 +288,7 @@ namespace DuckPipe.Core
             Directory.CreateDirectory(assetPath);
 
             var workfileData = new Dictionary<string, object>();
+            var taskData = new Dictionary<string, object>();
 
             if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
             {
@@ -312,6 +333,14 @@ namespace DuckPipe.Core
                                 lastModified = ""
                             };
                         }
+
+                        taskData[deptUpper] = new
+                        {
+                            status = "not_started",
+                            user = "",
+                            startDate = "",
+                            dueDate = ""
+                        };
                     }
                 }
             }
@@ -323,7 +352,8 @@ namespace DuckPipe.Core
                 {
                     status = "WIP",
                     description = Description
-                }
+                },
+                Tasks = taskData
             };
 
             string jsonPath = Path.Combine(assetPath, "asset.json");

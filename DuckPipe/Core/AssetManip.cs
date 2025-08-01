@@ -150,7 +150,7 @@ namespace DuckPipe.Core
                 File.Copy(LocalFile, destinationPath);
                 File.Copy(LocalFile, assetPath, true);
                 MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
-                form.RefreshRightPanel(ctx.AssetRoot);
+                form.WorkTabRefreshPanel(ctx.AssetRoot);
             }
             else
             {
@@ -169,8 +169,9 @@ namespace DuckPipe.Core
                 AddPublishLog(ctx.WorkFolder, ctx.FileName, versionName, msgPopup.CommitMessage);
             }
             UpdateAssetMetadata(assetPath, versionName, ctx.Department);
-            form.RefreshRightPanel(ctx.AssetRoot);
+            form.WorkTabRefreshPanel(ctx.AssetRoot);
         }
+
         public static void PublishAsset(string assetPath, AssetManagerForm form)
         {
             if (LockAssetDepartment.IsLockedByUser(assetPath))
@@ -200,7 +201,7 @@ namespace DuckPipe.Core
                 }
                 AddNote(assetPath, form);
                 MarkDownstreamDepartmentsOutdated(assetPath, ctx.Department);
-                form.RefreshRightPanel(ctx.AssetRoot);
+                form.WorkTabRefreshPanel(ctx.AssetRoot);
             }
             else
             {
@@ -463,5 +464,112 @@ namespace DuckPipe.Core
             if (Directory.Exists(tempDirPath))
                 Directory.Delete(tempDirPath, true);
         }
+
+        #region EDIT ASSET METADATA FROM UI
+        public static void SaveTaskDataFromUI(string jsonPath, FlowLayoutPanel flp)
+        {
+            var taskData = new Dictionary<string, (string status, string user, string startDate, string dueDate)>();
+
+            // Dictionnaires temporaires pour stocker les valeurs par type
+            var users = new Dictionary<string, string>();
+            var startDates = new Dictionary<string, string>();
+            var dueDates = new Dictionary<string, string>();
+            var statuses = new Dictionary<string, string>();
+
+            foreach (Control ctrl in flp.Controls)
+            {
+                // On descend dans les panneaux et sous-panneaux
+                foreach (Control inner in ctrl.Controls)
+                {
+                    if (inner is TableLayoutPanel mainTable)
+                    {
+                        foreach (Control sub in mainTable.Controls)
+                        {
+                            if (sub is TableLayoutPanel innerTable)
+                            {
+                                foreach (Control input in innerTable.Controls)
+                                {
+                                    if (input.Tag is not string dept) continue;
+
+                                    switch (input)
+                                    {
+                                        case ComboBox cb when cb.Name == "cbUser":
+                                            users[dept] = cb.SelectedItem?.ToString() ?? "";
+                                            break;
+
+                                        case DateTimePicker dtp when dtp.Name == "dtpStartDate":
+                                            startDates[dept] = dtp.Value.ToString("dd-MM-yyyy");
+                                            break;
+
+                                        case DateTimePicker dtp when dtp.Name == "dtpDueDate":
+                                            dueDates[dept] = dtp.Value.ToString("dd-MM-yyyy");
+                                            break;
+
+                                        case ComboBox cb when cb.Name == "cbStatus":
+                                            statuses[dept] = cb.SelectedItem?.ToString() ?? "";
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Combine les données dans le dictionnaire final
+            var allDepartments = new HashSet<string>(users.Keys
+                .Concat(startDates.Keys)
+                .Concat(dueDates.Keys)
+                .Concat(statuses.Keys));
+
+            foreach (var dept in allDepartments)
+            {
+                taskData[dept] = (
+                    statuses.GetValueOrDefault(dept, ""),
+                    users.GetValueOrDefault(dept, ""),
+                    startDates.GetValueOrDefault(dept, ""),
+                    dueDates.GetValueOrDefault(dept, "")
+                );
+            }
+
+            // Écriture dans le JSON
+            string json = File.ReadAllText(jsonPath);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            using var stream = new FileStream(jsonPath, FileMode.Create, FileAccess.Write);
+            using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+
+            writer.WriteStartObject();
+
+            foreach (var property in root.EnumerateObject())
+            {
+                if (property.Name == "Tasks")
+                {
+                    writer.WritePropertyName("Tasks");
+                    writer.WriteStartObject();
+
+                    foreach (var kvp in taskData)
+                    {
+                        writer.WritePropertyName(kvp.Key);
+                        writer.WriteStartObject();
+                        writer.WriteString("status", kvp.Value.status);
+                        writer.WriteString("user", kvp.Value.user);
+                        writer.WriteString("startDate", kvp.Value.startDate);
+                        writer.WriteString("dueDate", kvp.Value.dueDate);
+                        writer.WriteEndObject();
+                    }
+
+                    writer.WriteEndObject();
+                }
+                else
+                {
+                    property.WriteTo(writer); // Conserve les autres champs
+                }
+            }
+
+            writer.WriteEndObject();
+        }       
+        #endregion
     }
 }

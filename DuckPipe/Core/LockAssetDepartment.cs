@@ -26,7 +26,7 @@ namespace DuckPipe.Core
             File.WriteAllText(lockFile, lockedByUser);
 
             string[] assetParts = assetPath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
-            form.RefreshRightPanel(assetParts[0]);
+            form.WorkTabRefreshPanel(assetParts[0]);
             AssetManip.CopyAssetToTemp(assetPath);
             return;
         }
@@ -42,7 +42,7 @@ namespace DuckPipe.Core
             AssetManip.DeleteTemp(assetPath);
 
             string[] assetParts = assetPath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
-            form.RefreshRightPanel(assetParts[0]);
+            form.WorkTabRefreshPanel(assetParts[0]);
         }
         public static string GetuserLocked(string assetPath)
         {

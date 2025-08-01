@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Microsoft.VisualBasic.ApplicationServices;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace DuckPipe.Core
@@ -110,8 +111,14 @@ namespace DuckPipe.Core
             { "not_started", "icons/NEW.png" },
             { "outDated", "icons/OLD.png" },
             { "upToDate", "icons/APP.png" },
+            { "wip", "icons/WIP.png" },
+            { "pendingReview", "icons/PR.png" },
             { "rtk", "icons/RTK.png" }
-        }
+        },
+                Users = new List<string>()
+                {
+                    Environment.UserName.ToString(),
+                }
             };
 
             string configPath = Path.Combine(prodPath, "config.json");
