@@ -9,6 +9,9 @@ using static DuckPipe.Core.AssetManip;
 using System;
 using Microsoft.VisualBasic.ApplicationServices;
 using Microsoft.VisualBasic;
+using System.Drawing.Printing;
+using System.Drawing;
+// using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DuckPipe
 {
@@ -236,6 +239,11 @@ namespace DuckPipe
         {
             tabCtrlMain.SelectedIndex = 1;
         }
+
+        private void btnTab3_Click(object sender, EventArgs e)
+        {
+            tabCtrlMain.SelectedIndex = 2;
+        }
         #endregion
 
 
@@ -443,6 +451,7 @@ namespace DuckPipe
             {
                 string rootPath = GetProductionRootPath();
                 LoadTreeViewFromFolder(rootPath, selectedProd);
+                DisplayCharacterGantt();
             }
         }
 
@@ -1007,7 +1016,7 @@ namespace DuckPipe
 
             if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
             {
-               AssetTabDisplayPlayBlastPanel(assetPath);
+                AssetTabDisplayPlayBlastPanel(assetPath);
             }
 
             flpAssetTask.ResumeLayout();
@@ -1257,12 +1266,182 @@ namespace DuckPipe
             flpAssetTask.Controls.Add(pbpPnel);
             flpAssetTask.ResumeLayout();
         }
-
         #endregion
 
-        private void btnEditAsset_Click(object sender, EventArgs e)
+        public void DisplayCharacterGantt()
         {
+            pnlShelude.Controls.Clear();
 
+            string rootPath = AssetManagerForm.GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            if (string.IsNullOrEmpty(selectedProd)) return;
+
+            string prodPath = Path.Combine(rootPath, selectedProd);
+            var allAssets = GetAllAssetsInProduction(prodPath);
+
+            var monthDays = new Dictionary<string, int>
+    {
+        { "January", 31 }, { "February", 28 }, { "March", 31 }, { "April", 30 },
+        { "May", 31 }, { "June", 30 }, { "July", 31 }, { "August", 31 },
+        { "September", 30 }, { "October", 31 }, { "November", 30 }, { "December", 31 }
+    };
+
+            // === TableLayoutPanel principal ===
+            var mainTable = new TableLayoutPanel
+            {
+                ColumnCount = 2,
+                RowCount = 1,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                BackColor = Color.FromArgb(40, 40, 40)
+            };
+            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150)); // Colonne nom
+            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 365*15)); // Colonne timeline/tâches
+
+            // === Ligne 0 : Timeline Header ===
+            var emptyLabel = new Label
+            {
+                Text = "",
+                Width = 150,
+                Height = 30,
+                Dock = DockStyle.Left
+            };
+            mainTable.Controls.Add(emptyLabel, 0, 0);
+
+            var timelineHeader = new FlowLayoutPanel
+            {
+                Height = 45,
+                Width = 365 * 15,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                AutoScroll = false,
+                BackColor = Color.FromArgb(40, 40, 40)
+            };
+
+            int monthIndex = 1;
+            foreach (var month in monthDays)
+            {
+                Color bgColor = (monthIndex % 2 == 0) ? Color.FromArgb(50, 50, 50) : Color.FromArgb(30, 30, 30);
+
+                var monthPanel = new FlowLayoutPanel
+                {
+                    Height = 45,
+                    Width = month.Value * 15,
+                    FlowDirection = FlowDirection.TopDown,
+                    Margin = new Padding(0),
+                    BackColor = bgColor,
+                    WrapContents = false
+                };
+
+                monthPanel.Controls.Add(new Label
+                {
+                    Text = month.Key,
+                    Height = 15,
+                    Width = month.Value * 15,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Font = new Font("Segoe UI", 7, FontStyle.Bold),
+                    ForeColor = Color.White
+                });
+
+                var dayPanel = new FlowLayoutPanel
+                {
+                    Height = 15,
+                    Width = month.Value * 15,
+                    FlowDirection = FlowDirection.LeftToRight,
+                    Margin = new Padding(0),
+                    WrapContents = false
+                };
+
+                for (int i = 1; i <= month.Value; i++)
+                {
+                    dayPanel.Controls.Add(new Label
+                    {
+                        Text = i.ToString(),
+                        Width = 15,
+                        Height = 15,
+                        Font = new Font("Segoe UI", 6),
+                        BackColor = bgColor,
+                        ForeColor = Color.White,
+                        TextAlign = ContentAlignment.MiddleCenter,
+                        BorderStyle = BorderStyle.FixedSingle,
+                        Margin = new Padding(0)
+                    });
+                }
+
+                monthPanel.Controls.Add(dayPanel);
+                timelineHeader.Controls.Add(monthPanel);
+
+                monthIndex++;
+            }
+
+            mainTable.Controls.Add(timelineHeader, 1, 0);
+
+            // === Assets Rows ===
+            foreach (var typeEntry in allAssets)
+            {
+                foreach (var assetEntry in typeEntry.Value)
+                {
+                    string assetName = assetEntry.Key;
+                    var tasks = assetEntry.Value;
+
+                    mainTable.RowCount += 1;
+                    int currentRow = mainTable.RowCount - 1;
+
+                    // Nom de l'asset
+                    var lblAsset = new Label
+                    {
+                        Text = assetName,
+                        Width = 150,
+                        Height = 30,
+                        ForeColor = Color.White,
+                        TextAlign = ContentAlignment.MiddleLeft,
+                        Dock = DockStyle.Fill,
+                        Padding = new Padding(5)
+                    };
+                    mainTable.Controls.Add(lblAsset, 0, currentRow);
+
+                    // Ligne de tâches
+                    var taskLine = new FlowLayoutPanel
+                    {
+                        Height = 30,
+                        Width = timelineHeader.Width,
+                        FlowDirection = FlowDirection.LeftToRight,
+                        WrapContents = false,
+                        AutoScroll = false,
+                        BackColor = Color.FromArgb(60, 60, 60)
+                    };
+
+                    foreach (var taskEntry in tasks)
+                    {
+                        var block = new Panel
+                        {
+                            Width = 800,
+                            Height = 20,
+                            BackColor = Color.Teal,
+                            Margin = new Padding(2)
+                        };
+
+                        var tooltip = new ToolTip();
+                        tooltip.SetToolTip(block, $"{taskEntry.Key}: {taskEntry.Value.User} ({taskEntry.Value.StartDate} → {taskEntry.Value.DueDate})");
+
+                        taskLine.Controls.Add(block);
+                    }
+
+                    mainTable.Controls.Add(taskLine, 1, currentRow);
+                }
+            } 
+
+            // === Ajouter scroll wrapper autour du tableau ===
+            var scrollWrapper = new Panel
+            {
+                AutoScroll = true,
+                Dock = DockStyle.Fill,
+                BackColor = Color.Transparent
+            };
+            scrollWrapper.Controls.Add(mainTable);
+
+            // Ajout au panel principal
+            pnlShelude.Controls.Add(scrollWrapper);
         }
     }
 }

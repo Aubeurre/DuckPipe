@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Microsoft.VisualBasic;
 
 namespace DuckPipe.Core
 {
@@ -569,7 +570,72 @@ namespace DuckPipe.Core
             }
 
             writer.WriteEndObject();
-        }       
+        }
         #endregion
+
+
+
+        public class TaskData
+        {
+            public string Status { get; set; }
+            public string User { get; set; }
+            public string StartDate { get; set; }
+            public string DueDate { get; set; }
+        }
+
+        public static Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> GetAllAssetsInProduction(string prodPath)
+        {
+            var result = new Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>>();
+
+            var assetTypes = new Dictionary<string, string>
+    {
+        { "Characters", "Assets\\Characters" },
+        { "Props", "Assets\\Props" },
+        { "Environments", "Assets\\Environments" },
+    };
+            foreach (var kvp in assetTypes)
+            {
+                string typeName = kvp.Key;
+                string relativePath = kvp.Value;
+
+                string fullPath = Path.Combine(prodPath, relativePath);
+
+                var typeDict = new Dictionary<string, Dictionary<string, TaskData>>();
+
+                foreach (string dir in Directory.GetDirectories(fullPath))
+                {
+                    string assetName = Path.GetFileName(dir);
+                    string AssetJsonPath = Path.Combine(dir, "Asset.json");
+                    string json = File.ReadAllText(AssetJsonPath);
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    if (!root.TryGetProperty("Tasks", out var tasksElement))
+                        continue;
+
+                    var taskDict = new Dictionary<string, TaskData>();
+
+                    foreach (var task in tasksElement.EnumerateObject())
+                    {
+                        string dept = task.Name;
+                        var taskData = new TaskData();
+
+                        if (task.Value.TryGetProperty("status", out var status)) taskData.Status = status.GetString() ?? "";
+                        if (task.Value.TryGetProperty("user", out var user)) taskData.User = user.GetString() ?? "";
+                        if (task.Value.TryGetProperty("startDate", out var startDate)) taskData.StartDate = startDate.GetString() ?? "";
+                        if (task.Value.TryGetProperty("dueDate", out var dueDate)) taskData.DueDate = dueDate.GetString() ?? "";
+
+                        taskDict[dept] = taskData;
+                    }
+
+                    typeDict[assetName] = taskDict;
+                }
+
+                result[typeName] = typeDict;
+            }
+
+            return result;
+        }
+
     }
 }

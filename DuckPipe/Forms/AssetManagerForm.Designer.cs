@@ -66,6 +66,7 @@ namespace DuckPipe
             flowLayoutPanel1 = new FlowLayoutPanel();
             btnTab2 = new Button();
             btnTab1 = new Button();
+            btnTab3 = new Button();
             tabCtrlMain = new CustomTabControl();
             tabPWork = new TabPage();
             splitContainer3 = new SplitContainer();
@@ -79,6 +80,7 @@ namespace DuckPipe
             lbDescription2 = new Label();
             button1 = new Button();
             tabPShelude = new TabPage();
+            pnlShelude = new Panel();
             contextMenuTree.SuspendLayout();
             panel1.SuspendLayout();
             menuStrip1.SuspendLayout();
@@ -103,6 +105,7 @@ namespace DuckPipe
             tabPAsset.SuspendLayout();
             panel2.SuspendLayout();
             flowLayoutPanel2.SuspendLayout();
+            tabPShelude.SuspendLayout();
             SuspendLayout();
             // 
             // tvAssetList
@@ -466,10 +469,11 @@ namespace DuckPipe
             flowLayoutPanel1.Anchor = AnchorStyles.None;
             flowLayoutPanel1.Controls.Add(btnTab2);
             flowLayoutPanel1.Controls.Add(btnTab1);
-            flowLayoutPanel1.Location = new Point(305, 8);
+            flowLayoutPanel1.Controls.Add(btnTab3);
+            flowLayoutPanel1.Location = new Point(264, 8);
             flowLayoutPanel1.Margin = new Padding(8);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(162, 27);
+            flowLayoutPanel1.Size = new Size(244, 27);
             flowLayoutPanel1.TabIndex = 0;
             // 
             // btnTab2
@@ -499,6 +503,20 @@ namespace DuckPipe
             btnTab1.Text = "Workfiles";
             btnTab1.UseVisualStyleBackColor = false;
             btnTab1.Click += btnTab1_Click;
+            // 
+            // btnTab3
+            // 
+            btnTab3.BackColor = Color.Transparent;
+            btnTab3.FlatAppearance.BorderColor = Color.FromArgb(64, 64, 64);
+            btnTab3.FlatStyle = FlatStyle.Flat;
+            btnTab3.ForeColor = Color.White;
+            btnTab3.Location = new Point(165, 3);
+            btnTab3.Name = "btnTab3";
+            btnTab3.Size = new Size(75, 23);
+            btnTab3.TabIndex = 2;
+            btnTab3.Text = "Shelude";
+            btnTab3.UseVisualStyleBackColor = false;
+            btnTab3.Click += btnTab3_Click;
             // 
             // tabCtrlMain
             // 
@@ -605,7 +623,6 @@ namespace DuckPipe
             btnEditAsset.Size = new Size(55, 61);
             btnEditAsset.TabIndex = 6;
             btnEditAsset.UseVisualStyleBackColor = false;
-            btnEditAsset.Click += btnEditAsset_Click;
             // 
             // lblAssetType2
             // 
@@ -677,12 +694,23 @@ namespace DuckPipe
             // 
             // tabPShelude
             // 
+            tabPShelude.AutoScroll = true;
             tabPShelude.BackColor = Color.FromArgb(40, 40, 40);
+            tabPShelude.Controls.Add(pnlShelude);
             tabPShelude.Location = new Point(4, 34);
             tabPShelude.Name = "tabPShelude";
             tabPShelude.Size = new Size(761, 482);
             tabPShelude.TabIndex = 2;
             tabPShelude.Text = "Shelude";
+            // 
+            // pnlShelude
+            // 
+            pnlShelude.AutoScroll = true;
+            pnlShelude.Dock = DockStyle.Fill;
+            pnlShelude.Location = new Point(0, 0);
+            pnlShelude.Name = "pnlShelude";
+            pnlShelude.Size = new Size(761, 482);
+            pnlShelude.TabIndex = 0;
             // 
             // AssetManagerForm
             // 
@@ -726,6 +754,7 @@ namespace DuckPipe
             panel2.PerformLayout();
             flowLayoutPanel2.ResumeLayout(false);
             flowLayoutPanel2.PerformLayout();
+            tabPShelude.ResumeLayout(false);
             ResumeLayout(false);
         }
         #endregion
@@ -777,5 +806,7 @@ namespace DuckPipe
         private Label lbDescription2;
         private Button button1;
         private FlowLayoutPanel flpAssetTask;
+        private Button btnTab3;
+        private Panel pnlShelude;
     }
 }
