@@ -12,6 +12,7 @@ namespace DuckPipe.Core
         public string name { get; set; }
         public string created { get; set; }
         public string version { get; set; }
+        public string deliveryDay { get; set; }
         public Dictionary<string, DepartmentStructure> departments { get; set; } = new();
 
         public void CreateProductionStructure(string prodName, string rootPath)
@@ -26,6 +27,7 @@ namespace DuckPipe.Core
             name = prodName;
             created = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
             version = "1.0";
+            deliveryDay = DateTime.Now.AddDays(365).ToString("yyyy-MM-dd");
 
             InitializeDefaultDepartments();
             SaveProductionConfig(prodPath);
@@ -104,6 +106,7 @@ namespace DuckPipe.Core
             {
                 name,
                 created,
+                deliveryDay,
                 version,
                 departments,
                 status = new Dictionary<string, string>
@@ -115,7 +118,19 @@ namespace DuckPipe.Core
             { "pendingReview", "icons/PR.png" },
             { "rtk", "icons/RTK.png" }
         },
-                Users = new List<string>()
+                color = new Dictionary<string, Color>
+            {
+                { "RIG", Color.Teal },
+                { "MODELING", Color.SteelBlue },
+                { "FACIAL", Color.IndianRed },
+                { "CFX", Color.Goldenrod },
+                { "SURFACING", Color.MediumPurple },
+                { "ANIM", Color.DarkOrange },
+                { "LIGHTING", Color.AliceBlue },
+                { "GROOM", Color.Aquamarine },
+                { "SURF", Color.LightSlateGray }
+            },
+            Users = new List<string>()
                 {
                     Environment.UserName.ToString(),
                 }

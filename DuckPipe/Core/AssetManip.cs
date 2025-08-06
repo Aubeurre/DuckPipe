@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DuckPipe.Core
 {
@@ -59,28 +62,6 @@ namespace DuckPipe.Core
             return JsonDocument.Parse(jsonText);
         }
 
-        public static void LaunchAsset(string filePath, AssetManagerForm form)
-        {
-            string LocalFile = GetTempPath(filePath);
-            if (File.Exists(LocalFile))
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = LocalFile,
-                    UseShellExecute = true
-                });
-            }
-            else
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = filePath,
-                    UseShellExecute = true
-                });
-            }
-
-        }
-
         public static string ReplaceEnvVariables(string path)
         {
             string envPath = UserConfig.Get().ProdBasePath;
@@ -127,38 +108,105 @@ namespace DuckPipe.Core
             return maxVersion;
         }
 
-        public static void VersionAsset(string assetPath, AssetManagerForm form)
+        public static void MarkDownstreamDepartmentsOutdated(string assetPath, string deptPublished)
         {
-            if (LockAssetDepartment.IsLockedByUser(assetPath))
-            {
+            var ctx = ExtractAssetContext(assetPath);
 
-                string LocalFile = GetTempPath(assetPath);
-                if (!File.Exists(assetPath))
+            string configPath = Path.Combine(ctx.RootPath, ctx.ProdName, "config.json");
+            string configJson = File.ReadAllText(configPath);
+            using var configDoc = JsonDocument.Parse(configJson);
+
+            if (!configDoc.RootElement.TryGetProperty("departments", out var allDepartments))
+                return;
+
+            if (!allDepartments.TryGetProperty(deptPublished, out var deptInfo))
+                return;
+
+            if (!deptInfo.TryGetProperty("downstream", out var downstreamList))
+                return;
+
+            string jsonPath = Path.Combine(ctx.AssetRoot, "asset.json");
+            if (!File.Exists(jsonPath))
+                return;
+
+            var json = File.ReadAllText(jsonPath);
+            var options = new JsonSerializerOptions { WriteIndented = true };
+
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            var updatedAssetData = new Dictionary<string, object>();
+
+            var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
+                root.GetProperty("workfile").GetRawText()
+            );
+
+            bool updated = false;
+            var keys = workfileDict.Keys.ToList();
+
+            foreach (var key in keys)
+            {
+                var data = workfileDict[key];
+
+                if (!data.ContainsKey("department"))
+                    continue;
+
+                string departmentName = data["department"]?.ToString();
+                string fileName = Path.GetFileName(key);
+                foreach (var downstream in downstreamList.EnumerateArray())
                 {
-                    MessageBox.Show("Fichier Local introuvable.");
-                    return;
+                    if (downstream.GetString().ToLower() == departmentName.ToLower() && fileName != ctx.FileName)
+                    {
+                        data["status"] = "outDated";
+                        updated = true;
+                    }
                 }
-
-                var ctx = ExtractAssetContext(assetPath);
-                string incrementalsDir = Path.Combine(ctx.WorkFolder, "incrementals");
-
-                Directory.CreateDirectory(incrementalsDir);
-
-                int newVersion = GetLastWorkVersion(assetPath) + 1;
-                string versionedFileName = $"{ctx.FileName}_v{newVersion:D3}{ctx.Extension}";
-                string destinationPath = Path.Combine(incrementalsDir, versionedFileName);
-
-                File.Copy(LocalFile, destinationPath);
-                File.Copy(LocalFile, assetPath, true);
-                MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
-                form.WorkTabRefreshPanel(ctx.AssetRoot);
             }
-            else
+
+            updatedAssetData["workfile"] = workfileDict;
+
+            foreach (var prop in root.EnumerateObject())
             {
-                MessageBox.Show($"Please Grab Asset First");
+                if (prop.Name == "workfile") continue;
+                updatedAssetData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
+            }
+
+            if (updated)
+            {
+                string updatedJson = JsonSerializer.Serialize(updatedAssetData, options);
+                File.WriteAllText(jsonPath, updatedJson);
             }
         }
 
+
+        public static List<AllPbPath> GetAllImages(string path)
+        {
+            var result = new List<AllPbPath>();
+
+            string folder = Path.Combine(path, "dlv");
+
+            if (!Directory.Exists(folder))
+                return result;
+
+            var validExtensions = new[] { ".png", ".jpg" };
+
+            foreach (var file in Directory.GetFiles(folder))
+            {
+                if (validExtensions.Contains(Path.GetExtension(file).ToLower()))
+                {
+                    result.Add(new AllPbPath
+                    {
+                        Name = Path.GetFileName(file),
+                        FullPath = file,
+                        Modified = File.GetLastWriteTime(file)
+                    });
+                }
+            }
+
+            return result;
+        }
+
+        #region NOTES COMMITS
         public static void AddNote(string assetPath, AssetManagerForm form)
         {
             var ctx = ExtractAssetContext(assetPath);
@@ -171,43 +219,6 @@ namespace DuckPipe.Core
             }
             UpdateAssetMetadata(assetPath, versionName, ctx.Department);
             form.WorkTabRefreshPanel(ctx.AssetRoot);
-        }
-
-        public static void PublishAsset(string assetPath, AssetManagerForm form)
-        {
-            if (LockAssetDepartment.IsLockedByUser(assetPath))
-            {
-                VersionAsset(assetPath, form);
-
-                var ctx = ExtractAssetContext(assetPath);
-
-                string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
-                Directory.CreateDirectory(publishFolder);
-
-                string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
-                string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
-
-                File.Copy(assetPath, publishedFilePath, overwrite: true);
-                MessageBox.Show($"Asset publié : {publishedFileName}", "Succès");
-
-                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Publish", ctx.AssetType, $"{ctx.Department}.bat");
-                if (File.Exists(batPath))
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = batPath,
-                        Arguments = $"\"{publishedFilePath}\"",
-                        UseShellExecute = true
-                    });
-                }
-                AddNote(assetPath, form);
-                MarkDownstreamDepartmentsOutdated(assetPath, ctx.Department);
-                form.WorkTabRefreshPanel(ctx.AssetRoot);
-            }
-            else
-            {
-                MessageBox.Show($"Please Grab Asset First");
-            }
         }
 
         public static void AddPublishLog(string workPath, string fileName, int version, string message)
@@ -253,34 +264,6 @@ namespace DuckPipe.Core
             public DateTime Timestamp { get; set; }
             public string User { get; set; }
             public string Message { get; set; }
-        }
-
-        public static void ExecAsset(string assetPath, AssetManagerForm form)
-        {
-            if (LockAssetDepartment.IsLockedByUser(assetPath))
-            {
-                var ctx = ExtractAssetContext(assetPath);
-
-                string LocalFile = GetTempPath(assetPath);
-                string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
-                string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
-                string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
-
-                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Exec", ctx.AssetType, $"{ctx.Department}.bat");
-                if (File.Exists(batPath))
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = batPath,
-                        Arguments = $"\"{publishedFilePath}\"",
-                        UseShellExecute = true
-                    });
-                }
-            }
-            else
-            {
-                MessageBox.Show($"Please Grab Asset First");
-            }
         }
 
         private static void UpdateAssetMetadata(string assetPath, int version, string deptName)
@@ -367,77 +350,10 @@ namespace DuckPipe.Core
 
             return commits;
         }
+        #endregion
 
-        public static void MarkDownstreamDepartmentsOutdated(string assetPath, string deptPublished)
-        {
-            var ctx = ExtractAssetContext(assetPath);
 
-            string configPath = Path.Combine(ctx.RootPath, ctx.ProdName, "config.json");
-            string configJson = File.ReadAllText(configPath);
-            using var configDoc = JsonDocument.Parse(configJson);
-
-            if (!configDoc.RootElement.TryGetProperty("departments", out var allDepartments))
-                return;
-
-            if (!allDepartments.TryGetProperty(deptPublished, out var deptInfo))
-                return;
-
-            if (!deptInfo.TryGetProperty("downstream", out var downstreamList))
-                return;
-
-            string jsonPath = Path.Combine(ctx.AssetRoot, "asset.json");
-            if (!File.Exists(jsonPath))
-                return;
-
-            var json = File.ReadAllText(jsonPath);
-            var options = new JsonSerializerOptions { WriteIndented = true };
-
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-
-            var updatedAssetData = new Dictionary<string, object>();
-
-            var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
-                root.GetProperty("workfile").GetRawText()
-            );
-
-            bool updated = false;
-            var keys = workfileDict.Keys.ToList();
-
-            foreach (var key in keys)
-            {
-                var data = workfileDict[key];
-
-                if (!data.ContainsKey("department"))
-                    continue;
-
-                string departmentName = data["department"]?.ToString();
-                string fileName = Path.GetFileName(key);
-                foreach (var downstream in downstreamList.EnumerateArray())
-                {
-                    if (downstream.GetString().ToLower() == departmentName.ToLower() && fileName != ctx.FileName)
-                    {
-                        data["status"] = "outDated";
-                        updated = true;
-                    }
-                }
-            }
-
-            updatedAssetData["workfile"] = workfileDict;
-
-            foreach (var prop in root.EnumerateObject())
-            {
-                if (prop.Name == "workfile") continue;
-                updatedAssetData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
-            }
-
-            if (updated)
-            {
-                string updatedJson = JsonSerializer.Serialize(updatedAssetData, options);
-                File.WriteAllText(jsonPath, updatedJson);
-            }
-        }
-
+        #region TEMP FILE
         public static string GetTempPath(string assetPath)
         {
             string tempAssetlPath = assetPath.Replace(UserConfig.Get().ProdBasePath, UserConfig.Get().userTempFolder);
@@ -465,6 +381,130 @@ namespace DuckPipe.Core
             if (Directory.Exists(tempDirPath))
                 Directory.Delete(tempDirPath, true);
         }
+        #endregion
+
+
+        #region EXECUTE TASK ON ASSET
+        public static void LaunchAsset(string filePath, AssetManagerForm form)
+        {
+            string LocalFile = GetTempPath(filePath);
+            if (File.Exists(LocalFile))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = LocalFile,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = filePath,
+                    UseShellExecute = true
+                });
+            }
+
+        }
+
+        public static void ExecAsset(string assetPath, AssetManagerForm form)
+        {
+            if (LockAssetDepartment.IsLockedByUser(assetPath))
+            {
+                var ctx = ExtractAssetContext(assetPath);
+
+                string LocalFile = GetTempPath(assetPath);
+                string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
+                string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
+                string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
+
+                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Exec", ctx.AssetType, $"{ctx.Department}.bat");
+                if (File.Exists(batPath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = batPath,
+                        Arguments = $"\"{publishedFilePath}\"",
+                        UseShellExecute = true
+                    });
+                }
+            }
+            else
+            {
+                MessageBox.Show($"Please Grab Asset First");
+            }
+        }
+
+        public static void PublishAsset(string assetPath, AssetManagerForm form)
+        {
+            if (LockAssetDepartment.IsLockedByUser(assetPath))
+            {
+                VersionAsset(assetPath, form);
+
+                var ctx = ExtractAssetContext(assetPath);
+
+                string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
+                Directory.CreateDirectory(publishFolder);
+
+                string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
+                string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
+
+                File.Copy(assetPath, publishedFilePath, overwrite: true);
+                MessageBox.Show($"Asset publié : {publishedFileName}", "Succès");
+
+                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Publish", ctx.AssetType, $"{ctx.Department}.bat");
+                if (File.Exists(batPath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = batPath,
+                        Arguments = $"\"{publishedFilePath}\"",
+                        UseShellExecute = true
+                    });
+                }
+                AddNote(assetPath, form);
+                MarkDownstreamDepartmentsOutdated(assetPath, ctx.Department);
+                form.WorkTabRefreshPanel(ctx.AssetRoot);
+            }
+            else
+            {
+                MessageBox.Show($"Please Grab Asset First");
+            }
+        }
+
+        public static void VersionAsset(string assetPath, AssetManagerForm form)
+        {
+            if (LockAssetDepartment.IsLockedByUser(assetPath))
+            {
+
+                string LocalFile = GetTempPath(assetPath);
+                if (!File.Exists(assetPath))
+                {
+                    MessageBox.Show("Fichier Local introuvable.");
+                    return;
+                }
+
+                var ctx = ExtractAssetContext(assetPath);
+                string incrementalsDir = Path.Combine(ctx.WorkFolder, "incrementals");
+
+                Directory.CreateDirectory(incrementalsDir);
+
+                int newVersion = GetLastWorkVersion(assetPath) + 1;
+                string versionedFileName = $"{ctx.FileName}_v{newVersion:D3}{ctx.Extension}";
+                string destinationPath = Path.Combine(incrementalsDir, versionedFileName);
+
+                File.Copy(LocalFile, destinationPath);
+                File.Copy(LocalFile, assetPath, true);
+                MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
+                form.WorkTabRefreshPanel(ctx.AssetRoot);
+            }
+            else
+            {
+                MessageBox.Show($"Please Grab Asset First");
+            }
+        }
+        #endregion
+
 
         #region EDIT ASSET METADATA FROM UI
         public static void SaveTaskDataFromUI(string jsonPath, FlowLayoutPanel flp)
@@ -574,13 +614,95 @@ namespace DuckPipe.Core
         #endregion
 
 
-
+        #region SHELUDE PARSE INFOS
         public class TaskData
         {
             public string Status { get; set; }
             public string User { get; set; }
             public string StartDate { get; set; }
             public string DueDate { get; set; }
+        }
+
+        public static List<string> GetAllShotPaths(string prodPath)
+        {
+            var shotPaths = new List<string>();
+            string sequencesRoot = Path.Combine(prodPath, "Shots", "Sequences");
+
+            foreach (string seqDir in Directory.GetDirectories(sequencesRoot))
+            {
+                string shotRoot = Path.Combine(seqDir, "Shots");
+                foreach (string shotDir in Directory.GetDirectories(shotRoot))
+                {
+                    string assetJsonPath = Path.Combine(shotDir, "Asset.json");
+                    if (File.Exists(assetJsonPath))
+                    {
+                        shotPaths.Add(shotDir);
+                    }
+                }
+            }
+
+            return shotPaths;
+        }
+
+        public static Dictionary<string, Dictionary<string, TaskData>> ParseAssetsFromPaths(List<string> assetPaths)
+        {
+            var result = new Dictionary<string, Dictionary<string, TaskData>>();
+
+            foreach (var path in assetPaths)
+            {
+                string assetName;
+
+                // Shot
+                if (path.Contains("\\Shots\\Sequences\\" ))
+                {
+                    string[] parts = path.Split('\\');
+                    if (parts.Length == 8)
+                    {
+                        var sequenceName = parts[5];
+                        var shotName = Path.GetFileName(path);
+                        assetName = $"{sequenceName}_{shotName}";
+
+                    }
+                    else
+                    {
+                        assetName = Path.GetFileName(path);
+                    }
+                }
+                else
+                {
+                    assetName = Path.GetFileName(path);
+                }
+                string jsonPath = Path.Combine(path, "Asset.json");
+
+                if (!File.Exists(jsonPath))
+                    continue;
+
+                string json = File.ReadAllText(jsonPath);
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                if (!root.TryGetProperty("Tasks", out var tasksElement))
+                    continue;
+
+                var taskDict = new Dictionary<string, TaskData>();
+
+                foreach (var task in tasksElement.EnumerateObject())
+                {
+                    string dept = task.Name;
+                    var taskData = new TaskData();
+
+                    if (task.Value.TryGetProperty("status", out var status)) taskData.Status = status.GetString() ?? "";
+                    if (task.Value.TryGetProperty("user", out var user)) taskData.User = user.GetString() ?? "";
+                    if (task.Value.TryGetProperty("startDate", out var startDate)) taskData.StartDate = startDate.GetString() ?? "";
+                    if (task.Value.TryGetProperty("dueDate", out var dueDate)) taskData.DueDate = dueDate.GetString() ?? "";
+
+                    taskDict[dept] = taskData;
+                }
+
+                result[assetName] = taskDict;
+            }
+
+            return result;
         }
 
         public static Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> GetAllAssetsInProduction(string prodPath)
@@ -592,50 +714,32 @@ namespace DuckPipe.Core
         { "Characters", "Assets\\Characters" },
         { "Props", "Assets\\Props" },
         { "Environments", "Assets\\Environments" },
+        { "Sequences", "Shots\\Sequences" },
     };
+
+            // 
             foreach (var kvp in assetTypes)
             {
                 string typeName = kvp.Key;
                 string relativePath = kvp.Value;
-
                 string fullPath = Path.Combine(prodPath, relativePath);
 
-                var typeDict = new Dictionary<string, Dictionary<string, TaskData>>();
+                if (!Directory.Exists(fullPath))
+                    continue;
 
-                foreach (string dir in Directory.GetDirectories(fullPath))
-                {
-                    string assetName = Path.GetFileName(dir);
-                    string AssetJsonPath = Path.Combine(dir, "Asset.json");
-                    string json = File.ReadAllText(AssetJsonPath);
-                    using var doc = JsonDocument.Parse(json);
-                    var root = doc.RootElement;
-
-                    if (!root.TryGetProperty("Tasks", out var tasksElement))
-                        continue;
-
-                    var taskDict = new Dictionary<string, TaskData>();
-
-                    foreach (var task in tasksElement.EnumerateObject())
-                    {
-                        string dept = task.Name;
-                        var taskData = new TaskData();
-
-                        if (task.Value.TryGetProperty("status", out var status)) taskData.Status = status.GetString() ?? "";
-                        if (task.Value.TryGetProperty("user", out var user)) taskData.User = user.GetString() ?? "";
-                        if (task.Value.TryGetProperty("startDate", out var startDate)) taskData.StartDate = startDate.GetString() ?? "";
-                        if (task.Value.TryGetProperty("dueDate", out var dueDate)) taskData.DueDate = dueDate.GetString() ?? "";
-
-                        taskDict[dept] = taskData;
-                    }
-
-                    typeDict[assetName] = taskDict;
-                }
-
-                result[typeName] = typeDict;
+                var assetPaths = Directory.GetDirectories(fullPath).ToList();
+                var parsedAssets = ParseAssetsFromPaths(assetPaths);
+                result[typeName] = parsedAssets;
             }
+
+            // shots
+            var shotPaths = GetAllShotPaths(prodPath);
+            var parsedShots = ParseAssetsFromPaths(shotPaths);
+            result["Shots"] = parsedShots;
 
             return result;
         }
+        #endregion
 
     }
 }

@@ -181,6 +181,13 @@ namespace DuckPipe.Core
                         };
                     }
                 }
+                taskData["ART"] = new
+                {
+                    status = "not_started",
+                    user = "",
+                    startDate = "",
+                    dueDate = ""
+                };
             }
 
             var assetJson = new

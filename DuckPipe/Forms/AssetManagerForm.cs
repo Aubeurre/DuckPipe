@@ -1,16 +1,10 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
-using System.Windows.Forms;
 using DuckPipe.Core;
+using static DuckPipe.Core.AssetManip;
 // using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using WinFormsListView = System.Windows.Forms.ListView;
-using static DuckPipe.Core.AssetManip;
-using System;
-using Microsoft.VisualBasic.ApplicationServices;
-using Microsoft.VisualBasic;
-using System.Drawing.Printing;
-using System.Drawing;
 // using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DuckPipe
@@ -19,7 +13,6 @@ namespace DuckPipe
     {
         private string selectedAssetPath = null!;
         private EventHandler? saveClickHandler;
-
 
 
         #region MAIN PROC
@@ -75,6 +68,19 @@ namespace DuckPipe
                     else return null;
 
                 }
+
+                else if (firstFolder == "Preprod")
+                {
+                    if (parts.Length == 4)
+                    {
+                        ctx.AssetType = parts[2];
+                        ctx.AssetName = parts[3];
+                        ctx.AssetRoot = Path.Combine(rootPath, prodName, "Preprod", ctx.AssetType, ctx.AssetName);
+                    }
+                    else return null;
+
+                }
+
                 else if (firstFolder == "Shots")
                 {
                     if (parts.Length == 4)
@@ -243,6 +249,7 @@ namespace DuckPipe
         private void btnTab3_Click(object sender, EventArgs e)
         {
             tabCtrlMain.SelectedIndex = 2;
+            DisplayShelude();
         }
         #endregion
 
@@ -320,6 +327,7 @@ namespace DuckPipe
             var ctx = ExtractAssetContext(fullPath);
             if (ctx == null)
             {
+                MessageBox.Show("No ctx");
                 WorkTabClearPanel();
                 AssetTabClearPanel();
                 return;
@@ -341,6 +349,17 @@ namespace DuckPipe
                 AssetTabDisplayDepartments(fullPath);
                 WorkTabDisplayHeader(fullPath);
                 AssetTabDisplayHeader(fullPath);
+            }
+            else
+            {
+                if (fullPath.Contains("\\Concept\\"))
+                {
+                    AssetTabDisplayHeader(fullPath);
+                    flpAssetTask.SuspendLayout();
+                    flpAssetTask.Controls.Clear();
+                    AssetTabDisplayImagePanel(fullPath);
+                    flpAssetTask.ResumeLayout();
+                }
             }
         }
 
@@ -444,6 +463,7 @@ namespace DuckPipe
         }
         #endregion
 
+        #region  PRODLIST / CREATE BUTTONS
         private void cbProdList_SelectedIndexChanged(object sender, EventArgs e)
         {
             string selectedProd = cbProdList.SelectedItem?.ToString();
@@ -451,7 +471,6 @@ namespace DuckPipe
             {
                 string rootPath = GetProductionRootPath();
                 LoadTreeViewFromFolder(rootPath, selectedProd);
-                DisplayCharacterGantt();
             }
         }
 
@@ -578,6 +597,7 @@ namespace DuckPipe
                 }
             }
         }
+        #endregion
         #endregion
 
 
@@ -938,10 +958,6 @@ namespace DuckPipe
 
         private void AssetTabDisplayHeader(string assetPath)
         {
-            string jsonPath = Path.Combine(assetPath, "asset.json");
-            string json = File.ReadAllText(jsonPath);
-            using var doc = JsonDocument.Parse(json);
-            string[] parts = jsonPath.Split('\\');
 
             var ctx = ExtractAssetContext(assetPath);
 
@@ -953,26 +969,34 @@ namespace DuckPipe
             btnEditAsset.Visible = true;
 
             // maj Description
-            if (doc.RootElement.TryGetProperty("assetInfos", out JsonElement assetInfos))
+            string jsonPath = Path.Combine(assetPath, "asset.json");
+            if (File.Exists(jsonPath))
             {
-                if (assetInfos.TryGetProperty("description", out JsonElement descriptionElement))
+                string json = File.ReadAllText(jsonPath);
+                using var doc = JsonDocument.Parse(json);
+                string[] parts = jsonPath.Split('\\');
+
+                if (doc.RootElement.TryGetProperty("assetInfos", out JsonElement assetInfos))
                 {
-                    if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
+                    if (assetInfos.TryGetProperty("description", out JsonElement descriptionElement))
                     {
-                        string rangeIn = "";
-                        string rangeOut = "";
+                        if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
+                        {
+                            string rangeIn = "";
+                            string rangeOut = "";
 
-                        if (assetInfos.TryGetProperty("inFrame", out JsonElement inFrameElement))
-                            rangeIn = inFrameElement.GetRawText().Replace("\"", "");
+                            if (assetInfos.TryGetProperty("inFrame", out JsonElement inFrameElement))
+                                rangeIn = inFrameElement.GetRawText().Replace("\"", "");
 
-                        if (assetInfos.TryGetProperty("outFrame", out JsonElement outFrameElement))
-                            rangeOut = outFrameElement.GetRawText().Replace("\"", "");
+                            if (assetInfos.TryGetProperty("outFrame", out JsonElement outFrameElement))
+                                rangeOut = outFrameElement.GetRawText().Replace("\"", "");
 
-                        lbDescription2.Text = $"[ {rangeIn} - {rangeOut} ] {descriptionElement.GetString()}";
-                    }
-                    else
-                    {
-                        lbDescription2.Text = descriptionElement.GetString();
+                            lbDescription2.Text = $"[ {rangeIn} - {rangeOut} ] {descriptionElement.GetString()}";
+                        }
+                        else
+                        {
+                            lbDescription2.Text = descriptionElement.GetString();
+                        }
                     }
                 }
             }
@@ -984,13 +1008,21 @@ namespace DuckPipe
             flpAssetTask.Controls.Clear();
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
-            string json = File.ReadAllText(jsonPath);
-            using var doc = JsonDocument.Parse(json);
             string[] parts = jsonPath.Split('\\');
 
+            string json = File.ReadAllText(jsonPath);
+            using var doc = JsonDocument.Parse(json);
+
+
+            if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
+            {
+                AssetTabDisplayPlayBlastPanel(assetPath);
+            }
+            MessageBox.Show(assetPath);
 
             // maj tasks
             if (!doc.RootElement.TryGetProperty("Tasks", out JsonElement tasks))
+                // flpAssetTask.ResumeLayout();
                 return;
 
             var tasksMap = new Dictionary<string, (string status, string user, string startDate, string dueDate)>();
@@ -1012,11 +1044,6 @@ namespace DuckPipe
             {
                 var taskPanel = AssetTabDisplayPanel(jsonPath, kvp);
                 flpAssetTask.Controls.Add(taskPanel);
-            }
-
-            if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
-            {
-                AssetTabDisplayPlayBlastPanel(assetPath);
             }
 
             flpAssetTask.ResumeLayout();
@@ -1266,9 +1293,71 @@ namespace DuckPipe
             flpAssetTask.Controls.Add(pbpPnel);
             flpAssetTask.ResumeLayout();
         }
+
+        private void AssetTabDisplayImagePanel(string assetPath)
+        {
+            flpAssetTask.SuspendLayout();
+
+            Panel pbpPnel = new()
+            {
+                AutoSize = false,
+                Size = new Size(flpAssetTask.ClientSize.Width - 30, 100),
+                BackColor = Color.FromArgb(80, 80, 80),
+                Padding = new Padding(5),
+                Margin = new Padding(5)
+            };
+
+            // Label
+            pbpPnel.Controls.Add(new Label
+            {
+                Text = " - Arts",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(5, 5),
+                ForeColor = Color.White,
+            });
+
+            var images = AssetManip.GetAllImages(assetPath);
+
+            int offsetX = 10;
+            foreach (var image in images)
+            {
+                MessageBox.Show(image.FullPath);
+                var thumb = new PictureBox
+                {
+                    ImageLocation = image.FullPath,
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    Size = new Size(100, 60),
+                    Cursor = Cursors.Hand,
+                    Tag = image.FullPath,
+                    Location = new Point(offsetX, 30)
+                };
+
+                thumb.DoubleClick += (s, e) =>
+                {
+                    MessageBox.Show($"Ouverture de: {Path.GetFileName(image.FullPath)}, soyez patient");
+                    Process.Start("explorer", $"\"{image.FullPath}\"");
+                };
+
+                pbpPnel.Controls.Add(thumb);
+                offsetX += 170;
+            }
+
+            flpAssetTask.Controls.Add(pbpPnel);
+            flpAssetTask.ResumeLayout();
+        }
         #endregion
 
-        public void DisplayCharacterGantt()
+
+        #region SHELUDE
+        private Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> allAssets;
+        private Dictionary<string, Color> taskColors;
+        private DateTime startingDate;
+        private int todayOffset;
+        private TableLayoutPanel mainTable;
+        private Control timelineHeader;
+
+        void DisplayShelude()
         {
             pnlShelude.Controls.Clear();
 
@@ -1277,56 +1366,126 @@ namespace DuckPipe
             if (string.IsNullOrEmpty(selectedProd)) return;
 
             string prodPath = Path.Combine(rootPath, selectedProd);
-            var allAssets = GetAllAssetsInProduction(prodPath);
+            allAssets = GetAllAssetsInProduction(prodPath);
 
-            var monthDays = new Dictionary<string, int>
-    {
-        { "January", 31 }, { "February", 28 }, { "March", 31 }, { "April", 30 },
-        { "May", 31 }, { "June", 30 }, { "July", 31 }, { "August", 31 },
-        { "September", 30 }, { "October", 31 }, { "November", 30 }, { "December", 31 }
-    };
+            using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(prodPath, "config.json")));
+            startingDate = DateTime.Parse(doc.RootElement.GetProperty("created").GetString());
+            DateTime endDate = DateTime.Parse(doc.RootElement.GetProperty("deliveryDay").GetString());
 
-            // === TableLayoutPanel principal ===
+            int totalDays = (int)(endDate - startingDate).TotalDays;
+            todayOffset = (int)(DateTime.Today - startingDate).TotalDays;
+
+            taskColors = GetTaskColorsFromConfig(doc);
+
+            mainTable = CreateMainTable(totalDays);
+            timelineHeader = CreateTimelineHeader(startingDate, totalDays);
+            mainTable.Controls.Add(timelineHeader, 1, 0);
+
+            AddAssetRows(mainTable, allAssets, taskColors, startingDate, todayOffset, timelineHeader.Width);
+
+            var scrollWrapper = new Panel
+            {
+                AutoScroll = true,
+                Dock = DockStyle.Fill,
+                BackColor = Color.Transparent
+            };
+            scrollWrapper.Controls.Add(mainTable);
+            pnlShelude.Controls.Add(scrollWrapper);
+        }
+
+        private void cbFilter_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (mainTable == null) return;
+
+            ClearTableLayout(mainTable);
+
+            AddAssetRows(mainTable, allAssets, taskColors, startingDate, todayOffset, timelineHeader.Width);
+        }
+
+        private void ClearTableLayout(TableLayoutPanel tableLayout)
+        {
+            for (int i = tableLayout.Controls.Count - 1; i >= 0; i--)
+            {
+                var control = tableLayout.Controls[i];
+                var position = tableLayout.GetRow(control);
+                if (position > 0)
+                {
+                    tableLayout.Controls.RemoveAt(i);
+                    control.Dispose();
+                }
+            }
+
+            for (int i = tableLayout.RowStyles.Count - 1; i >= 1; i--)
+            {
+                tableLayout.RowStyles.RemoveAt(i);
+            }
+
+            tableLayout.RowCount = 1;
+        }
+
+        private TableLayoutPanel CreateMainTable(int totalDays)
+        {
             var mainTable = new TableLayoutPanel
             {
                 ColumnCount = 2,
                 RowCount = 1,
                 AutoSize = true,
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                BackColor = Color.FromArgb(40, 40, 40)
+                BackColor = Color.FromArgb(40, 40, 40),
+                Padding = new Padding(0)
             };
-            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150)); // Colonne nom
-            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 365*15)); // Colonne timeline/tâches
+            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100));
+            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, totalDays * 15));
 
-            // === Ligne 0 : Timeline Header ===
-            var emptyLabel = new Label
+            var cbFilter = new IconComboBox
             {
-                Text = "",
-                Width = 150,
-                Height = 30,
-                Dock = DockStyle.Left
+                Anchor = AnchorStyles.Left,
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(60, 60, 60),
+                FlatStyle = FlatStyle.Flat,
+                Dock = DockStyle.Fill,
+                Name = "sheludefILTER",
+                Tag = mainTable
             };
-            mainTable.Controls.Add(emptyLabel, 0, 0);
+            List<String> Users = LoadProdUsers();
+            cbFilter.Items.AddRange(new string[] { "All", "Characters", "Props", "Environments", "Sequences", "Shots" });
+            cbFilter.Items.AddRange(Users.ToArray());
+            cbFilter.SelectedIndex = 0;
+            mainTable.Controls.Add(cbFilter, 0, 0);
+            cbFilter.SelectedIndexChanged += cbFilter_SelectedIndexChanged;
 
+            return mainTable;
+        }
+
+        private FlowLayoutPanel CreateTimelineHeader(DateTime startDate, int totalDays)
+        {
             var timelineHeader = new FlowLayoutPanel
             {
                 Height = 45,
-                Width = 365 * 15,
+                Width = totalDays * 15,
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = false,
                 AutoScroll = false,
-                BackColor = Color.FromArgb(40, 40, 40)
+                BackColor = Color.FromArgb(40, 40, 40),
             };
 
-            int monthIndex = 1;
-            foreach (var month in monthDays)
+            DateTime currentDate = startDate;
+            int remainingDays = totalDays;
+            int monthIndex = 0;
+
+            while (remainingDays > 0)
             {
+                int daysInMonth = DateTime.DaysInMonth(currentDate.Year, currentDate.Month);
+                int startDay = (currentDate.Day == 1) ? 1 : currentDate.Day;
+                int remainingDaysInMonth = daysInMonth - startDay + 1;
+                int daysToDisplay = Math.Min(remainingDaysInMonth, remainingDays);
+
                 Color bgColor = (monthIndex % 2 == 0) ? Color.FromArgb(50, 50, 50) : Color.FromArgb(30, 30, 30);
 
                 var monthPanel = new FlowLayoutPanel
                 {
                     Height = 45,
-                    Width = month.Value * 15,
+                    Width = daysToDisplay * 15,
                     FlowDirection = FlowDirection.TopDown,
                     Margin = new Padding(0),
                     BackColor = bgColor,
@@ -1335,9 +1494,10 @@ namespace DuckPipe
 
                 monthPanel.Controls.Add(new Label
                 {
-                    Text = month.Key,
+                    Text = currentDate.ToString("MMMM"),
                     Height = 15,
-                    Width = month.Value * 15,
+                    Width = daysToDisplay * 15,
+                    Margin = new Padding(0),
                     TextAlign = ContentAlignment.MiddleCenter,
                     Font = new Font("Segoe UI", 7, FontStyle.Bold),
                     ForeColor = Color.White
@@ -1346,17 +1506,18 @@ namespace DuckPipe
                 var dayPanel = new FlowLayoutPanel
                 {
                     Height = 15,
-                    Width = month.Value * 15,
+                    Width = daysToDisplay * 15,
                     FlowDirection = FlowDirection.LeftToRight,
                     Margin = new Padding(0),
                     WrapContents = false
                 };
 
-                for (int i = 1; i <= month.Value; i++)
+                for (int d = 0; d < daysToDisplay; d++)
                 {
+                    int dayNumber = currentDate.Day + d;
                     dayPanel.Controls.Add(new Label
                     {
-                        Text = i.ToString(),
+                        Text = dayNumber.ToString(),
                         Width = 15,
                         Height = 15,
                         Font = new Font("Segoe UI", 6),
@@ -1371,77 +1532,143 @@ namespace DuckPipe
                 monthPanel.Controls.Add(dayPanel);
                 timelineHeader.Controls.Add(monthPanel);
 
+                remainingDays -= daysToDisplay;
+                currentDate = currentDate.AddDays(daysToDisplay);
                 monthIndex++;
             }
 
-            mainTable.Controls.Add(timelineHeader, 1, 0);
+            return timelineHeader;
+        }
 
-            // === Assets Rows ===
+        private void AddAssetRows(TableLayoutPanel mainTable, Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> allAssets, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int timelineWidth)
+        {
+            ComboBox cbFilter = mainTable.GetControlFromPosition(0, 0) as ComboBox;
+            string selectedValue = cbFilter.SelectedItem?.ToString();
+
             foreach (var typeEntry in allAssets)
             {
-                foreach (var assetEntry in typeEntry.Value)
+                if (selectedValue == "All" || typeEntry.Key == selectedValue)
                 {
-                    string assetName = assetEntry.Key;
-                    var tasks = assetEntry.Value;
-
-                    mainTable.RowCount += 1;
-                    int currentRow = mainTable.RowCount - 1;
-
-                    // Nom de l'asset
-                    var lblAsset = new Label
+                    foreach (var assetEntry in typeEntry.Value)
                     {
-                        Text = assetName,
-                        Width = 150,
-                        Height = 30,
-                        ForeColor = Color.White,
-                        TextAlign = ContentAlignment.MiddleLeft,
-                        Dock = DockStyle.Fill,
-                        Padding = new Padding(5)
-                    };
-                    mainTable.Controls.Add(lblAsset, 0, currentRow);
+                        string assetName = assetEntry.Key;
+                        var tasks = assetEntry.Value;
 
-                    // Ligne de tâches
-                    var taskLine = new FlowLayoutPanel
-                    {
-                        Height = 30,
-                        Width = timelineHeader.Width,
-                        FlowDirection = FlowDirection.LeftToRight,
-                        WrapContents = false,
-                        AutoScroll = false,
-                        BackColor = Color.FromArgb(60, 60, 60)
-                    };
+                        mainTable.RowCount += 1;
+                        int currentRow = mainTable.RowCount - 1;
 
-                    foreach (var taskEntry in tasks)
-                    {
-                        var block = new Panel
+                        var lblAsset = new Label
                         {
-                            Width = 800,
-                            Height = 20,
-                            BackColor = Color.Teal,
-                            Margin = new Padding(2)
+                            Text = assetName,
+                            Width = 150,
+                            Height = 15,
+                            Font = new Font("Segoe UI", 8),
+                            ForeColor = Color.White,
+                            TextAlign = ContentAlignment.MiddleLeft,
+                            Dock = DockStyle.Top,
+                            BackColor = Color.FromArgb(60, 60, 60),
+                            Padding = new Padding(0)
                         };
 
-                        var tooltip = new ToolTip();
-                        tooltip.SetToolTip(block, $"{taskEntry.Key}: {taskEntry.Value.User} ({taskEntry.Value.StartDate} → {taskEntry.Value.DueDate})");
+                        mainTable.Controls.Add(lblAsset, 0, currentRow);
 
-                        taskLine.Controls.Add(block);
+                        var taskLine = CreateTaskLine(tasks, taskColors, startingDate, todayOffset, timelineWidth);
+                        mainTable.Controls.Add(taskLine, 1, currentRow);
                     }
-
-                    mainTable.Controls.Add(taskLine, 1, currentRow);
                 }
-            } 
 
-            // === Ajouter scroll wrapper autour du tableau ===
-            var scrollWrapper = new Panel
-            {
-                AutoScroll = true,
-                Dock = DockStyle.Fill,
-                BackColor = Color.Transparent
-            };
-            scrollWrapper.Controls.Add(mainTable);
-
-            // Ajout au panel principal
-            pnlShelude.Controls.Add(scrollWrapper);
+            }
         }
+
+        private Panel CreateTaskLine(Dictionary<string, TaskData> tasks, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int width)
+        {
+            var taskLine = new Panel
+            {
+                Width = width,
+                Height = tasks.Count * 14,
+                BackColor = Color.FromArgb(60, 60, 60),
+                AutoScroll = true,
+                Padding = new Padding(0)
+            };
+
+            // Ligne "Today"
+            var taskTodayLine = new Panel
+            {
+                Width = 2,
+                Height = taskLine.Height,
+                BackColor = Color.Red,
+                Location = new Point(todayOffset * 15, 0),
+                Margin = new Padding(0)
+            };
+            taskLine.Controls.Add(taskTodayLine);
+            taskTodayLine.BringToFront();
+
+            int taskIndex = 0;
+            foreach (var taskEntry in tasks)
+            {
+                DateTime start = DateTime.Parse(taskEntry.Value.StartDate);
+                DateTime end = DateTime.Parse(taskEntry.Value.DueDate);
+
+                int offsetDays = (int)(start - startingDate).TotalDays + 1;
+                int durationDays = Math.Max(1, (int)(end - start).TotalDays + 1);
+
+                int leftMargin = offsetDays * 15;
+                int blockWidth = durationDays * 15;
+
+                Color blockColor = taskColors.TryGetValue(taskEntry.Key.ToUpper(), out var color)
+                    ? color
+                    : Color.FromArgb(70, 70, 70);
+
+                var block = new Panel
+                {
+                    Width = blockWidth,
+                    Height = 10,
+                    BackColor = blockColor,
+                    Margin = new Padding(0),
+                    Location = new Point(leftMargin, taskIndex * 14)
+                };
+
+                var lblTask = new Label
+                {
+                    Text = $"{taskEntry.Key}: {taskEntry.Value.User} ({taskEntry.Value.StartDate} → {taskEntry.Value.DueDate})",
+                    ForeColor = Color.Black,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Dock = DockStyle.Fill,
+                    Font = new Font("Segoe UI", 6),
+                };
+
+                block.Controls.Add(lblTask);
+
+                var tooltip = new ToolTip();
+                tooltip.SetToolTip(lblTask, lblTask.Text);
+
+                taskLine.Controls.Add(block);
+
+                taskIndex++;
+            }
+
+            return taskLine;
+        }
+
+        public static Dictionary<string, Color> GetTaskColorsFromConfig(JsonDocument doc)
+        {
+            var colors = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
+
+            if (!doc.RootElement.TryGetProperty("color", out var colorSection))
+                return colors;
+
+            foreach (var item in colorSection.EnumerateObject())
+            {
+                var r = item.Value.GetProperty("R").GetInt32();
+                var g = item.Value.GetProperty("G").GetInt32();
+                var b = item.Value.GetProperty("B").GetInt32();
+                var a = item.Value.GetProperty("A").GetInt32();
+                colors[item.Name.ToUpper()] = Color.FromArgb(a, r, g, b);
+            }
+
+            return colors;
+        }
+        #endregion
+
     }
 }

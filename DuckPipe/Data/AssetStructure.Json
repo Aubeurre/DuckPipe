@@ -4,30 +4,30 @@
             "maps": {}
         },
         "Work": {
-            "Rig": {
-                "incrementals": {
-                    "_files": [ "{assetnamepipeplaceholder}_rig_v000.ma" ]
-                },
-                "_files": [ "{assetnamepipeplaceholder}_rig.ma" ]
+        },
+        "Modeling": {
+            "incrementals": {
+                "_files": [ "{assetnamepipeplaceholder}_model_v000.ma" ]
             },
-            "Cfx": {
-                "incrementals": {
-                    "_files": [ "{assetnamepipeplaceholder}_cfx_v000.ma" ]
-                },
-                "_files": [ "{assetnamepipeplaceholder}_cfx.ma" ]
+            "_files": [ "{assetnamepipeplaceholder}_model.ma" ]
+        },
+        "Cfx": {
+            "incrementals": {
+                "_files": [ "{assetnamepipeplaceholder}_cfx_v000.ma" ]
             },
-            "Surf": {
-                "incrementals": {
-                    "_files": [ "{assetnamepipeplaceholder}_look_v000.spp" ]
-                },
-                "_files": [ "{assetnamepipeplaceholder}_look.spp" ]
+            "_files": [ "{assetnamepipeplaceholder}_cfx.ma" ]
+        },
+        "Surf": {
+            "incrementals": {
+                "_files": [ "{assetnamepipeplaceholder}_look_v000.spp" ]
             },
-            "Modeling": {
-                "incrementals": {
-                    "_files": [ "{assetnamepipeplaceholder}_model_v000.ma" ]
-                },
-                "_files": [ "{assetnamepipeplaceholder}_model.ma" ]
-            }
+            "_files": [ "{assetnamepipeplaceholder}_look.spp" ]
+        },
+        "Rig": {
+            "incrementals": {
+                "_files": [ "{assetnamepipeplaceholder}_rig_v000.ma" ]
+            },
+            "_files": [ "{assetnamepipeplaceholder}_rig.ma" ]
         }
     },
     "Characters": {
@@ -35,23 +35,11 @@
             "maps": {}
         },
         "Work": {
-            "Rig": {
+            "Modeling": {
                 "incrementals": {
-                    "_files": [ "{assetnamepipeplaceholder}_rig_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_model_v000.ma" ]
                 },
-                "_files": [ "{assetnamepipeplaceholder}_rig.ma" ]
-            },
-            "Groom": {
-                "incrementals": {
-                    "_files": [ "{assetnamepipeplaceholder}_groom_v000.ma" ]
-                },
-                "_files": [ "{assetnamepipeplaceholder}_groom.ma" ]
-            },
-            "Cfx": {
-                "incrementals": {
-                    "_files": [ "{assetnamepipeplaceholder}_cfx_v000.ma" ]
-                },
-                "_files": [ "{assetnamepipeplaceholder}_cfx.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_model.ma" ]
             },
             "Facial": {
                 "incrementals": {
@@ -59,17 +47,29 @@
                 },
                 "_files": [ "{assetnamepipeplaceholder}_facial.ma" ]
             },
+            "Cfx": {
+                "incrementals": {
+                    "_files": [ "{assetnamepipeplaceholder}_cfx_v000.ma" ]
+                },
+                "_files": [ "{assetnamepipeplaceholder}_cfx.ma" ]
+            },
+            "Groom": {
+                "incrementals": {
+                    "_files": [ "{assetnamepipeplaceholder}_groom_v000.ma" ]
+                },
+                "_files": [ "{assetnamepipeplaceholder}_groom.ma" ]
+            },
             "Surf": {
                 "incrementals": {
                     "_files": [ "{assetnamepipeplaceholder}_look_v000.spp" ]
                 },
                 "_files": [ "{assetnamepipeplaceholder}_look.spp" ]
             },
-            "Modeling": {
+            "Rig": {
                 "incrementals": {
-                    "_files": [ "{assetnamepipeplaceholder}_model_v000.ma" ]
+                    "_files": [ "{assetnamepipeplaceholder}_rig_v000.ma" ]
                 },
-                "_files": [ "{assetnamepipeplaceholder}_model.ma" ]
+                "_files": [ "{assetnamepipeplaceholder}_rig.ma" ]
             }
         }
     },
