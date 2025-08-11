@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using DuckPipe.Core;
+using DuckPipe.Forms;
 using static DuckPipe.Core.AssetManip;
 // using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using WinFormsListView = System.Windows.Forms.ListView;
@@ -174,7 +175,7 @@ namespace DuckPipe
             string rootPath = GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString();
 
-            string configPath = Path.Combine(rootPath, selectedProd, "config.json");
+            string configPath = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
 
             using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
             if (configDoc.RootElement.TryGetProperty("status", out JsonElement statusElement))
@@ -195,7 +196,7 @@ namespace DuckPipe
             string rootPath = GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString();
 
-            string configPath = Path.Combine(rootPath, selectedProd, "config.json");
+            string configPath = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
 
             using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
             if (configDoc.RootElement.TryGetProperty("Users", out JsonElement userArray))
@@ -251,6 +252,13 @@ namespace DuckPipe
             tabCtrlMain.SelectedIndex = 2;
             DisplayShelude();
         }
+
+        private void btnTab4_Click(object sender, EventArgs e)
+        {
+            tabCtrlMain.SelectedIndex = 3;
+            DisplayTimeLogs();
+            DisplayStats();
+        }
         #endregion
 
 
@@ -264,7 +272,7 @@ namespace DuckPipe
         {
             string rootPath = GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            string path = Path.Combine(rootPath, selectedProd, "Dev", "AssetStructure.json");
+            string path = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "AssetStructure.json");
 
             Process.Start(new ProcessStartInfo
             {
@@ -291,7 +299,7 @@ namespace DuckPipe
         {
             string rootPath = GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            string path = Path.Combine(rootPath, selectedProd, "config.json");
+            string path = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
 
             Process.Start(new ProcessStartInfo
             {
@@ -891,7 +899,7 @@ namespace DuckPipe
             // config.json
             string rootPath = GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            string configPath = Path.Combine(rootPath, selectedProd, "config.json");
+            string configPath = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
 
 
             // icônes
@@ -1368,7 +1376,7 @@ namespace DuckPipe
             string prodPath = Path.Combine(rootPath, selectedProd);
             allAssets = GetAllAssetsInProduction(prodPath);
 
-            using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(prodPath, "config.json")));
+            using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(prodPath, "Dev", "DangerZone", "config.json")));
             startingDate = DateTime.Parse(doc.RootElement.GetProperty("created").GetString());
             DateTime endDate = DateTime.Parse(doc.RootElement.GetProperty("deliveryDay").GetString());
 
@@ -1670,5 +1678,136 @@ namespace DuckPipe
         }
         #endregion
 
+        private void splitContainer1_Panel2_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        #region STATS TAB / TIMELOGS
+        private void btnAddTimelog_Click(object sender, EventArgs e)
+        {
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string rootPath = GetProductionRootPath();
+            string prodPath = Path.Combine(rootPath, selectedProd);
+
+            var assetsDict = GetAllAssetsInProduction(prodPath);
+            var allAssets = assetsDict.SelectMany(typeEntry => typeEntry.Value.Select(assetEntry => $"{typeEntry.Key}/{assetEntry.Key}")).ToList(); //CRADE DE FOU
+
+            using (var form = new TimeLogAddPopup(allAssets))
+            {
+                if (form.ShowDialog() == DialogResult.OK)
+                {
+                    var log = new TimeLog(
+                        assetName: form.AssetName,
+                        department: form.Department,
+                        artist: Environment.UserName,
+                        hours: form.Hours,
+                        date: DateTime.Now
+                    );
+
+                    TimeLogManager.Add(log, prodPath);
+                    MessageBox.Show("TimeLog ajouté !");
+                }
+            }
+        }
+
+        private void EmptyTimeLogs()
+        {
+            for (int i = tblpnlTimeLogs.RowCount - 1; i > 0; i--)
+            {
+                for (int j = 0; j < tblpnlTimeLogs.ColumnCount; j++)
+                {
+                    var control = tblpnlTimeLogs.GetControlFromPosition(j, i);
+                    if (control != null)
+                    {
+                        tblpnlTimeLogs.Controls.Remove(control);
+                        control.Dispose();
+                    }
+                }
+                tblpnlTimeLogs.RowStyles.RemoveAt(i);
+                tblpnlTimeLogs.RowCount--;
+            }
+        }
+
+        private void DisplayTimeLogs()
+        {
+            EmptyTimeLogs();
+
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string rootPath = GetProductionRootPath();
+            string prodPath = Path.Combine(rootPath, selectedProd);
+            var logs = TimeLogManager.GetAll(prodPath);
+
+            int row = 1;
+            foreach (var log in logs)
+            {
+                tblpnlTimeLogs.RowCount++;
+                tblpnlTimeLogs.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+                // AssetName
+                var lblAsset = new Label
+                {
+                    Text = log.AssetName,
+                    ForeColor = Color.White,
+                    Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                    AutoSize = true
+                };
+                tblpnlTimeLogs.Controls.Add(lblAsset, 0, row);
+
+                // Department
+                var lblDept = new Label
+                {
+                    Text = log.Department,
+                    ForeColor = Color.White,
+                    AutoSize = true
+                };
+                tblpnlTimeLogs.Controls.Add(lblDept, 1, row);
+
+                // Artist
+                var lblArtist = new Label
+                {
+                    Text = log.Artist,
+                    ForeColor = Color.White,
+                    AutoSize = true
+                };
+                tblpnlTimeLogs.Controls.Add(lblArtist, 2, row);
+
+                // Hours
+                var lblHours = new Label
+                {
+                    Text = log.Hours.ToString(),
+                    ForeColor = Color.White,
+                    AutoSize = true
+                };
+                tblpnlTimeLogs.Controls.Add(lblHours, 3, row);
+
+                // Date
+                var lblDate = new Label
+                {
+                    Text = log.Date.ToString("yyyy-MM-dd"),
+                    ForeColor = Color.White,
+                    AutoSize = true
+                };
+                tblpnlTimeLogs.Controls.Add(lblDate, 4, row);
+
+                row++;
+            }
+        }
+
+        private void DisplayStats()
+        {
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string rootPath = GetProductionRootPath();
+            string prodPath = Path.Combine(rootPath, selectedProd);
+            lblTotalProjectHouresLogged.Text = $"Total Logged Hours: {TimeLogStats.GetTotalHours(prodPath).ToString()}";
+            lblTotalProjectAssets.Text = $"Total Assets: {TimeLogStats.GetTotalAssets(prodPath).ToString()}";
+            lblTotalProjectShots.Text = $"Total Shots: {TimeLogStats.GetTotalShots(prodPath).ToString()}";
+        }
+        #endregion
+
+        private void tblpnlTimeLogs_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 }

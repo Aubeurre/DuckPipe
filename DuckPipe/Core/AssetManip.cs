@@ -112,7 +112,7 @@ namespace DuckPipe.Core
         {
             var ctx = ExtractAssetContext(assetPath);
 
-            string configPath = Path.Combine(ctx.RootPath, ctx.ProdName, "config.json");
+            string configPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "DangerZone", "config.json");
             string configJson = File.ReadAllText(configPath);
             using var configDoc = JsonDocument.Parse(configJson);
 

@@ -38,6 +38,9 @@ namespace DuckPipe.Core
     {
         public static void CreateAssetStructure(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description, string rangeIn, string rangeOut)
         {
+            string relativePath = Path.GetRelativePath(rootPath, assetPath);
+            string firstFolder = relativePath.Split(Path.DirectorySeparatorChar)[0];
+            string prodPath = Path.Combine(rootPath, firstFolder);
 
             if (structure.Name == "Characters" || structure.Name == "Props" || structure.Name == "Environments")
             {
@@ -48,6 +51,11 @@ namespace DuckPipe.Core
                 {
                     CreateNode(Path.Combine(assetPath, kvp.Key), kvp.Value, assetName);
                 }
+
+                if (structure.Name == "Characters")
+                    AddCostume(assetPath, "Body");
+
+                AddAssetIntoGlobalJson(prodPath, assetPath, assetName, structure.Name);
             }
 
             if (structure.Name == "Shots")
@@ -63,6 +71,7 @@ namespace DuckPipe.Core
                 AddAssetIntoShot(jsonPath, "", "Characters");
                 AddAssetIntoShot(jsonPath, "", "Props");
                 AddAssetIntoShot(jsonPath, "", "Environments");
+                AddAssetIntoGlobalJson(prodPath, assetPath, $"P{assetName}", structure.Name);
             }
 
             if (structure.Name == "Sequences")
@@ -75,10 +84,9 @@ namespace DuckPipe.Core
                 {
                     CreateNode(Path.Combine(cleanPath, kvp.Key), kvp.Value, assetName);
                 }
+                AddAssetIntoGlobalJson(prodPath, assetPath, $"S{assetName}", structure.Name);
             }
 
-            if (structure.Name == "Characters")
-                AddCostume(assetPath, "Body");
         }
 
         private static void CreateNode(string currentPath, AssetNode node, string assetName)
@@ -125,6 +133,7 @@ namespace DuckPipe.Core
                 }
             }
         }
+
 
         private static void CreateAssetJson(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description)
         {
@@ -176,8 +185,8 @@ namespace DuckPipe.Core
                         {
                             status = "not_started",
                             user = "",
-                            startDate = "",
-                            dueDate = ""
+                            startDate = DateTime.Today,
+                            dueDate = DateTime.Today
                         };
                     }
                 }
@@ -185,8 +194,8 @@ namespace DuckPipe.Core
                 {
                     status = "not_started",
                     user = "",
-                    startDate = "",
-                    dueDate = ""
+                    startDate = DateTime.Today,
+                    dueDate = DateTime.Today
                 };
             }
 
@@ -205,7 +214,6 @@ namespace DuckPipe.Core
             string jsonString = JsonSerializer.Serialize(assetJson, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(jsonPath, jsonString);
         }
-
         private static string CreateShotJson(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description, string rangeIn, string rangeOut)
         {
             Directory.CreateDirectory(assetPath);
@@ -264,8 +272,8 @@ namespace DuckPipe.Core
                         {
                             status = "not_started",
                             user = "",
-                            startDate = "",
-                            dueDate = ""
+                            startDate = DateTime.Today,
+                            dueDate = DateTime.Today
                         };
                     }
                 }
@@ -345,8 +353,8 @@ namespace DuckPipe.Core
                         {
                             status = "not_started",
                             user = "",
-                            startDate = "",
-                            dueDate = ""
+                            startDate = DateTime.Today,
+                            dueDate = DateTime.Today
                         };
                     }
                 }
@@ -457,7 +465,7 @@ namespace DuckPipe.Core
 
         public static Dictionary<string, AssetStructure> LoadAssetStructures(string prodPath)
         {
-            string assetStructPath = Path.Combine(prodPath, "Dev", "AssetStructure.json");
+            string assetStructPath = Path.Combine(prodPath, "Dev", "DangerZone", "AssetStructure.json");
 
             if (!File.Exists(assetStructPath))
             {
@@ -491,6 +499,40 @@ namespace DuckPipe.Core
                 MessageBox.Show($"Erreur lors de la lecture de AssetStructure.json :\n{ex.Message}");
                 return null;
             }
+        }
+
+        public class AssetInfo
+        {
+            public string Path { get; set; }
+            public string Type { get; set; }
+        }
+
+        public static void AddAssetIntoGlobalJson(string prodPath, string assetPath, string assetName, string assetType)
+        {
+
+            string globaljsonPath = Path.Combine(prodPath, "Dev", "DangerZone", "allAssets.json");
+
+            Dictionary<string, AssetInfo> allAssets;
+
+            if (File.Exists(globaljsonPath))
+            {
+                string json = File.ReadAllText(globaljsonPath);
+                allAssets = JsonSerializer.Deserialize<Dictionary<string, AssetInfo>>(json) ?? new Dictionary<string, AssetInfo>();
+            }
+            else
+            {
+                allAssets = new Dictionary<string, AssetInfo>();
+            }
+
+            allAssets[assetName] = new AssetInfo
+            {
+                Path = assetPath,
+                Type = assetType
+            };
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string newJson = JsonSerializer.Serialize(allAssets, options);
+            File.WriteAllText(globaljsonPath, newJson);
         }
     }
 }

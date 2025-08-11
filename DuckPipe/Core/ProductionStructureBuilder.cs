@@ -46,7 +46,7 @@ namespace DuckPipe.Core
                 "Renders",
                 "IO/In",
                 "IO/Out",
-                "Dev",
+                "Dev/DangerZone",
                 "RnD",
                 "Preprod/Concept/Characters/Work",
                 "Preprod/Concept/Props/Work",
@@ -65,7 +65,7 @@ namespace DuckPipe.Core
         private void CopyAssetStructure(string prodPath)
         {
             string assetStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "AssetStructure.json");
-            string targetPath = Path.Combine(prodPath, "Dev", "AssetStructure.json");
+            string targetPath = Path.Combine(prodPath, "Dev", "DangerZone", "AssetStructure.json");
             File.Copy(assetStructurePath, targetPath, overwrite: true);
         }
 
@@ -124,19 +124,21 @@ namespace DuckPipe.Core
                 { "MODELING", Color.SteelBlue },
                 { "FACIAL", Color.IndianRed },
                 { "CFX", Color.Goldenrod },
-                { "SURFACING", Color.MediumPurple },
-                { "ANIM", Color.DarkOrange },
-                { "LIGHTING", Color.AliceBlue },
-                { "GROOM", Color.Aquamarine },
-                { "SURF", Color.LightSlateGray }
-            },
+                { "ANIM", Color.MediumPurple },
+                { "LIGHTING", Color.Gold },
+                { "GROOM", Color.MediumSpringGreen },
+                { "SURF", Color.LightSeaGreen },
+                { "PREVIZ", Color.CornflowerBlue },
+                { "LAYOUT", Color.DimGray },
+                { "ART", Color.OliveDrab }
+        },
             Users = new List<string>()
                 {
                     Environment.UserName.ToString(),
                 }
             };
 
-            string configPath = Path.Combine(prodPath, "config.json");
+            string configPath = Path.Combine(prodPath, "Dev", "DangerZone", "config.json");
             var options = new JsonSerializerOptions { WriteIndented = true };
             File.WriteAllText(configPath, JsonSerializer.Serialize(config, options));
         }
