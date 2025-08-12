@@ -86,22 +86,23 @@ namespace DuckPipe
             tabPStats = new TabPage();
             splitStatMain = new SplitContainer();
             tableLayoutPanel7 = new TableLayoutPanel();
-            tableLayoutPanel3 = new TableLayoutPanel();
-            btnAddTimelog = new Button();
-            pnlTimeLogs = new Panel();
             tblpnlTimeLogs = new TableLayoutPanel();
             label4 = new Label();
             label3 = new Label();
             label2 = new Label();
             label1 = new Label();
             lblStatsAsset = new Label();
+            tableLayoutPanel3 = new TableLayoutPanel();
+            btnAddTimelog = new Button();
             tableLayoutPanel6 = new TableLayoutPanel();
+            flpAllDeptTimeLogsGraphs = new FlowLayoutPanel();
+            tableLayoutPanel4 = new TableLayoutPanel();
+            cbbGraphList = new ComboBox();
             panel3 = new Panel();
             tableLayoutPanel5 = new TableLayoutPanel();
-            lblTotalProjectShots = new Label();
             lblTotalProjectAssets = new Label();
             lblTotalProjectHouresLogged = new Label();
-            tableLayoutPanel4 = new TableLayoutPanel();
+            lblTotalProjectShots = new Label();
             contextMenuTree.SuspendLayout();
             panel1.SuspendLayout();
             menuStrip1.SuspendLayout();
@@ -133,10 +134,10 @@ namespace DuckPipe
             splitStatMain.Panel2.SuspendLayout();
             splitStatMain.SuspendLayout();
             tableLayoutPanel7.SuspendLayout();
-            tableLayoutPanel3.SuspendLayout();
-            pnlTimeLogs.SuspendLayout();
             tblpnlTimeLogs.SuspendLayout();
+            tableLayoutPanel3.SuspendLayout();
             tableLayoutPanel6.SuspendLayout();
+            tableLayoutPanel4.SuspendLayout();
             panel3.SuspendLayout();
             tableLayoutPanel5.SuspendLayout();
             SuspendLayout();
@@ -151,7 +152,7 @@ namespace DuckPipe
             tvAssetList.LineColor = Color.White;
             tvAssetList.Location = new Point(12, 65);
             tvAssetList.Name = "tvAssetList";
-            tvAssetList.Size = new Size(189, 447);
+            tvAssetList.Size = new Size(193, 432);
             tvAssetList.TabIndex = 0;
             tvAssetList.AfterSelect += tvAssetList_AfterSelect;
             // 
@@ -196,7 +197,7 @@ namespace DuckPipe
             panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(213, 543);
+            panel1.Size = new Size(227, 540);
             panel1.TabIndex = 2;
             // 
             // btnCreateProduction
@@ -207,7 +208,7 @@ namespace DuckPipe
             btnCreateProduction.FlatAppearance.BorderSize = 0;
             btnCreateProduction.FlatStyle = FlatStyle.Flat;
             btnCreateProduction.ForeColor = Color.White;
-            btnCreateProduction.Location = new Point(176, 34);
+            btnCreateProduction.Location = new Point(180, 34);
             btnCreateProduction.Name = "btnCreateProduction";
             btnCreateProduction.Size = new Size(25, 25);
             btnCreateProduction.TabIndex = 1;
@@ -222,9 +223,9 @@ namespace DuckPipe
             btCreateAsset.FlatAppearance.BorderSize = 0;
             btCreateAsset.FlatStyle = FlatStyle.Flat;
             btCreateAsset.ForeColor = Color.White;
-            btCreateAsset.Location = new Point(12, 516);
+            btCreateAsset.Location = new Point(12, 503);
             btCreateAsset.Name = "btCreateAsset";
-            btCreateAsset.Size = new Size(189, 25);
+            btCreateAsset.Size = new Size(193, 25);
             btCreateAsset.TabIndex = 0;
             btCreateAsset.Text = "Add New";
             btCreateAsset.UseVisualStyleBackColor = false;
@@ -242,7 +243,7 @@ namespace DuckPipe
             cbProdList.Items.AddRange(new object[] { "OBSERVER ", "SPARK", "SILENCE" });
             cbProdList.Location = new Point(12, 34);
             cbProdList.Name = "cbProdList";
-            cbProdList.Size = new Size(158, 23);
+            cbProdList.Size = new Size(162, 23);
             cbProdList.TabIndex = 3;
             cbProdList.SelectedIndexChanged += cbProdList_SelectedIndexChanged;
             // 
@@ -252,7 +253,7 @@ namespace DuckPipe
             menuStrip1.Items.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, toolsToolStripMenuItem, toolStripMenuItem1 });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(213, 24);
+            menuStrip1.Size = new Size(227, 24);
             menuStrip1.TabIndex = 7;
             menuStrip1.Text = "menuStrip1";
             // 
@@ -327,7 +328,7 @@ namespace DuckPipe
             plAssetTaskInfo.Dock = DockStyle.Fill;
             plAssetTaskInfo.Location = new Point(0, 0);
             plAssetTaskInfo.Name = "plAssetTaskInfo";
-            plAssetTaskInfo.Size = new Size(194, 382);
+            plAssetTaskInfo.Size = new Size(193, 370);
             plAssetTaskInfo.TabIndex = 3;
             // 
             // flpAssetInspect
@@ -339,7 +340,7 @@ namespace DuckPipe
             flpAssetInspect.FlowDirection = FlowDirection.TopDown;
             flpAssetInspect.Location = new Point(0, 0);
             flpAssetInspect.Name = "flpAssetInspect";
-            flpAssetInspect.Size = new Size(194, 382);
+            flpAssetInspect.Size = new Size(193, 370);
             flpAssetInspect.TabIndex = 3;
             flpAssetInspect.WrapContents = false;
             // 
@@ -377,7 +378,7 @@ namespace DuckPipe
             pnlPipelineStatus.Controls.Add(flpPipelineStatus);
             pnlPipelineStatus.Location = new Point(0, 0);
             pnlPipelineStatus.Name = "pnlPipelineStatus";
-            pnlPipelineStatus.Size = new Size(548, 329);
+            pnlPipelineStatus.Size = new Size(541, 317);
             pnlPipelineStatus.TabIndex = 4;
             // 
             // flpPipelineStatus
@@ -388,7 +389,7 @@ namespace DuckPipe
             flpPipelineStatus.FlowDirection = FlowDirection.TopDown;
             flpPipelineStatus.Location = new Point(0, 0);
             flpPipelineStatus.Name = "flpPipelineStatus";
-            flpPipelineStatus.Size = new Size(548, 329);
+            flpPipelineStatus.Size = new Size(541, 317);
             flpPipelineStatus.TabIndex = 3;
             flpPipelineStatus.WrapContents = false;
             // 
@@ -396,9 +397,9 @@ namespace DuckPipe
             // 
             pnlDeptBtn.Controls.Add(tableLayoutPanel1);
             pnlDeptBtn.Dock = DockStyle.Bottom;
-            pnlDeptBtn.Location = new Point(0, 332);
+            pnlDeptBtn.Location = new Point(0, 320);
             pnlDeptBtn.Name = "pnlDeptBtn";
-            pnlDeptBtn.Size = new Size(548, 50);
+            pnlDeptBtn.Size = new Size(541, 50);
             pnlDeptBtn.TabIndex = 4;
             // 
             // tableLayoutPanel1
@@ -416,12 +417,12 @@ namespace DuckPipe
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new Size(548, 43);
+            tableLayoutPanel1.Size = new Size(541, 43);
             tableLayoutPanel1.TabIndex = 1;
             // 
             // flpDeptButton
             // 
-            flpDeptButton.Location = new Point(53, 10);
+            flpDeptButton.Location = new Point(50, 10);
             flpDeptButton.Margin = new Padding(3, 10, 3, 3);
             flpDeptButton.Name = "flpDeptButton";
             flpDeptButton.Size = new Size(441, 30);
@@ -435,7 +436,7 @@ namespace DuckPipe
             pnlTopRight.Dock = DockStyle.Top;
             pnlTopRight.Location = new Point(3, 3);
             pnlTopRight.Name = "pnlTopRight";
-            pnlTopRight.Size = new Size(746, 74);
+            pnlTopRight.Size = new Size(738, 74);
             pnlTopRight.TabIndex = 5;
             // 
             // flpAssetDescription
@@ -445,7 +446,7 @@ namespace DuckPipe
             flpAssetDescription.Controls.Add(lbDescription);
             flpAssetDescription.Location = new Point(7, 3);
             flpAssetDescription.Name = "flpAssetDescription";
-            flpAssetDescription.Size = new Size(736, 68);
+            flpAssetDescription.Size = new Size(728, 68);
             flpAssetDescription.TabIndex = 5;
             // 
             // lbDescription
@@ -475,8 +476,8 @@ namespace DuckPipe
             // 
             splitMain.Panel2.Controls.Add(tablpanTabBtn);
             splitMain.Panel2.Controls.Add(tabCtrlMain);
-            splitMain.Size = new Size(984, 543);
-            splitMain.SplitterDistance = 213;
+            splitMain.Size = new Size(986, 540);
+            splitMain.SplitterDistance = 227;
             splitMain.TabIndex = 6;
             // 
             // tablpanTabBtn
@@ -494,7 +495,7 @@ namespace DuckPipe
             tablpanTabBtn.Name = "tablpanTabBtn";
             tablpanTabBtn.RowCount = 1;
             tablpanTabBtn.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tablpanTabBtn.Size = new Size(767, 43);
+            tablpanTabBtn.Size = new Size(755, 43);
             tablpanTabBtn.TabIndex = 0;
             // 
             // flowLayoutPanel1
@@ -505,7 +506,7 @@ namespace DuckPipe
             flowLayoutPanel1.Controls.Add(tableLayoutPanel2);
             flowLayoutPanel1.Controls.Add(btnTab3);
             flowLayoutPanel1.Controls.Add(btnTab4);
-            flowLayoutPanel1.Location = new Point(187, 8);
+            flowLayoutPanel1.Location = new Point(181, 8);
             flowLayoutPanel1.Margin = new Padding(8);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
             flowLayoutPanel1.Size = new Size(392, 27);
@@ -560,7 +561,7 @@ namespace DuckPipe
             btnTab3.Name = "btnTab3";
             btnTab3.Size = new Size(75, 23);
             btnTab3.TabIndex = 2;
-            btnTab3.Text = "Shelude";
+            btnTab3.Text = "Schedule";
             btnTab3.UseVisualStyleBackColor = false;
             btnTab3.Click += btnTab3_Click;
             // 
@@ -594,7 +595,7 @@ namespace DuckPipe
             tabCtrlMain.SelectedIndex = 0;
             tabCtrlMain.SelectedTabColor = Color.FromArgb(64, 64, 64);
             tabCtrlMain.SelectedTextColor = Color.White;
-            tabCtrlMain.Size = new Size(760, 500);
+            tabCtrlMain.Size = new Size(752, 488);
             tabCtrlMain.SizeMode = TabSizeMode.Fixed;
             tabCtrlMain.TabIndex = 0;
             tabCtrlMain.UnselectedTabColor = Color.FromArgb(30, 30, 30);
@@ -608,7 +609,7 @@ namespace DuckPipe
             tabPWork.Location = new Point(4, 34);
             tabPWork.Name = "tabPWork";
             tabPWork.Padding = new Padding(3);
-            tabPWork.Size = new Size(752, 462);
+            tabPWork.Size = new Size(744, 450);
             tabPWork.TabIndex = 0;
             tabPWork.Text = "Works";
             // 
@@ -626,8 +627,8 @@ namespace DuckPipe
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(plAssetTaskInfo);
-            splitContainer3.Size = new Size(746, 382);
-            splitContainer3.SplitterDistance = 548;
+            splitContainer3.Size = new Size(738, 370);
+            splitContainer3.SplitterDistance = 541;
             splitContainer3.TabIndex = 6;
             // 
             // tabPAsset
@@ -638,7 +639,7 @@ namespace DuckPipe
             tabPAsset.Location = new Point(4, 34);
             tabPAsset.Name = "tabPAsset";
             tabPAsset.Padding = new Padding(3);
-            tabPAsset.Size = new Size(752, 462);
+            tabPAsset.Size = new Size(744, 450);
             tabPAsset.TabIndex = 1;
             tabPAsset.Text = "Asset";
             // 
@@ -650,7 +651,7 @@ namespace DuckPipe
             flpAssetTask.FlowDirection = FlowDirection.TopDown;
             flpAssetTask.Location = new Point(3, 77);
             flpAssetTask.Name = "flpAssetTask";
-            flpAssetTask.Size = new Size(746, 382);
+            flpAssetTask.Size = new Size(738, 370);
             flpAssetTask.TabIndex = 7;
             flpAssetTask.WrapContents = false;
             // 
@@ -664,7 +665,7 @@ namespace DuckPipe
             panel2.Dock = DockStyle.Top;
             panel2.Location = new Point(3, 3);
             panel2.Name = "panel2";
-            panel2.Size = new Size(746, 74);
+            panel2.Size = new Size(738, 74);
             panel2.TabIndex = 6;
             // 
             // btnEditAsset
@@ -679,7 +680,7 @@ namespace DuckPipe
             btnEditAsset.Font = new Font("Segoe UI", 15F);
             btnEditAsset.ForeColor = Color.White;
             btnEditAsset.Image = Properties.Resources.Save;
-            btnEditAsset.Location = new Point(688, 4);
+            btnEditAsset.Location = new Point(680, 4);
             btnEditAsset.Name = "btnEditAsset";
             btnEditAsset.Size = new Size(55, 61);
             btnEditAsset.TabIndex = 6;
@@ -705,7 +706,7 @@ namespace DuckPipe
             flowLayoutPanel2.Controls.Add(lbDescription2);
             flowLayoutPanel2.Location = new Point(7, 3);
             flowLayoutPanel2.Name = "flowLayoutPanel2";
-            flowLayoutPanel2.Size = new Size(640, 42);
+            flowLayoutPanel2.Size = new Size(632, 42);
             flowLayoutPanel2.TabIndex = 5;
             // 
             // lblAssetName2
@@ -747,7 +748,7 @@ namespace DuckPipe
             button1.Font = new Font("Segoe UI", 15F);
             button1.ForeColor = Color.White;
             button1.Image = Properties.Resources.EditBtnIcon;
-            button1.Location = new Point(1234, 3);
+            button1.Location = new Point(1226, 3);
             button1.Name = "button1";
             button1.Size = new Size(55, 35);
             button1.TabIndex = 3;
@@ -760,7 +761,7 @@ namespace DuckPipe
             tabPShelude.Controls.Add(pnlShelude);
             tabPShelude.Location = new Point(4, 34);
             tabPShelude.Name = "tabPShelude";
-            tabPShelude.Size = new Size(752, 462);
+            tabPShelude.Size = new Size(744, 450);
             tabPShelude.TabIndex = 2;
             tabPShelude.Text = "Shelude";
             // 
@@ -770,7 +771,7 @@ namespace DuckPipe
             pnlShelude.Dock = DockStyle.Fill;
             pnlShelude.Location = new Point(0, 0);
             pnlShelude.Name = "pnlShelude";
-            pnlShelude.Size = new Size(752, 462);
+            pnlShelude.Size = new Size(744, 450);
             pnlShelude.TabIndex = 0;
             // 
             // tabPStats
@@ -779,7 +780,7 @@ namespace DuckPipe
             tabPStats.Controls.Add(splitStatMain);
             tabPStats.Location = new Point(4, 34);
             tabPStats.Name = "tabPStats";
-            tabPStats.Size = new Size(752, 462);
+            tabPStats.Size = new Size(744, 450);
             tabPStats.TabIndex = 3;
             tabPStats.Text = "Stats";
             // 
@@ -798,24 +799,123 @@ namespace DuckPipe
             // 
             splitStatMain.Panel2.Controls.Add(tableLayoutPanel6);
             splitStatMain.Panel2.Paint += splitContainer1_Panel2_Paint;
-            splitStatMain.Size = new Size(752, 462);
-            splitStatMain.SplitterDistance = 99;
+            splitStatMain.Size = new Size(744, 450);
+            splitStatMain.SplitterDistance = 107;
             splitStatMain.TabIndex = 0;
             // 
             // tableLayoutPanel7
             // 
             tableLayoutPanel7.ColumnCount = 1;
             tableLayoutPanel7.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel7.Controls.Add(tblpnlTimeLogs, 0, 1);
             tableLayoutPanel7.Controls.Add(tableLayoutPanel3, 0, 0);
-            tableLayoutPanel7.Controls.Add(pnlTimeLogs, 0, 1);
             tableLayoutPanel7.Dock = DockStyle.Fill;
             tableLayoutPanel7.Location = new Point(0, 0);
             tableLayoutPanel7.Name = "tableLayoutPanel7";
             tableLayoutPanel7.RowCount = 2;
             tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
             tableLayoutPanel7.RowStyles.Add(new RowStyle());
-            tableLayoutPanel7.Size = new Size(752, 99);
+            tableLayoutPanel7.Size = new Size(744, 107);
             tableLayoutPanel7.TabIndex = 1;
+            // 
+            // tblpnlTimeLogs
+            // 
+            tblpnlTimeLogs.AutoScroll = true;
+            tblpnlTimeLogs.ColumnCount = 5;
+            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tblpnlTimeLogs.Controls.Add(label4, 4, 0);
+            tblpnlTimeLogs.Controls.Add(label3, 3, 0);
+            tblpnlTimeLogs.Controls.Add(label2, 2, 0);
+            tblpnlTimeLogs.Controls.Add(label1, 1, 0);
+            tblpnlTimeLogs.Controls.Add(lblStatsAsset, 0, 0);
+            tblpnlTimeLogs.Dock = DockStyle.Fill;
+            tblpnlTimeLogs.Location = new Point(0, 40);
+            tblpnlTimeLogs.Margin = new Padding(0);
+            tblpnlTimeLogs.Name = "tblpnlTimeLogs";
+            tblpnlTimeLogs.RowCount = 2;
+            tblpnlTimeLogs.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tblpnlTimeLogs.RowStyles.Add(new RowStyle());
+            tblpnlTimeLogs.Size = new Size(744, 95);
+            tblpnlTimeLogs.TabIndex = 6;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.BackColor = Color.FromArgb(80, 80, 80);
+            label4.Dock = DockStyle.Fill;
+            label4.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            label4.ForeColor = Color.White;
+            label4.Location = new Point(592, 0);
+            label4.Margin = new Padding(0);
+            label4.Name = "label4";
+            label4.Size = new Size(152, 20);
+            label4.TabIndex = 4;
+            label4.Text = "Last Update";
+            label4.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.BackColor = Color.FromArgb(80, 80, 80);
+            label3.Dock = DockStyle.Fill;
+            label3.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            label3.ForeColor = Color.White;
+            label3.Location = new Point(444, 0);
+            label3.Margin = new Padding(0);
+            label3.Name = "label3";
+            label3.Size = new Size(148, 20);
+            label3.TabIndex = 3;
+            label3.Text = "Hours Logged";
+            label3.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.BackColor = Color.FromArgb(80, 80, 80);
+            label2.Dock = DockStyle.Fill;
+            label2.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            label2.ForeColor = Color.White;
+            label2.Location = new Point(296, 0);
+            label2.Margin = new Padding(0);
+            label2.Name = "label2";
+            label2.Size = new Size(148, 20);
+            label2.TabIndex = 2;
+            label2.Text = "Artist";
+            label2.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.BackColor = Color.FromArgb(80, 80, 80);
+            label1.Dock = DockStyle.Fill;
+            label1.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            label1.ForeColor = Color.White;
+            label1.Location = new Point(148, 0);
+            label1.Margin = new Padding(0);
+            label1.Name = "label1";
+            label1.Size = new Size(148, 20);
+            label1.TabIndex = 1;
+            label1.Text = "Department";
+            label1.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // lblStatsAsset
+            // 
+            lblStatsAsset.AutoSize = true;
+            lblStatsAsset.BackColor = Color.FromArgb(80, 80, 80);
+            lblStatsAsset.Dock = DockStyle.Fill;
+            lblStatsAsset.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            lblStatsAsset.ForeColor = Color.White;
+            lblStatsAsset.Location = new Point(0, 0);
+            lblStatsAsset.Margin = new Padding(0);
+            lblStatsAsset.Name = "lblStatsAsset";
+            lblStatsAsset.Size = new Size(148, 20);
+            lblStatsAsset.TabIndex = 0;
+            lblStatsAsset.Text = "Asset";
+            lblStatsAsset.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // tableLayoutPanel3
             // 
@@ -829,7 +929,7 @@ namespace DuckPipe
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.Size = new Size(746, 34);
+            tableLayoutPanel3.Size = new Size(738, 34);
             tableLayoutPanel3.TabIndex = 5;
             // 
             // btnAddTimelog
@@ -839,7 +939,7 @@ namespace DuckPipe
             btnAddTimelog.FlatStyle = FlatStyle.Flat;
             btnAddTimelog.Font = new Font("Segoe UI", 10F);
             btnAddTimelog.ForeColor = Color.White;
-            btnAddTimelog.Location = new Point(257, 3);
+            btnAddTimelog.Location = new Point(253, 3);
             btnAddTimelog.Name = "btnAddTimelog";
             btnAddTimelog.Size = new Size(231, 28);
             btnAddTimelog.TabIndex = 0;
@@ -847,131 +947,66 @@ namespace DuckPipe
             btnAddTimelog.UseVisualStyleBackColor = false;
             btnAddTimelog.Click += btnAddTimelog_Click;
             // 
-            // pnlTimeLogs
-            // 
-            pnlTimeLogs.AutoScroll = true;
-            pnlTimeLogs.AutoSize = true;
-            pnlTimeLogs.Controls.Add(tblpnlTimeLogs);
-            pnlTimeLogs.Dock = DockStyle.Fill;
-            pnlTimeLogs.Location = new Point(3, 43);
-            pnlTimeLogs.Name = "pnlTimeLogs";
-            pnlTimeLogs.Size = new Size(746, 53);
-            pnlTimeLogs.TabIndex = 6;
-            // 
-            // tblpnlTimeLogs
-            // 
-            tblpnlTimeLogs.ColumnCount = 5;
-            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tblpnlTimeLogs.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tblpnlTimeLogs.Controls.Add(label4, 4, 0);
-            tblpnlTimeLogs.Controls.Add(label3, 3, 0);
-            tblpnlTimeLogs.Controls.Add(label2, 2, 0);
-            tblpnlTimeLogs.Controls.Add(label1, 1, 0);
-            tblpnlTimeLogs.Controls.Add(lblStatsAsset, 0, 0);
-            tblpnlTimeLogs.Dock = DockStyle.Fill;
-            tblpnlTimeLogs.Location = new Point(0, 0);
-            tblpnlTimeLogs.Margin = new Padding(0);
-            tblpnlTimeLogs.Name = "tblpnlTimeLogs";
-            tblpnlTimeLogs.RowCount = 2;
-            tblpnlTimeLogs.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tblpnlTimeLogs.RowStyles.Add(new RowStyle());
-            tblpnlTimeLogs.Size = new Size(746, 53);
-            tblpnlTimeLogs.TabIndex = 1;
-            tblpnlTimeLogs.Paint += tblpnlTimeLogs_Paint;
-            // 
-            // label4
-            // 
-            label4.AutoSize = true;
-            label4.BackColor = Color.FromArgb(80, 80, 80);
-            label4.Dock = DockStyle.Fill;
-            label4.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            label4.ForeColor = Color.White;
-            label4.Location = new Point(596, 0);
-            label4.Margin = new Padding(0);
-            label4.Name = "label4";
-            label4.Size = new Size(150, 20);
-            label4.TabIndex = 4;
-            label4.Text = "Last Update";
-            label4.TextAlign = ContentAlignment.MiddleLeft;
-            // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.BackColor = Color.FromArgb(80, 80, 80);
-            label3.Dock = DockStyle.Fill;
-            label3.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            label3.ForeColor = Color.White;
-            label3.Location = new Point(447, 0);
-            label3.Margin = new Padding(0);
-            label3.Name = "label3";
-            label3.Size = new Size(149, 20);
-            label3.TabIndex = 3;
-            label3.Text = "Houres Logged";
-            label3.TextAlign = ContentAlignment.MiddleLeft;
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.BackColor = Color.FromArgb(80, 80, 80);
-            label2.Dock = DockStyle.Fill;
-            label2.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            label2.ForeColor = Color.White;
-            label2.Location = new Point(298, 0);
-            label2.Margin = new Padding(0);
-            label2.Name = "label2";
-            label2.Size = new Size(149, 20);
-            label2.TabIndex = 2;
-            label2.Text = "Artist";
-            label2.TextAlign = ContentAlignment.MiddleLeft;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.BackColor = Color.FromArgb(80, 80, 80);
-            label1.Dock = DockStyle.Fill;
-            label1.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(149, 0);
-            label1.Margin = new Padding(0);
-            label1.Name = "label1";
-            label1.Size = new Size(149, 20);
-            label1.TabIndex = 1;
-            label1.Text = "Departement";
-            label1.TextAlign = ContentAlignment.MiddleLeft;
-            // 
-            // lblStatsAsset
-            // 
-            lblStatsAsset.AutoSize = true;
-            lblStatsAsset.BackColor = Color.FromArgb(80, 80, 80);
-            lblStatsAsset.Dock = DockStyle.Fill;
-            lblStatsAsset.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            lblStatsAsset.ForeColor = Color.White;
-            lblStatsAsset.Location = new Point(0, 0);
-            lblStatsAsset.Margin = new Padding(0);
-            lblStatsAsset.Name = "lblStatsAsset";
-            lblStatsAsset.Size = new Size(149, 20);
-            lblStatsAsset.TabIndex = 0;
-            lblStatsAsset.Text = "Asset";
-            lblStatsAsset.TextAlign = ContentAlignment.MiddleLeft;
-            // 
             // tableLayoutPanel6
             // 
             tableLayoutPanel6.ColumnCount = 1;
             tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel6.Controls.Add(panel3, 0, 0);
+            tableLayoutPanel6.Controls.Add(flpAllDeptTimeLogsGraphs, 0, 2);
             tableLayoutPanel6.Controls.Add(tableLayoutPanel4, 0, 1);
+            tableLayoutPanel6.Controls.Add(panel3, 0, 0);
             tableLayoutPanel6.Dock = DockStyle.Fill;
             tableLayoutPanel6.Location = new Point(0, 0);
             tableLayoutPanel6.Name = "tableLayoutPanel6";
-            tableLayoutPanel6.RowCount = 2;
+            tableLayoutPanel6.RowCount = 3;
             tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
+            tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
             tableLayoutPanel6.RowStyles.Add(new RowStyle());
-            tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel6.Size = new Size(752, 359);
+            tableLayoutPanel6.Size = new Size(744, 339);
             tableLayoutPanel6.TabIndex = 1;
+            tableLayoutPanel6.Paint += tableLayoutPanel6_Paint;
+            // 
+            // flpAllDeptTimeLogsGraphs
+            // 
+            flpAllDeptTimeLogsGraphs.AutoScroll = true;
+            flpAllDeptTimeLogsGraphs.AutoSize = true;
+            flpAllDeptTimeLogsGraphs.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flpAllDeptTimeLogsGraphs.Dock = DockStyle.Fill;
+            flpAllDeptTimeLogsGraphs.FlowDirection = FlowDirection.TopDown;
+            flpAllDeptTimeLogsGraphs.Location = new Point(3, 73);
+            flpAllDeptTimeLogsGraphs.Name = "flpAllDeptTimeLogsGraphs";
+            flpAllDeptTimeLogsGraphs.Size = new Size(738, 263);
+            flpAllDeptTimeLogsGraphs.TabIndex = 11;
+            // 
+            // tableLayoutPanel4
+            // 
+            tableLayoutPanel4.ColumnCount = 3;
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 345F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanel4.Controls.Add(cbbGraphList, 1, 0);
+            tableLayoutPanel4.Dock = DockStyle.Fill;
+            tableLayoutPanel4.Location = new Point(3, 33);
+            tableLayoutPanel4.Name = "tableLayoutPanel4";
+            tableLayoutPanel4.RowCount = 1;
+            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel4.Size = new Size(738, 34);
+            tableLayoutPanel4.TabIndex = 9;
+            // 
+            // cbbGraphList
+            // 
+            cbbGraphList.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cbbGraphList.BackColor = Color.FromArgb(60, 60, 60);
+            cbbGraphList.CausesValidation = false;
+            cbbGraphList.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbbGraphList.FlatStyle = FlatStyle.Flat;
+            cbbGraphList.ForeColor = Color.White;
+            cbbGraphList.FormattingEnabled = true;
+            cbbGraphList.Items.AddRange(new object[] { "----------------", "Hours by Department", "Hours by Artist", "Hours by Asset", "Hours by Shot", "----------------", "Shots Percent", "Assets Percent" });
+            cbbGraphList.Location = new Point(199, 3);
+            cbbGraphList.Name = "cbbGraphList";
+            cbbGraphList.Size = new Size(339, 23);
+            cbbGraphList.TabIndex = 0;
+            cbbGraphList.SelectedIndexChanged += cbbGraphList_SelectedIndexChanged;
             // 
             // panel3
             // 
@@ -980,7 +1015,7 @@ namespace DuckPipe
             panel3.Dock = DockStyle.Fill;
             panel3.Location = new Point(3, 3);
             panel3.Name = "panel3";
-            panel3.Size = new Size(746, 24);
+            panel3.Size = new Size(738, 24);
             panel3.TabIndex = 1;
             // 
             // tableLayoutPanel5
@@ -989,31 +1024,19 @@ namespace DuckPipe
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333359F));
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333359F));
-            tableLayoutPanel5.Controls.Add(lblTotalProjectShots, 2, 0);
             tableLayoutPanel5.Controls.Add(lblTotalProjectAssets, 1, 0);
             tableLayoutPanel5.Controls.Add(lblTotalProjectHouresLogged, 0, 0);
+            tableLayoutPanel5.Controls.Add(lblTotalProjectShots, 2, 0);
             tableLayoutPanel5.Dock = DockStyle.Fill;
             tableLayoutPanel5.Location = new Point(0, 0);
+            tableLayoutPanel5.Margin = new Padding(0);
             tableLayoutPanel5.Name = "tableLayoutPanel5";
             tableLayoutPanel5.RowCount = 1;
             tableLayoutPanel5.RowStyles.Add(new RowStyle());
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel5.Size = new Size(746, 24);
+            tableLayoutPanel5.Size = new Size(738, 24);
             tableLayoutPanel5.TabIndex = 1;
-            // 
-            // lblTotalProjectShots
-            // 
-            lblTotalProjectShots.AutoSize = true;
-            lblTotalProjectShots.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTotalProjectShots.ForeColor = Color.White;
-            lblTotalProjectShots.ImageAlign = ContentAlignment.BottomRight;
-            lblTotalProjectShots.Location = new Point(499, 0);
-            lblTotalProjectShots.Name = "lblTotalProjectShots";
-            lblTotalProjectShots.Size = new Size(164, 21);
-            lblTotalProjectShots.TabIndex = 2;
-            lblTotalProjectShots.Text = "lblTotalProjectShots";
-            lblTotalProjectShots.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // lblTotalProjectAssets
             // 
@@ -1021,7 +1044,7 @@ namespace DuckPipe
             lblTotalProjectAssets.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblTotalProjectAssets.ForeColor = Color.White;
             lblTotalProjectAssets.ImageAlign = ContentAlignment.BottomRight;
-            lblTotalProjectAssets.Location = new Point(251, 0);
+            lblTotalProjectAssets.Location = new Point(248, 0);
             lblTotalProjectAssets.Name = "lblTotalProjectAssets";
             lblTotalProjectAssets.Size = new Size(169, 21);
             lblTotalProjectAssets.TabIndex = 1;
@@ -1041,29 +1064,25 @@ namespace DuckPipe
             lblTotalProjectHouresLogged.Text = "lblTotalProjectHouresLogged";
             lblTotalProjectHouresLogged.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // tableLayoutPanel4
+            // lblTotalProjectShots
             // 
-            tableLayoutPanel4.AutoSize = true;
-            tableLayoutPanel4.ColumnCount = 1;
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle());
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel4.Dock = DockStyle.Fill;
-            tableLayoutPanel4.Location = new Point(3, 33);
-            tableLayoutPanel4.Name = "tableLayoutPanel4";
-            tableLayoutPanel4.RowCount = 3;
-            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 30.6501541F));
-            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 34.05573F));
-            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 35.603714F));
-            tableLayoutPanel4.Size = new Size(746, 323);
-            tableLayoutPanel4.TabIndex = 0;
+            lblTotalProjectShots.AutoSize = true;
+            lblTotalProjectShots.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTotalProjectShots.ForeColor = Color.White;
+            lblTotalProjectShots.ImageAlign = ContentAlignment.BottomRight;
+            lblTotalProjectShots.Location = new Point(494, 0);
+            lblTotalProjectShots.Name = "lblTotalProjectShots";
+            lblTotalProjectShots.Size = new Size(164, 21);
+            lblTotalProjectShots.TabIndex = 2;
+            lblTotalProjectShots.Text = "lblTotalProjectShots";
+            lblTotalProjectShots.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // AssetManagerForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(40, 40, 40);
-            ClientSize = new Size(984, 543);
+            ClientSize = new Size(986, 540);
             Controls.Add(splitMain);
             Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = menuStrip1;
@@ -1107,13 +1126,12 @@ namespace DuckPipe
             ((System.ComponentModel.ISupportInitialize)splitStatMain).EndInit();
             splitStatMain.ResumeLayout(false);
             tableLayoutPanel7.ResumeLayout(false);
-            tableLayoutPanel7.PerformLayout();
-            tableLayoutPanel3.ResumeLayout(false);
-            pnlTimeLogs.ResumeLayout(false);
             tblpnlTimeLogs.ResumeLayout(false);
             tblpnlTimeLogs.PerformLayout();
+            tableLayoutPanel3.ResumeLayout(false);
             tableLayoutPanel6.ResumeLayout(false);
             tableLayoutPanel6.PerformLayout();
+            tableLayoutPanel4.ResumeLayout(false);
             panel3.ResumeLayout(false);
             tableLayoutPanel5.ResumeLayout(false);
             tableLayoutPanel5.PerformLayout();
@@ -1176,7 +1194,6 @@ namespace DuckPipe
         private TableLayoutPanel tableLayoutPanel2;
         private TableLayoutPanel tableLayoutPanel3;
         private Button btnAddTimelog;
-        private TableLayoutPanel tableLayoutPanel4;
         private Panel panel3;
         private Label lblTotalProjectHouresLogged;
         private TableLayoutPanel tableLayoutPanel5;
@@ -1184,12 +1201,14 @@ namespace DuckPipe
         private Label lblTotalProjectShots;
         private Label lblTotalProjectAssets;
         private TableLayoutPanel tableLayoutPanel7;
-        private Panel pnlTimeLogs;
         private TableLayoutPanel tblpnlTimeLogs;
         private Label label4;
         private Label label3;
         private Label label2;
         private Label label1;
         private Label lblStatsAsset;
+        private TableLayoutPanel tableLayoutPanel4;
+        public ComboBox cbbGraphList;
+        private FlowLayoutPanel flpAllDeptTimeLogsGraphs;
     }
 }

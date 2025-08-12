@@ -139,4 +139,18 @@ public static class TimeLogStats
             .Where(log => log.Department.Equals(department, StringComparison.OrdinalIgnoreCase))
             .Sum(log => ParseHours(log.Hours));
     }
+
+    public static List<string> GetAllDept(string prodPath)
+    {
+        var logs = TimeLogManager.GetAll(prodPath);
+
+        var allDept = logs
+            .Where(log => !string.IsNullOrWhiteSpace(log.Department))
+            .Select(log => log.Department)
+            .Distinct()
+            .OrderBy(d => d)
+            .ToList();
+
+        return allDept;
+    }
 }

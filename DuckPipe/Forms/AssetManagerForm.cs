@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Formats.Tar;
 using System.Text.Json;
 using DuckPipe.Core;
 using DuckPipe.Forms;
@@ -7,6 +8,8 @@ using static DuckPipe.Core.AssetManip;
 // using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using WinFormsListView = System.Windows.Forms.ListView;
 // using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Windows.Forms.DataVisualization.Charting;
+using System;
 
 namespace DuckPipe
 {
@@ -1802,12 +1805,85 @@ namespace DuckPipe
             lblTotalProjectHouresLogged.Text = $"Total Logged Hours: {TimeLogStats.GetTotalHours(prodPath).ToString()}";
             lblTotalProjectAssets.Text = $"Total Assets: {TimeLogStats.GetTotalAssets(prodPath).ToString()}";
             lblTotalProjectShots.Text = $"Total Shots: {TimeLogStats.GetTotalShots(prodPath).ToString()}";
+
+            // un peu de magie pour les scrollbar vertical
+            int vertScrollWidth = SystemInformation.VerticalScrollBarWidth;
+            tblpnlTimeLogs.Padding = new Padding(0, 0, vertScrollWidth, 0);
+            flpAllDeptTimeLogsGraphs.Padding = new Padding(0, 0, vertScrollWidth, 0);
+
+            cbbGraphList.SelectedIndex = 0;
         }
+
+        private void DisplayDeptHourChart()
+        {
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string rootPath = GetProductionRootPath();
+            string prodPath = Path.Combine(rootPath, selectedProd);
+
+            string configPath = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
+
+            using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
+            var colors = GetTaskColorsFromConfig(configDoc);
+
+            var chart = new Chart();
+            var area = new ChartArea();
+            chart.ChartAreas.Add(area);
+
+
+            // On supprime les lignes de grille et on garde juste l'axe X
+            area.AxisX.MajorGrid.Enabled = false;
+            area.AxisY.MajorGrid.Enabled = false;
+            area.AxisY.LabelStyle.Enabled = false; // Supprime les labels Y
+            area.AxisY.MajorTickMark.Enabled = false; // Supprime les ticks Y
+            area.AxisY.LineWidth = 0;
+            area.AxisX.LineColor = Color.White;
+            area.AxisY.LineColor = Color.White;
+            area.AxisX.LabelStyle.ForeColor = Color.White;
+            area.AxisX.MajorTickMark.Enabled = false; // Pas de ticks verticaux
+            chart.ChartAreas[0].BackColor = Color.FromArgb(50, 50, 50);
+            chart.ChartAreas[0].BorderColor = Color.FromArgb(50, 50, 50);
+            area.BackColor = Color.FromArgb(50, 50, 50);
+            chart.BackColor = Color.FromArgb(50, 50, 50);
+            area.AxisY.IsMarginVisible = false;
+
+            var series = new Series("Heures par département");
+            series.ChartType = SeriesChartType.StackedColumn;
+            series["PointWidth"] = "1";
+            series.BorderWidth = 0;
+
+            chart.Series.Add(series);
+            chart.Size = new Size(flpAllDeptTimeLogsGraphs.Width - 10, flpAllDeptTimeLogsGraphs.Height - 10);
+
+
+            foreach (var dept in TimeLogStats.GetAllDept(prodPath))
+            {
+                double hours = TimeLogStats.GetTotalHoursByDepartment(prodPath, dept);
+                var point = series.Points.Add(hours);
+                point.AxisLabel = dept;
+                point.Label = $"{hours:0.#} h";
+                if (colors.TryGetValue(dept.ToUpper(), out var color))
+                    point.Color = color;
+            }
+            flpAllDeptTimeLogsGraphs.Controls.Add(chart);
+        }
+
         #endregion
 
         private void tblpnlTimeLogs_Paint(object sender, PaintEventArgs e)
         {
 
+        }
+
+        private void tableLayoutPanel6_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void cbbGraphList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            flpAllDeptTimeLogsGraphs.Controls.Clear();
+            if (cbbGraphList.SelectedIndex == 1) { DisplayDeptHourChart(); }
+            
         }
     }
 }
