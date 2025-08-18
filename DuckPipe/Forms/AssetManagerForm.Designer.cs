@@ -103,6 +103,7 @@ namespace DuckPipe
             lblTotalProjectAssets = new Label();
             lblTotalProjectHouresLogged = new Label();
             lblTotalProjectShots = new Label();
+            cbbAssetStatus = new IconComboBox();
             contextMenuTree.SuspendLayout();
             panel1.SuspendLayout();
             menuStrip1.SuspendLayout();
@@ -658,6 +659,7 @@ namespace DuckPipe
             // panel2
             // 
             panel2.BackColor = Color.FromArgb(65, 65, 65);
+            panel2.Controls.Add(cbbAssetStatus);
             panel2.Controls.Add(btnEditAsset);
             panel2.Controls.Add(lblAssetType2);
             panel2.Controls.Add(flowLayoutPanel2);
@@ -706,7 +708,7 @@ namespace DuckPipe
             flowLayoutPanel2.Controls.Add(lbDescription2);
             flowLayoutPanel2.Location = new Point(7, 3);
             flowLayoutPanel2.Name = "flowLayoutPanel2";
-            flowLayoutPanel2.Size = new Size(632, 42);
+            flowLayoutPanel2.Size = new Size(542, 42);
             flowLayoutPanel2.TabIndex = 5;
             // 
             // lblAssetName2
@@ -725,8 +727,10 @@ namespace DuckPipe
             // 
             // lbDescription2
             // 
+            lbDescription2.AutoEllipsis = true;
             lbDescription2.AutoSize = true;
             lbDescription2.BackColor = Color.Transparent;
+            flowLayoutPanel2.SetFlowBreak(lbDescription2, true);
             lbDescription2.Font = new Font("Nirmala UI", 10F);
             lbDescription2.ForeColor = Color.Silver;
             lbDescription2.Location = new Point(222, 10);
@@ -798,7 +802,6 @@ namespace DuckPipe
             // splitStatMain.Panel2
             // 
             splitStatMain.Panel2.Controls.Add(tableLayoutPanel6);
-            splitStatMain.Panel2.Paint += splitContainer1_Panel2_Paint;
             splitStatMain.Size = new Size(744, 450);
             splitStatMain.SplitterDistance = 107;
             splitStatMain.TabIndex = 0;
@@ -963,7 +966,6 @@ namespace DuckPipe
             tableLayoutPanel6.RowStyles.Add(new RowStyle());
             tableLayoutPanel6.Size = new Size(744, 339);
             tableLayoutPanel6.TabIndex = 1;
-            tableLayoutPanel6.Paint += tableLayoutPanel6_Paint;
             // 
             // flpAllDeptTimeLogsGraphs
             // 
@@ -1076,6 +1078,21 @@ namespace DuckPipe
             lblTotalProjectShots.TabIndex = 2;
             lblTotalProjectShots.Text = "lblTotalProjectShots";
             lblTotalProjectShots.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // cbbAssetStatus
+            // 
+            cbbAssetStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cbbAssetStatus.BackColor = Color.FromArgb(60, 60, 60);
+            cbbAssetStatus.CausesValidation = false;
+            cbbAssetStatus.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbbAssetStatus.FlatStyle = FlatStyle.Flat;
+            cbbAssetStatus.ForeColor = Color.White;
+            cbbAssetStatus.FormattingEnabled = true;
+            cbbAssetStatus.Location = new Point(555, 9);
+            cbbAssetStatus.Name = "cbbAssetStatus";
+            cbbAssetStatus.Size = new Size(119, 23);
+            cbbAssetStatus.TabIndex = 7;
+            cbbAssetStatus.SelectedIndexChanged += cbbAssetStatus_SelectedIndexChanged;
             // 
             // AssetManagerForm
             // 
@@ -1210,5 +1227,6 @@ namespace DuckPipe
         private TableLayoutPanel tableLayoutPanel4;
         public ComboBox cbbGraphList;
         private FlowLayoutPanel flpAllDeptTimeLogsGraphs;
+        public IconComboBox cbbAssetStatus;
     }
 }

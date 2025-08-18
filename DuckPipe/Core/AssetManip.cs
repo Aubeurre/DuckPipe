@@ -4,12 +4,15 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using DuckPipe.Core.Model;
+using DuckPipe.Core.Services;
 
 namespace DuckPipe.Core
 {
@@ -37,7 +40,7 @@ namespace DuckPipe.Core
                 File = Path.GetFileName(assetPath),
                 Extension = Path.GetExtension(assetPath),
                 WorkFolder = Path.GetDirectoryName(assetPath),
-                RootPath = AssetManagerForm.GetProductionRootPath()
+                RootPath = ProductionService.GetProductionRootPath()
             };
 
             string[] assetParts = assetPath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
@@ -178,7 +181,6 @@ namespace DuckPipe.Core
             }
         }
 
-
         public static List<AllPbPath> GetAllImages(string path)
         {
             var result = new List<AllPbPath>();
@@ -297,7 +299,6 @@ namespace DuckPipe.Core
                     data["version"] = $"v{version:D3}";
                     data["lastModified"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                     data["status"] = "upToDate";
-                    data["user"] = Environment.UserName;
                     updated = true;
                 }
             }
@@ -496,6 +497,9 @@ namespace DuckPipe.Core
                 File.Copy(LocalFile, destinationPath);
                 File.Copy(LocalFile, assetPath, true);
                 MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
+
+                UpdateAssetMetadata(assetPath, newVersion, ctx.Department);
+
                 form.WorkTabRefreshPanel(ctx.AssetRoot);
             }
             else
@@ -605,7 +609,7 @@ namespace DuckPipe.Core
                 }
                 else
                 {
-                    property.WriteTo(writer); // Conserve les autres champs
+                    property.WriteTo(writer); 
                 }
             }
 
@@ -615,13 +619,6 @@ namespace DuckPipe.Core
 
 
         #region SHELUDE PARSE INFOS
-        public class TaskData
-        {
-            public string Status { get; set; }
-            public string User { get; set; }
-            public string StartDate { get; set; }
-            public string DueDate { get; set; }
-        }
 
         public static List<string> GetAllShotPaths(string prodPath)
         {
@@ -644,9 +641,9 @@ namespace DuckPipe.Core
             return shotPaths;
         }
 
-        public static Dictionary<string, Dictionary<string, TaskData>> ParseAssetsFromPaths(List<string> assetPaths)
+        public static Dictionary<string, Dictionary<string, Models.TaskData>> ParseAssetsFromPaths(List<string> assetPaths)
         {
-            var result = new Dictionary<string, Dictionary<string, TaskData>>();
+            var result = new Dictionary<string, Dictionary<string, Models.TaskData>>();
 
             foreach (var path in assetPaths)
             {
@@ -684,12 +681,12 @@ namespace DuckPipe.Core
                 if (!root.TryGetProperty("Tasks", out var tasksElement))
                     continue;
 
-                var taskDict = new Dictionary<string, TaskData>();
+                var taskDict = new Dictionary<string, Models.TaskData>();
 
                 foreach (var task in tasksElement.EnumerateObject())
                 {
                     string dept = task.Name;
-                    var taskData = new TaskData();
+                    var taskData = new Models.TaskData();
 
                     if (task.Value.TryGetProperty("status", out var status)) taskData.Status = status.GetString() ?? "";
                     if (task.Value.TryGetProperty("user", out var user)) taskData.User = user.GetString() ?? "";
@@ -705,9 +702,9 @@ namespace DuckPipe.Core
             return result;
         }
 
-        public static Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> GetAllAssetsInProduction(string prodPath)
+        public static Dictionary<string, Dictionary<string, Dictionary<string, Models.TaskData>>> GetAllAssetsInProduction(string prodPath)
         {
-            var result = new Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>>();
+            var result = new Dictionary<string, Dictionary<string, Dictionary<string, Models.TaskData>>>();
 
             var assetTypes = new Dictionary<string, string>
     {

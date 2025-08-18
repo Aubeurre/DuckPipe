@@ -17,7 +17,7 @@ namespace DuckPipe
             ApplicationConfiguration.Initialize();
             Application.Run(new AssetManagerForm());
         }
-        public static readonly string CurrentVersion = "1.3.0";
+        public static readonly string CurrentVersion = "1.3.0"; //pre
         public static async Task CheckForUpdates()
         {
             try

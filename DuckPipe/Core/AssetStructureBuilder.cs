@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Forms;
-using DuckPipe.Utils;
+using DuckPipe.Core.Utils;
 using static System.Windows.Forms.Design.AxImporter;
 
 namespace DuckPipe.Core
@@ -134,7 +134,6 @@ namespace DuckPipe.Core
             }
         }
 
-
         private static void CreateAssetJson(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description)
         {
             var workfileData = new Dictionary<string, object>();
@@ -176,7 +175,6 @@ namespace DuckPipe.Core
                                 incrementalPath = incrementalPath,
                                 workFile = workFile,
                                 publishName = publishFile,
-                                user = "",
                                 lastModified = ""
                             };
                         }
@@ -184,7 +182,6 @@ namespace DuckPipe.Core
                         taskData[deptUpper] = new
                         {
                             status = "not_started",
-                            user = "",
                             startDate = DateTime.Today,
                             dueDate = DateTime.Today
                         };
@@ -193,7 +190,6 @@ namespace DuckPipe.Core
                 taskData["ART"] = new
                 {
                     status = "not_started",
-                    user = "",
                     startDate = DateTime.Today,
                     dueDate = DateTime.Today
                 };
@@ -204,7 +200,7 @@ namespace DuckPipe.Core
                 workfile = workfileData,
                 assetInfos = new
                 {
-                    status = "WIP",
+                    status = "not_started",
                     description = Description,
                 },
                 Tasks = taskData
@@ -214,6 +210,7 @@ namespace DuckPipe.Core
             string jsonString = JsonSerializer.Serialize(assetJson, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(jsonPath, jsonString);
         }
+
         private static string CreateShotJson(string rootPath, string assetPath, AssetStructure structure, string assetName, string Description, string rangeIn, string rangeOut)
         {
             Directory.CreateDirectory(assetPath);
@@ -263,7 +260,6 @@ namespace DuckPipe.Core
                                 incrementalPath = incrementalPath,
                                 workFile = workFile,
                                 publishName = publishFile,
-                                user = "",
                                 lastModified = ""
                             };
                         }
@@ -271,7 +267,6 @@ namespace DuckPipe.Core
                         taskData[deptUpper] = new
                         {
                             status = "not_started",
-                            user = "",
                             startDate = DateTime.Today,
                             dueDate = DateTime.Today
                         };
@@ -286,7 +281,7 @@ namespace DuckPipe.Core
                 {
                     inFrame = rangeIn,
                     outFrame = rangeOut,
-                    status = "WIP",
+                    status = "not_started",
                     description = Description
                 },
                 Tasks = taskData
@@ -344,7 +339,6 @@ namespace DuckPipe.Core
                                 incrementalPath = incrementalPath,
                                 workFile = workFile,
                                 publishName = publishFile,
-                                user = "",
                                 lastModified = ""
                             };
                         }
@@ -352,7 +346,6 @@ namespace DuckPipe.Core
                         taskData[deptUpper] = new
                         {
                             status = "not_started",
-                            user = "",
                             startDate = DateTime.Today,
                             dueDate = DateTime.Today
                         };
@@ -365,7 +358,7 @@ namespace DuckPipe.Core
                 workfile = workfileData,
                 assetInfos = new
                 {
-                    status = "WIP",
+                    status = "not_started",
                     description = Description
                 },
                 Tasks = taskData
@@ -505,6 +498,7 @@ namespace DuckPipe.Core
         {
             public string Path { get; set; }
             public string Type { get; set; }
+            public string Status { get; set; }
         }
 
         public static void AddAssetIntoGlobalJson(string prodPath, string assetPath, string assetName, string assetType)
@@ -527,7 +521,8 @@ namespace DuckPipe.Core
             allAssets[assetName] = new AssetInfo
             {
                 Path = assetPath,
-                Type = assetType
+                Type = assetType,
+                Status = "NotStarted"
             };
 
             var options = new JsonSerializerOptions { WriteIndented = true };

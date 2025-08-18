@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace DuckPipe.Utils
+namespace DuckPipe.Core.Utils
 {
     internal class CreateMayaScene
     {

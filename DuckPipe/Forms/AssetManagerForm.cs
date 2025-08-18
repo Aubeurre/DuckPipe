@@ -10,6 +10,11 @@ using WinFormsListView = System.Windows.Forms.ListView;
 // using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Windows.Forms.DataVisualization.Charting;
 using System;
+using System.Text.Json.Nodes;
+using System.Windows.Forms;
+using DuckPipe.Core.Services; 
+using DuckPipe.Core.Model;
+using DuckPipe.Core.Utils;
 
 namespace DuckPipe
 {
@@ -28,194 +33,35 @@ namespace DuckPipe
             AssetTabClearPanel();
         }
 
-        public class AssetContext
-        {
-            public string RootPath { get; set; }
-            public string ProductionName { get; set; }
-            public string ProductionPath { get; set; }
-            public string AssetType { get; set; }
-            public string AssetName { get; set; }
-            public string? Department { get; set; }
-            public string AssetRoot { get; set; }
-            public string SequenceName { get; set; }
-        }
-
-        public static AssetContext? ExtractAssetContext(string assetPath)
-        {
-            try
-            {
-                string rootPath = AssetManagerForm.GetProductionRootPath();
-                if (!assetPath.StartsWith(rootPath))
-                    return null;
-
-                string relativePath = assetPath.Replace(rootPath, "").Trim('\\');
-                string[] parts = relativePath.Split('\\');
-
-                string prodName = parts[0];
-                string firstFolder = parts.ElementAtOrDefault(1);
-
-                var ctx = new AssetContext
-                {
-                    RootPath = rootPath,
-                    ProductionName = prodName,
-                    ProductionPath = Path.Combine(rootPath, prodName),
-                };
-
-                if (firstFolder == "Assets")
-                {
-                    if (parts.Length == 4)
-                    {
-                        ctx.AssetType = parts[2];
-                        ctx.AssetName = parts[3];
-                        ctx.AssetRoot = Path.Combine(rootPath, prodName, "Assets", ctx.AssetType, ctx.AssetName);
-                    }
-                    else return null;
-
-                }
-
-                else if (firstFolder == "Preprod")
-                {
-                    if (parts.Length == 4)
-                    {
-                        ctx.AssetType = parts[2];
-                        ctx.AssetName = parts[3];
-                        ctx.AssetRoot = Path.Combine(rootPath, prodName, "Preprod", ctx.AssetType, ctx.AssetName);
-                    }
-                    else return null;
-
-                }
-
-                else if (firstFolder == "Shots")
-                {
-                    if (parts.Length == 4)
-                    {
-
-                        ctx.SequenceName = parts[3];
-                        ctx.AssetType = "Sequences";
-                        ctx.AssetName = $"{parts[3]}";
-                        ctx.AssetRoot = Path.Combine(rootPath, prodName, "Shots", "Sequences", ctx.SequenceName);
-                    }
-                    else if (parts[4] == "Shots")
-                    {
-                        if (parts.Length == 6)
-                        {
-
-                            ctx.SequenceName = parts[3];
-                            ctx.AssetType = "Shots";
-                            ctx.AssetName = $"{parts[3]}_{parts[5]}";
-                            ctx.AssetRoot = Path.Combine(rootPath, prodName, "Shots", "Sequences", ctx.SequenceName, "Shots", ctx.AssetName);
-                        }
-                        else return null;
-
-                    }
-                    else return null;
-
-                }
-                else return null;
-
-                return ctx;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ExtractAssetContext] Erreur : {ex.Message}");
-                return null;
-            }
-        }
-
-        public static string GetProductionRootPath()
-        {
-            string envPath = UserConfig.Get().ProdBasePath;
-
-            if (!Directory.Exists(envPath))
-            {
-                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n{envPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
-            }
-
-            return envPath;
-
-        }
-
         private void LoadProductionList()
         {
-            string rootPath = GetProductionRootPath();
+            cbProdList.Items.Clear();
 
-            if (!Directory.Exists(rootPath))
-                return;
-
-            string[] productions = Directory.GetDirectories(rootPath);
-
-            cbProdList.Items.Clear(); // Vide le ComboBox
-            foreach (string prodPath in productions)
+            var productions = ProductionService.GetProductionList();
+            foreach (string prodName in productions)
             {
-                string prodName = Path.GetFileName(prodPath);
+                // on changera caplus tard pour check si le User est assigne a la prod en question
                 cbProdList.Items.Add(prodName);
             }
 
             if (cbProdList.Items.Count > 0)
-                cbProdList.SelectedIndex = 0; // Sélectionne la 1ère prod par défaut
+                cbProdList.SelectedIndex = 0;
         }
 
         private string GetFullPathFromNode(TreeNode node)
         {
-            List<string> parts = new();
-            TreeNode current = node;
-            while (current != null)
-            {
-                parts.Insert(0, current.Text);
-                current = current.Parent;
-            }
-            string selectedProd = cbProdList.SelectedItem?.ToString();
-            string rootPath = GetProductionRootPath();
-            return Path.Combine(rootPath, Path.Combine(parts.ToArray()));
+            string rootPath = ProductionService.GetProductionRootPath();
+            return TreeViewService.GetFullPathFromNode(node, rootPath);
 
-        }
-
-        private Dictionary<string, string> LoadStatusIcons()
-        {
-            Dictionary<string, string> statusIcons = new();
-
-            string rootPath = GetProductionRootPath();
-            string selectedProd = cbProdList.SelectedItem?.ToString();
-
-            string configPath = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
-
-            using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
-            if (configDoc.RootElement.TryGetProperty("status", out JsonElement statusElement))
-            {
-                foreach (var kv in statusElement.EnumerateObject())
-                {
-                    statusIcons[kv.Name] = kv.Value.GetString() ?? "";
-                }
-            }
-
-            return statusIcons;
-        }
-
-        private List<string> LoadProdUsers()
-        {
-            List<string> prodUser = new();
-
-            string rootPath = GetProductionRootPath();
-            string selectedProd = cbProdList.SelectedItem?.ToString();
-
-            string configPath = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
-
-            using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
-            if (configDoc.RootElement.TryGetProperty("Users", out JsonElement userArray))
-            {
-                foreach (var user in userArray.EnumerateArray())
-                {
-                    prodUser.Add(user.GetString() ?? "");
-                }
-            }
-
-            return prodUser;
         }
 
         private ImageList LoadStatusIconsIntoImageList(out Dictionary<string, string> statusIcons)
         {
-            statusIcons = LoadStatusIcons();
+            string rootPath = ProductionService.GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+            string prodPath = Path.Combine(rootPath, selectedProd);
+
+            statusIcons = ProductionService.LoadStatusIcons(prodPath);
 
             ImageList statusImageList = new ImageList
             {
@@ -273,15 +119,11 @@ namespace DuckPipe
 
         private void assetSettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string rootPath = GetProductionRootPath();
+            string rootPath = ProductionService.GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString();
             string path = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "AssetStructure.json");
 
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = path,
-                UseShellExecute = true
-            });
+            FileExplorerService.OpenFile(path);
         }
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
@@ -300,20 +142,21 @@ namespace DuckPipe
 
         private void prodSettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string rootPath = GetProductionRootPath();
+            string rootPath = ProductionService.GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            string path = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
+            string prodPath = Path.Combine(rootPath, selectedProd);
+            string configJsonPath = ProductionService.getConfigJsonPath(prodPath);
 
             Process.Start(new ProcessStartInfo
             {
-                FileName = path,
+                FileName = configJsonPath,
                 UseShellExecute = true
             });
         }
 
         private void checkFoldersStructureToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string rootPath = GetProductionRootPath();
+            string rootPath = ProductionService.GetProductionRootPath();
             string ProdName = cbProdList.SelectedItem?.ToString();
 
             var productionConfig = new ProductionStructureBuilder { name = ProdName };
@@ -323,7 +166,6 @@ namespace DuckPipe
 
 
         #region  LEFT ZONE / LIST ASSET / PROD SELECTION
-        #region  LIST ASSET
         private void tvAssetList_AfterSelect(object sender, TreeViewEventArgs e)
         {
             string fullPath = GetFullPathFromNode(e.Node);
@@ -335,10 +177,9 @@ namespace DuckPipe
                 return;
             }
 
-            var ctx = ExtractAssetContext(fullPath);
+            var ctx = AssetService.ExtractAssetContext(fullPath);
             if (ctx == null)
             {
-                MessageBox.Show("No ctx");
                 WorkTabClearPanel();
                 AssetTabClearPanel();
                 return;
@@ -348,7 +189,6 @@ namespace DuckPipe
             {
                 WorkTabClearPanel();
                 AssetTabClearPanel();
-                Debug.WriteLine("Sélection d'un groupe d'assets.");
                 return;
             }
 
@@ -376,44 +216,10 @@ namespace DuckPipe
 
         private void LoadTreeViewFromFolder(string rootPath, string prodName)
         {
-            string prodPath = Path.Combine(rootPath, prodName);
-
-            if (!Directory.Exists(prodPath)) return;
-
             tvAssetList.Nodes.Clear();
-
-            TreeNode rootNode = new TreeNode(prodName);
-            rootNode.Tag = prodPath;
-            tvAssetList.Nodes.Add(rootNode);
-
-            // Config de profondeur par dossier
-            var folderDepthLimits = new Dictionary<string, int>()
-    {
-        { "Assets", 3 },
-        { "Shots", 5 },
-        { "Renders", 1 },
-        { "IO", 100 },
-        { "Dev", 100 },
-        { "RnD", 100 },
-        { "Preprod", 100 },
-    };
-
-            foreach (string dir in Directory.GetDirectories(prodPath))
-            {
-                string folderName = Path.GetFileName(dir);
-                TreeNode node = new TreeNode(folderName);
-                node.Tag = dir;
-                rootNode.Nodes.Add(node);
-
-                int maxDepth = 1;
-                if (folderDepthLimits.TryGetValue(folderName, out int depth))
-                    maxDepth = depth;
-
-                AddDirectoriesToTreeWithDepth(dir, node, 1, maxDepth);
-
-            }
-
-            rootNode.Expand();
+            var rootNode = TreeViewService.LoadTreeViewFromFolder(rootPath, prodName);
+            if (rootNode != null) tvAssetList.Nodes.Add(rootNode);
+            rootNode?.Expand();
         }
 
         private void AddDirectoriesToTreeWithDepth(string folderPath, TreeNode parentNode, int currentDepth, int maxDepth)
@@ -453,34 +259,17 @@ namespace DuckPipe
         }
 
         private void viewInExplorerToolStripMenuItem_Click(object sender, EventArgs e)
-
         {
-            if (tvAssetList.SelectedNode == null)
-                return;
+            string selectedPath = tvAssetList.SelectedNode?.Tag as string;
+            FileExplorerService.OpenInExplorer(selectedPath);
+        }        
 
-            string selectedPath = tvAssetList.SelectedNode.Tag as string;
-            if (string.IsNullOrEmpty(selectedPath))
-                return;
-
-            if (Directory.Exists(selectedPath) || File.Exists(selectedPath))
-            {
-                string argument = Directory.Exists(selectedPath) ? selectedPath : $"/select,\"{selectedPath}\"";
-                System.Diagnostics.Process.Start("explorer.exe", argument);
-            }
-            else
-            {
-                MessageBox.Show("Le chemin n'existe pas ou plus.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-        #endregion
-
-        #region  PRODLIST / CREATE BUTTONS
         private void cbProdList_SelectedIndexChanged(object sender, EventArgs e)
         {
             string selectedProd = cbProdList.SelectedItem?.ToString();
             if (!string.IsNullOrEmpty(selectedProd))
             {
-                string rootPath = GetProductionRootPath();
+                string rootPath = ProductionService.GetProductionRootPath();
                 LoadTreeViewFromFolder(rootPath, selectedProd);
             }
         }
@@ -499,89 +288,11 @@ namespace DuckPipe
                 string rangeIn = form.rangeIn.Trim();
                 string rangeOut = form.rangeOut.Trim();
 
-                if (string.IsNullOrEmpty(newItemName))
-                {
-                    MessageBox.Show("Le nom de l'asset ne peut pas etre vide.");
-                    return;
-                }
-
                 string selectedProd = cbProdList.SelectedItem?.ToString();
-                if (string.IsNullOrEmpty(selectedProd))
-                {
-                    MessageBox.Show("Aucune production selectionnee.");
-                    return;
-                }
-
-                string rootPath = GetProductionRootPath();
+                string rootPath = ProductionService.GetProductionRootPath();
                 string prodPath = Path.Combine(rootPath, selectedProd);
-                if (newItemType == "Props" || newItemType == "Characters" || newItemType == "Environments")
-                {
-                    string baseAssetFolder = Path.Combine(prodPath, "Assets", newItemType);
-                    string assetPath = Path.Combine(baseAssetFolder, newItemName);
 
-                    if (Directory.Exists(assetPath))
-                    {
-                        MessageBox.Show("Cet asset existe déjà.");
-                        return;
-                    }
-
-                    // Charger structures
-                    var assetStructures = AssetStructureBuilder.LoadAssetStructures(prodPath);
-                    if (assetStructures == null || !assetStructures.TryGetValue(newItemType, out var assetStructure))
-                    {
-                        MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
-                        return;
-                    }
-
-                    // arborescence des fichiers/dossiers
-                    AssetStructureBuilder.CreateAssetStructure(rootPath, assetPath, assetStructure, newItemName, Description, rangeIn, rangeOut);
-
-                    MessageBox.Show($"Asset '{newItemName}' ({newItemType}) créé dans :\n{assetPath}");
-                }
-
-                if (newItemType == "Sequences")
-                {
-                    string baseSeqFolder = Path.Combine(prodPath, "Shots", newItemType);
-                    string seqPath = Path.Combine(baseSeqFolder, newItemName);
-
-                    if (Directory.Exists(seqPath))
-                    {
-                        MessageBox.Show("Cette Sequence existe déjà.");
-                        return;
-                    }
-
-                    // Charger structures
-                    var assetStructures = AssetStructureBuilder.LoadAssetStructures(prodPath);
-                    if (assetStructures == null || !assetStructures.TryGetValue(newItemType, out var assetStructure))
-                    {
-                        MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
-                        return;
-                    }
-                    AssetStructureBuilder.CreateAssetStructure(rootPath, seqPath, assetStructure, newItemName, Description, rangeIn, rangeOut);
-
-                }
-
-                if (newItemType == "Shots")
-                {
-                    string baseSeqFolder = Path.Combine(prodPath, "Shots", "Sequences", seqName, newItemType);
-                    string seqPath = Path.Combine(baseSeqFolder, newItemName);
-
-                    if (Directory.Exists(seqPath))
-                    {
-                        MessageBox.Show("Cette Sequence existe déjà.");
-                        return;
-                    }
-
-                    // Charger structures
-                    var assetStructures = AssetStructureBuilder.LoadAssetStructures(prodPath);
-                    if (assetStructures == null || !assetStructures.TryGetValue(newItemType, out var assetStructure))
-                    {
-                        MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
-                        return;
-                    }
-                    AssetStructureBuilder.CreateAssetStructure(rootPath, seqPath, assetStructure, newItemName, Description, rangeIn, rangeOut);
-
-                }
+                AssetService.createAsset(prodPath, newItemName, newItemType, seqName, Description, rangeIn, rangeOut);
 
                 // Recharger  TreeView
                 LoadTreeViewFromFolder(rootPath, selectedProd);
@@ -596,7 +307,7 @@ namespace DuckPipe
                 {
                     string prodName = form.ProductionName;
 
-                    string rootPath = GetProductionRootPath();
+                    string rootPath = ProductionService.GetProductionRootPath();
                     var productionConfig = new ProductionStructureBuilder { name = prodName };
 
                     productionConfig.CreateProductionStructure(prodName, rootPath);
@@ -608,7 +319,6 @@ namespace DuckPipe
                 }
             }
         }
-        #endregion
         #endregion
 
 
@@ -635,38 +345,30 @@ namespace DuckPipe
         private void WorkTabDisplayHeader(string assetPath)
         {
             string jsonPath = Path.Combine(assetPath, "asset.json");
-            string json = File.ReadAllText(jsonPath);
-            using var doc = JsonDocument.Parse(json);
-            string[] parts = jsonPath.Split('\\');
+            var jsonNode = JsonHelper.ParseJson(jsonPath);
 
-            var ctx = ExtractAssetContext(assetPath);
+            var ctx = AssetService.ExtractAssetContext(assetPath);
 
-            // maj labels
+            // Maj labels
             lblAssetName.Text = $"{ctx.AssetName} |";
             lblAssetType.Text = ctx.AssetType;
 
-            // maj Description
-            if (doc.RootElement.TryGetProperty("assetInfos", out JsonElement assetInfos))
+            // Maj description
+            var assetInfos = jsonNode?["assetInfos"];
+            var description = assetInfos?["description"]?.GetValue<string>();
+
+            if (description != null)
             {
-                if (assetInfos.TryGetProperty("description", out JsonElement descriptionElement))
+                if (assetPath.Contains("\\Shots\\"))
                 {
-                    if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
-                    {
-                        string rangeIn = "";
-                        string rangeOut = "";
+                    string rangeIn = assetInfos?["inFrame"]?.GetValue<string>() ?? "";
+                    string rangeOut = assetInfos?["outFrame"]?.GetValue<string>() ?? "";
 
-                        if (assetInfos.TryGetProperty("inFrame", out JsonElement inFrameElement))
-                            rangeIn = inFrameElement.GetRawText().Replace("\"", "");
-
-                        if (assetInfos.TryGetProperty("outFrame", out JsonElement outFrameElement))
-                            rangeOut = outFrameElement.GetRawText().Replace("\"", "");
-
-                        lbDescription.Text = $"[ {rangeIn} - {rangeOut} ] {descriptionElement.GetString()}";
-                    }
-                    else
-                    {
-                        lbDescription.Text = descriptionElement.GetString();
-                    }
+                    lbDescription.Text = $"[ {rangeIn} - {rangeOut} ] {description}";
+                }
+                else
+                {
+                    lbDescription.Text = description;
                 }
             }
         }
@@ -679,37 +381,29 @@ namespace DuckPipe
             flpDeptButton.Controls.Clear();
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
-            string json = File.ReadAllText(jsonPath);
-            using var doc = JsonDocument.Parse(json);
-            string[] parts = jsonPath.Split('\\');
-
-
-            // maj tasks
-            if (!doc.RootElement.TryGetProperty("workfile", out JsonElement workfiles))
+            var jsonNode = JsonHelper.ParseJson(jsonPath);
+            if (jsonNode?["workfile"] is null)
                 return;
 
+            // On construit le dictionnaire département -> (status, version)
             var departmentMap = new Dictionary<string, (string status, string version)>();
-
-            foreach (JsonProperty fileEntry in workfiles.EnumerateObject())
+            foreach (var fileEntry in jsonNode["workfile"].AsObject())
             {
-                JsonElement fileData = fileEntry.Value;
-
-                if (!fileData.TryGetProperty("department", out JsonElement deptProp))
-                    continue;
-
-                string dept = deptProp.GetString() ?? "Unknown";
-                string status = fileData.GetProperty("status").GetString() ?? "not_started";
-                string version = fileData.GetProperty("version").GetString() ?? "v001";
+                var fileData = fileEntry.Value;
+                string dept = fileData?["department"]?.GetValue<string>() ?? "Unknown";
+                string status = fileData?["status"]?.GetValue<string>() ?? "not_started";
+                string version = fileData?["version"]?.GetValue<string>() ?? "v001";
 
                 departmentMap[dept] = (status, version);
             }
 
-            foreach (var kvp in departmentMap)
+            // On crée les panels pour chaque département
+            foreach (var deptName in departmentMap.Keys)
             {
-                string deptName = kvp.Key;
                 var departmentPanel = WorkTabBuildWorkDepartmentsPanel(jsonPath, deptName);
                 flpPipelineStatus.Controls.Add(departmentPanel);
             }
+
             flpPipelineStatus.ResumeLayout();
         }
 
@@ -900,9 +594,8 @@ namespace DuckPipe
             if (!doc.RootElement.TryGetProperty("workfile", out JsonElement workfiles)) return;
 
             // config.json
-            string rootPath = GetProductionRootPath();
+            string rootPath = ProductionService.GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            string configPath = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
 
 
             // icônes
@@ -958,6 +651,19 @@ namespace DuckPipe
 
 
         #region  ASSET PANNEL
+        private bool _isUserChange = true;
+
+        private void PopulateCbbAssetStatus()
+        {
+            if (cbbAssetStatus.Items.Count == 0)
+            {
+                ImageList statusImageList = LoadStatusIconsIntoImageList(out Dictionary<string, string> statusIcons);
+                cbbAssetStatus.Items.AddRange(statusIcons.Keys.ToArray());
+                cbbAssetStatus.IconMap = statusIcons.ToDictionary(kv => kv.Key, kv => Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, kv.Value)));
+            }
+
+        }
+
         private void AssetTabClearPanel()
         {
             lblAssetName2.Text = "";
@@ -969,46 +675,49 @@ namespace DuckPipe
 
         private void AssetTabDisplayHeader(string assetPath)
         {
+            var ctx = AssetService.ExtractAssetContext(assetPath);
 
-            var ctx = ExtractAssetContext(assetPath);
-
-            // maj labels
+            // Maj labels
             lblAssetName2.Text = $"{ctx.AssetName} |";
             lblAssetType2.Text = ctx.AssetType;
 
-            // maj bouton edit asset
+            // Maj bouton edit asset
             btnEditAsset.Visible = true;
 
-            // maj Description
+            // Maj JSON
             string jsonPath = Path.Combine(assetPath, "asset.json");
-            if (File.Exists(jsonPath))
+            if (!File.Exists(jsonPath))
+                return;
+
+            var jsonNode = JsonHelper.ParseJson(jsonPath);
+            var assetInfos = jsonNode?["assetInfos"];
+            if (assetInfos is null)
+                return;
+
+            // Status
+            if (assetInfos["status"]?.GetValue<string>() is string status)
             {
-                string json = File.ReadAllText(jsonPath);
-                using var doc = JsonDocument.Parse(json);
-                string[] parts = jsonPath.Split('\\');
+                PopulateCbbAssetStatus();
+                _isUserChange = false;
 
-                if (doc.RootElement.TryGetProperty("assetInfos", out JsonElement assetInfos))
+                cbbAssetStatus.SelectedItem = status;
+                cbbAssetStatus.Tag = assetPath;
+
+                _isUserChange = true;
+            }
+
+            // Description
+            if (assetInfos["description"]?.GetValue<string>() is string description)
+            {
+                if (assetPath.Contains("\\Shots\\"))
                 {
-                    if (assetInfos.TryGetProperty("description", out JsonElement descriptionElement))
-                    {
-                        if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
-                        {
-                            string rangeIn = "";
-                            string rangeOut = "";
-
-                            if (assetInfos.TryGetProperty("inFrame", out JsonElement inFrameElement))
-                                rangeIn = inFrameElement.GetRawText().Replace("\"", "");
-
-                            if (assetInfos.TryGetProperty("outFrame", out JsonElement outFrameElement))
-                                rangeOut = outFrameElement.GetRawText().Replace("\"", "");
-
-                            lbDescription2.Text = $"[ {rangeIn} - {rangeOut} ] {descriptionElement.GetString()}";
-                        }
-                        else
-                        {
-                            lbDescription2.Text = descriptionElement.GetString();
-                        }
-                    }
+                    string rangeIn = assetInfos?["inFrame"]?.GetValue<string>() ?? "";
+                    string rangeOut = assetInfos?["outFrame"]?.GetValue<string>() ?? "";
+                    lbDescription2.Text = $"[ {rangeIn} - {rangeOut} ] {description}";
+                }
+                else
+                {
+                    lbDescription2.Text = description;
                 }
             }
         }
@@ -1019,49 +728,46 @@ namespace DuckPipe
             flpAssetTask.Controls.Clear();
 
             string jsonPath = Path.Combine(assetPath, "asset.json");
-            string[] parts = jsonPath.Split('\\');
-
-            string json = File.ReadAllText(jsonPath);
-            using var doc = JsonDocument.Parse(json);
-
-
-            if (jsonPath.Contains("\\Shots\\") && parts.Length > 8)
-            {
-                AssetTabDisplayPlayBlastPanel(assetPath);
-            }
-            MessageBox.Show(assetPath);
-
-            // maj tasks
-            if (!doc.RootElement.TryGetProperty("Tasks", out JsonElement tasks))
-                // flpAssetTask.ResumeLayout();
+            if (!File.Exists(jsonPath))
                 return;
 
-            var tasksMap = new Dictionary<string, (string status, string user, string startDate, string dueDate)>();
+            var jsonNode = JsonHelper.ParseJson(jsonPath);
 
-            foreach (JsonProperty fileEntry in tasks.EnumerateObject())
+            // Playblast panel si c'est un shot
+            if (assetPath.Contains("\\Shots\\"))
+                AssetTabDisplayPlayBlastPanel(assetPath);
+
+            var tasksNode = jsonNode?["Tasks"];
+            if (tasksNode is null)
             {
-                JsonElement fileData = fileEntry.Value;
-
-                string dept = fileEntry.Name;
-                string status = fileData.GetProperty("status").GetString() ?? "not_started";
-                string user = fileData.GetProperty("user").GetString() ?? "";
-                string startDate = fileData.GetProperty("startDate").GetString() ?? "";
-                string dueDate = fileData.GetProperty("dueDate").GetString() ?? "";
-
-                tasksMap[dept] = (status, user, startDate, dueDate);
+                flpAssetTask.ResumeLayout();
+                return;
             }
 
-            foreach (var kvp in tasksMap)
+            foreach (var task in tasksNode.AsObject())
             {
+                string dept = task.Key;
+                var data = task.Value;
+                string status = data?["status"]?.GetValue<string>() ?? "not_started";
+                string user = data?["user"]?.GetValue<string>() ?? "";
+                string startDate = data?["startDate"]?.GetValue<string>() ?? "";
+                string dueDate = data?["dueDate"]?.GetValue<string>() ?? "";
+
+                var kvp = new KeyValuePair<string, (string status, string user, string startDate, string dueDate)>(
+                    dept,
+                    (status, user, startDate, dueDate)
+                );
+
                 var taskPanel = AssetTabDisplayPanel(jsonPath, kvp);
                 flpAssetTask.Controls.Add(taskPanel);
             }
 
             flpAssetTask.ResumeLayout();
 
-            // on refresh le bouton pour garder flpAssetTask plein
+            // refresh bouton pour sauvegarde
             if (saveClickHandler != null)
                 btnEditAsset.Click -= saveClickHandler;
+
             saveClickHandler = (s, e) => AssetManip.SaveTaskDataFromUI(jsonPath, flpAssetTask);
             btnEditAsset.Click += saveClickHandler;
         }
@@ -1072,7 +778,8 @@ namespace DuckPipe
             var (status, user, startDate, dueDate) = taskData.Value;
 
             ImageList statusImageList = LoadStatusIconsIntoImageList(out Dictionary<string, string> statusIcons);
-            List<String> Users = LoadProdUsers();
+            string prodPath = Path.Combine(ProductionService.GetProductionRootPath(), cbProdList.SelectedItem?.ToString());
+            List<string> users = ProductionService.LoadProdUsers(prodPath);
 
             var departmentPanel = new RoundedPanel
             {
@@ -1146,7 +853,7 @@ namespace DuckPipe
                 Tag = deptName,
                 Name = "cbUser",
             };
-            cbUser.Items.AddRange(Users.ToArray());
+            cbUser.Items.AddRange(users.ToArray());
             cbUser.SelectedItem = user;
 
             // Label In
@@ -1357,11 +1064,52 @@ namespace DuckPipe
             flpAssetTask.Controls.Add(pbpPnel);
             flpAssetTask.ResumeLayout();
         }
+
+        private void cbbAssetStatus_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbbAssetStatus.SelectedItem == null || cbbAssetStatus.Tag == null)
+                return; // declanchement au constructeur
+            if (!_isUserChange) return;
+
+            string selectedStatus = cbbAssetStatus.SelectedItem?.ToString();
+
+            string assetPath = cbbAssetStatus.Tag.ToString();
+            string AssetName = new DirectoryInfo(assetPath).Name;
+            string rootPath = ProductionService.GetProductionRootPath();
+            string selectedProd = cbProdList.SelectedItem?.ToString();
+
+            MessageBox.Show(AssetName, selectedStatus);
+
+            // allAssets.json
+            string configPath = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "allAssets.json");
+
+            JsonNode jsonNodeconfigPath = JsonHelper.ParseJson(configPath);
+
+            jsonNodeconfigPath[AssetName]["status"] = selectedStatus;
+
+            File.WriteAllText(configPath, jsonNodeconfigPath.ToJsonString(new JsonSerializerOptions
+            {
+                WriteIndented = true
+            }));
+
+
+            // Asset.json
+            string assetJsonPath = Path.Combine(assetPath, "asset.json");
+
+            JsonNode jsonNodeAssetPath = JsonHelper.ParseJson(assetJsonPath);
+
+            jsonNodeAssetPath["assetInfos"]["status"] = selectedStatus;
+
+            File.WriteAllText(assetJsonPath, jsonNodeAssetPath.ToJsonString(new JsonSerializerOptions
+            {
+                WriteIndented = true
+            }));
+        }
         #endregion
 
 
         #region SHELUDE
-        private Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> allAssets;
+        private Dictionary<string, Dictionary<string, Dictionary<string, DuckPipe.Core.Models.TaskData>>> allAssets;
         private Dictionary<string, Color> taskColors;
         private DateTime startingDate;
         private int todayOffset;
@@ -1372,15 +1120,16 @@ namespace DuckPipe
         {
             pnlShelude.Controls.Clear();
 
-            string rootPath = AssetManagerForm.GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString();
             if (string.IsNullOrEmpty(selectedProd)) return;
 
-            string prodPath = Path.Combine(rootPath, selectedProd);
+            string prodPath = Path.Combine(ProductionService.GetProductionRootPath(), selectedProd);
             allAssets = GetAllAssetsInProduction(prodPath);
 
-            using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(prodPath, "Dev", "DangerZone", "config.json")));
-            startingDate = DateTime.Parse(doc.RootElement.GetProperty("created").GetString());
+            string configJsonPath = ProductionService.getConfigJsonPath(prodPath);
+
+            using var doc = JsonDocument.Parse(File.ReadAllText(configJsonPath));
+            DateTime startingDate = DateTime.Parse(doc.RootElement.GetProperty("created").GetString());
             DateTime endDate = DateTime.Parse(doc.RootElement.GetProperty("deliveryDay").GetString());
 
             int totalDays = (int)(endDate - startingDate).TotalDays;
@@ -1458,9 +1207,10 @@ namespace DuckPipe
                 Name = "sheludefILTER",
                 Tag = mainTable
             };
-            List<String> Users = LoadProdUsers();
+            string prodPath = Path.Combine(ProductionService.GetProductionRootPath(), cbProdList.SelectedItem?.ToString());
+            List<string> users = ProductionService.LoadProdUsers(prodPath);
             cbFilter.Items.AddRange(new string[] { "All", "Characters", "Props", "Environments", "Sequences", "Shots" });
-            cbFilter.Items.AddRange(Users.ToArray());
+            cbFilter.Items.AddRange(users.ToArray());
             cbFilter.SelectedIndex = 0;
             mainTable.Controls.Add(cbFilter, 0, 0);
             cbFilter.SelectedIndexChanged += cbFilter_SelectedIndexChanged;
@@ -1551,7 +1301,7 @@ namespace DuckPipe
             return timelineHeader;
         }
 
-        private void AddAssetRows(TableLayoutPanel mainTable, Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> allAssets, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int timelineWidth)
+        private void AddAssetRows(TableLayoutPanel mainTable, Dictionary<string, Dictionary<string, Dictionary<string, Core.Models.TaskData>>> allAssets, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int timelineWidth)
         {
             ComboBox cbFilter = mainTable.GetControlFromPosition(0, 0) as ComboBox;
             string selectedValue = cbFilter.SelectedItem?.ToString();
@@ -1591,7 +1341,7 @@ namespace DuckPipe
             }
         }
 
-        private Panel CreateTaskLine(Dictionary<string, TaskData> tasks, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int width)
+        private Panel CreateTaskLine(Dictionary<string, Core.Models.TaskData> tasks, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int width)
         {
             var taskLine = new Panel
             {
@@ -1681,16 +1431,12 @@ namespace DuckPipe
         }
         #endregion
 
-        private void splitContainer1_Panel2_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
 
         #region STATS TAB / TIMELOGS
         private void btnAddTimelog_Click(object sender, EventArgs e)
         {
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            string rootPath = GetProductionRootPath();
+            string rootPath = ProductionService.GetProductionRootPath();
             string prodPath = Path.Combine(rootPath, selectedProd);
 
             var assetsDict = GetAllAssetsInProduction(prodPath);
@@ -1737,7 +1483,7 @@ namespace DuckPipe
             EmptyTimeLogs();
 
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            string rootPath = GetProductionRootPath();
+            string rootPath = ProductionService.GetProductionRootPath();
             string prodPath = Path.Combine(rootPath, selectedProd);
             var logs = TimeLogManager.GetAll(prodPath);
 
@@ -1800,7 +1546,7 @@ namespace DuckPipe
         private void DisplayStats()
         {
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            string rootPath = GetProductionRootPath();
+            string rootPath = ProductionService.GetProductionRootPath();
             string prodPath = Path.Combine(rootPath, selectedProd);
             lblTotalProjectHouresLogged.Text = $"Total Logged Hours: {TimeLogStats.GetTotalHours(prodPath).ToString()}";
             lblTotalProjectAssets.Text = $"Total Assets: {TimeLogStats.GetTotalAssets(prodPath).ToString()}";
@@ -1817,12 +1563,12 @@ namespace DuckPipe
         private void DisplayDeptHourChart()
         {
             string selectedProd = cbProdList.SelectedItem?.ToString();
-            string rootPath = GetProductionRootPath();
+            string rootPath = ProductionService.GetProductionRootPath();
             string prodPath = Path.Combine(rootPath, selectedProd);
 
-            string configPath = Path.Combine(rootPath, selectedProd, "Dev", "DangerZone", "config.json");
+            string configJsonPath = ProductionService.getConfigJsonPath(prodPath);
 
-            using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
+            using var configDoc = JsonDocument.Parse(File.ReadAllText(configJsonPath));
             var colors = GetTaskColorsFromConfig(configDoc);
 
             var chart = new Chart();
@@ -1867,23 +1613,13 @@ namespace DuckPipe
             flpAllDeptTimeLogsGraphs.Controls.Add(chart);
         }
 
-        #endregion
-
-        private void tblpnlTimeLogs_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void tableLayoutPanel6_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
         private void cbbGraphList_SelectedIndexChanged(object sender, EventArgs e)
         {
             flpAllDeptTimeLogsGraphs.Controls.Clear();
             if (cbbGraphList.SelectedIndex == 1) { DisplayDeptHourChart(); }
-            
+
         }
+        #endregion
+
     }
 }

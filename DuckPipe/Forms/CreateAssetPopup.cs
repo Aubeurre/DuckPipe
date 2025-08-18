@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DuckPipe.Core.Services;
 
 namespace DuckPipe
 {
@@ -49,7 +50,7 @@ namespace DuckPipe
             if (mainForm.cbProdList.SelectedItem == null)
                 return;
 
-            string prodRoot = AssetManagerForm.GetProductionRootPath();
+            string prodRoot = ProductionService.GetProductionRootPath();
             string selectedProd = mainForm.cbProdList.SelectedItem.ToString();
             string sequencesPath = Path.Combine(prodRoot, selectedProd, "Shots", "Sequences");
 
