@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using DuckPipe.Core.Config;
 using DuckPipe.Core.Model;
 
 namespace DuckPipe.Core.Services
@@ -74,6 +75,50 @@ namespace DuckPipe.Core.Services
         {
             return Path.Combine(prodPath, "Dev", "DangerZone", "config.json");
         }
+
+        public static ImageList LoadStatusIconsIntoImageList(out Dictionary<string, string> statusIcons, string prodPath)
+        {
+            statusIcons = ProductionService.LoadStatusIcons(prodPath);
+
+            ImageList statusImageList = new ImageList
+            {
+                ImageSize = new Size(16, 16),
+                ColorDepth = ColorDepth.Depth32Bit
+            };
+
+            foreach (var pair in statusIcons)
+            {
+                string statusKey = pair.Key;
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, pair.Value);
+
+                if (File.Exists(iconPath))
+                {
+                    statusImageList.Images.Add(statusKey, Image.FromFile(iconPath));
+                }
+            }
+
+            return statusImageList;
+        }
+
+        public static Dictionary<string, Color> GetTaskColorsFromConfig(JsonDocument doc)
+        {
+            var colors = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
+
+            if (!doc.RootElement.TryGetProperty("color", out var colorSection))
+                return colors;
+
+            foreach (var item in colorSection.EnumerateObject())
+            {
+                var r = item.Value.GetProperty("R").GetInt32();
+                var g = item.Value.GetProperty("G").GetInt32();
+                var b = item.Value.GetProperty("B").GetInt32();
+                var a = item.Value.GetProperty("A").GetInt32();
+                colors[item.Name.ToUpper()] = Color.FromArgb(a, r, g, b);
+            }
+
+            return colors;
+        }
+
 
     }
 }

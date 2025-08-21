@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using DuckPipe.Core.Config;
 
 namespace DuckPipe
 {
@@ -17,7 +18,7 @@ namespace DuckPipe
             ApplicationConfiguration.Initialize();
             Application.Run(new AssetManagerForm());
         }
-        public static readonly string CurrentVersion = "1.3.0"; //pre
+        public static readonly string CurrentVersion = "1.5.0"; //pre
         public static async Task CheckForUpdates()
         {
             try

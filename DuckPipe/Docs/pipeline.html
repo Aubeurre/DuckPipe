@@ -11,9 +11,9 @@
         <nav>
             <ul>
                 <li><a href="index.html">Overview</a></li>
-                <li><a href="assets.html">Assets</a></li>
+                <li><a href="assets.html">Nodes</a></li>
                 <li><a href="shots.html">Shots</a></li>
-                <li><a href="pipeline.html">Ducky Asset Manager</a></li>
+                <li><a href="pipeline.html">Ducky Node Manager</a></li>
                 <li><a href="nomenclature.html">Nomenclature</a></li>
                 <li><a href="storage.html">Connexion au NAS & stockage local</a></li>
             </ul>
@@ -21,10 +21,10 @@
     </header>
 
     <main>
-        <h2>Ducky Asset Manager</h2>
+        <h2>Ducky Node Manager</h2>
         <section>
             <p>
-                <strong>Ducky Asset Manager</strong> permet aux artistes de gérer efficacement tous les éléments d’une production 3D, depuis une interface simple et centralisée.</br>
+                <strong>Ducky Node Manager</strong> permet aux artistes de gérer efficacement tous les éléments d’une production 3D, depuis une interface simple et centralisée.</br>
                 Il offre un accès rapide à la structure du projet, permet de créer des assets, séquences et plans, de versionner les fichiers de travail, de publier des livrables et de verrouiller les fichiers pour éviter les conflits de modification.</br>
                 Tout est conçu pour fluidifier le pipeline de production et automatiser les tâches répétitives en assurant la securitee des fichiers.
             </p>
@@ -35,7 +35,7 @@
         <h2>Installation</h2>
 
         <section>
-            Pour une instalation rapide de l'asset manager Ducky, suivez la page <a href="config.html">Install Ducky Asset Manager</a>.
+            Pour une instalation rapide de l'asset manager Ducky, suivez la page <a href="config.html">Install Ducky Node Manager</a>.
         </section>
 
         </br><hr></br>
@@ -51,16 +51,16 @@
         </section>
 
         <section>
-            <h3>Structure et configuration : <code>AssetStructure.json</code> </h3>
+            <h3>Structure et configuration : <code>NodeStructure.json</code> </h3>
             <p>
-                Le fichier <code>AssetStructure.json</code> définit la structure par défaut des dossiers et fichiers pour chaque type d’asset (ex: Props, Characters, Sequences, Shots).</br>
+                Le fichier <code>NodeStructure.json</code> définit la structure par défaut des dossiers et fichiers pour chaque type d’asset (ex: Props, Characters, Sequences, Shots).</br>
                 Il indique les départements impliqués, les chemins à créer, ainsi que les modèles de noms de fichiers.</br>
                 Lors de la création d’un nouvel asset, cette structure est utilisée pour générer automatiquement l’arborescence correspondante.</br>
                 </br>
                 Il est donc possible d'editer le fichier afin de constituer une arboressence unique pour chaque production.</br>
             </p>
 
-            <h4>🛠️ Extrait de <code>AssetStructure.json</code> pour le type <em>Props</em></h4>
+            <h4>🛠️ Extrait de <code>NodeStructure.json</code> pour le type <em>Props</em></h4>
             <pre><code>
 {
   "Props": {

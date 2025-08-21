@@ -21,7 +21,7 @@ namespace DuckPipe.Core
             Directory.CreateDirectory(prodPath);
 
             CreateDefaultFolders(prodPath);
-            CopyAssetStructure(prodPath);
+            CopyNodeStructure(prodPath);
             CopyTools(prodPath);
 
             name = prodName;
@@ -62,11 +62,11 @@ namespace DuckPipe.Core
                 Directory.CreateDirectory(Path.Combine(prodPath, folder));
         }
 
-        private void CopyAssetStructure(string prodPath)
+        private void CopyNodeStructure(string prodPath)
         {
-            string assetStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "AssetStructure.json");
-            string targetPath = Path.Combine(prodPath, "Dev", "DangerZone", "AssetStructure.json");
-            File.Copy(assetStructurePath, targetPath, overwrite: true);
+            string nodeStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "NodeStructure.json");
+            string targetPath = Path.Combine(prodPath, "Dev", "DangerZone", "NodeStructure.json");
+            File.Copy(nodeStructurePath, targetPath, overwrite: true);
         }
 
         private void CopyTools(string prodPath)

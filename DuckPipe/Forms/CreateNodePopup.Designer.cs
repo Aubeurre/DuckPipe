@@ -1,6 +1,6 @@
 ﻿namespace DuckPipe
 {
-    partial class CreateAssetPopup
+    partial class CreateNodePopup
     {
         /// <summary>
         /// Required designer variable.
@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             btnOK = new Button();
-            txtAssetName = new TextBox();
-            cbAssetType = new ComboBox();
+            txtNodeName = new TextBox();
+            cbNodeType = new ComboBox();
             cbSeqChoice = new ComboBox();
             tbDescription = new TextBox();
             flowLayoutPanel1 = new FlowLayoutPanel();
@@ -65,30 +65,30 @@
             btnOK.UseVisualStyleBackColor = false;
             btnOK.Click += btnOK_Click;
             // 
-            // txtAssetName
+            // txtNodeName
             // 
-            txtAssetName.BackColor = Color.FromArgb(30, 30, 30);
-            txtAssetName.BorderStyle = BorderStyle.FixedSingle;
-            txtAssetName.ForeColor = Color.White;
-            txtAssetName.Location = new Point(3, 3);
-            txtAssetName.Name = "txtAssetName";
-            txtAssetName.Size = new Size(154, 23);
-            txtAssetName.TabIndex = 4;
+            txtNodeName.BackColor = Color.FromArgb(30, 30, 30);
+            txtNodeName.BorderStyle = BorderStyle.FixedSingle;
+            txtNodeName.ForeColor = Color.White;
+            txtNodeName.Location = new Point(3, 3);
+            txtNodeName.Name = "txtNodeName";
+            txtNodeName.Size = new Size(154, 23);
+            txtNodeName.TabIndex = 4;
             // 
-            // cbAssetType
+            // cbNodeType
             // 
-            cbAssetType.BackColor = Color.FromArgb(30, 30, 30);
-            cbAssetType.DropDownStyle = ComboBoxStyle.DropDownList;
-            cbAssetType.FlatStyle = FlatStyle.Flat;
-            cbAssetType.ForeColor = Color.White;
-            cbAssetType.FormattingEnabled = true;
-            cbAssetType.Items.AddRange(new object[] { "Characters", "Props", "Environments", "Sequences", "Shots" });
-            cbAssetType.Location = new Point(3, 32);
-            cbAssetType.Name = "cbAssetType";
-            cbAssetType.Size = new Size(154, 23);
-            cbAssetType.TabIndex = 6;
-            cbAssetType.Tag = "";
-            cbAssetType.SelectedIndexChanged += cbAssetType_SelectedIndexChanged;
+            cbNodeType.BackColor = Color.FromArgb(30, 30, 30);
+            cbNodeType.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbNodeType.FlatStyle = FlatStyle.Flat;
+            cbNodeType.ForeColor = Color.White;
+            cbNodeType.FormattingEnabled = true;
+            cbNodeType.Items.AddRange(new object[] { "Characters", "Props", "Environments", "Sequences", "Shots" });
+            cbNodeType.Location = new Point(3, 32);
+            cbNodeType.Name = "cbNodeType";
+            cbNodeType.Size = new Size(154, 23);
+            cbNodeType.TabIndex = 6;
+            cbNodeType.Tag = "";
+            cbNodeType.SelectedIndexChanged += cbNodeType_SelectedIndexChanged;
             // 
             // cbSeqChoice
             // 
@@ -125,8 +125,8 @@
             // flowLayoutPanel4
             // 
             flowLayoutPanel4.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            flowLayoutPanel4.Controls.Add(txtAssetName);
-            flowLayoutPanel4.Controls.Add(cbAssetType);
+            flowLayoutPanel4.Controls.Add(txtNodeName);
+            flowLayoutPanel4.Controls.Add(cbNodeType);
             flowLayoutPanel4.Controls.Add(tbDescription);
             flowLayoutPanel4.Controls.Add(cbSeqChoice);
             flowLayoutPanel4.Controls.Add(flowLayoutPanel5);
@@ -220,7 +220,7 @@
             label4.Name = "label4";
             label4.Size = new Size(60, 15);
             label4.TabIndex = 6;
-            label4.Text = "AssetType";
+            label4.Text = "NodeType";
             // 
             // label1
             // 
@@ -232,7 +232,7 @@
             label1.Name = "label1";
             label1.Size = new Size(70, 15);
             label1.TabIndex = 5;
-            label1.Text = "Asset Name";
+            label1.Text = "Node Name";
             // 
             // flowLayoutPanel3
             // 
@@ -247,7 +247,7 @@
             flowLayoutPanel3.Size = new Size(83, 158);
             flowLayoutPanel3.TabIndex = 14;
             // 
-            // CreateAssetPopup
+            // CreateNodePopup
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -258,10 +258,10 @@
             Controls.Add(flowLayoutPanel4);
             Controls.Add(btnOK);
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            Name = "CreateAssetPopup";
+            Name = "CreateNodePopup";
             StartPosition = FormStartPosition.CenterParent;
-            Text = "Create Asset";
-            Load += CreateAssetPopup_Load;
+            Text = "Create Node";
+            Load += CreateNodePopup_Load;
             flowLayoutPanel4.ResumeLayout(false);
             flowLayoutPanel4.PerformLayout();
             flowLayoutPanel5.ResumeLayout(false);
@@ -275,8 +275,8 @@
         #endregion
 
         private Button btnOK;
-        private TextBox txtAssetName;
-        private ComboBox cbAssetType;
+        private TextBox txtNodeName;
+        private ComboBox cbNodeType;
         private ComboBox cbSeqChoice;
         private TextBox tbDescription;
         private FlowLayoutPanel flowLayoutPanel1;

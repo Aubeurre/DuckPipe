@@ -1,9 +1,17 @@
 ﻿using System.Windows.Forms;
+using DuckPipe.Core.Services;
 
-namespace DuckPipe.Core.Services
+namespace DuckPipe.Forms.Builder.Shared
 {
-    public static class TreeViewService
+    public static class TreeViewBuilder
     {
+
+        public static string GetPathFromNode(TreeNode node)
+        {
+            string rootPath = ProductionService.GetProductionRootPath();
+            return TreeViewBuilder.GetFullPathFromNode(node, rootPath);
+
+        }
         public static string GetFullPathFromNode(TreeNode node, string rootPath)
         {
             List<string> parts = new();
@@ -16,7 +24,7 @@ namespace DuckPipe.Core.Services
             return Path.Combine(rootPath, Path.Combine(parts.ToArray()));
         }
 
-        public static TreeNode LoadTreeViewFromFolder(string rootPath, string prodName)
+        public static TreeNode GetFolderHierarchy(string rootPath, string prodName)
         {
             string prodPath = Path.Combine(rootPath, prodName);
             if (!Directory.Exists(prodPath)) return null;

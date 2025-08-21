@@ -13,20 +13,20 @@ namespace DuckPipe.Forms
 {
     public partial class TimeLogAddPopup : Form
     {
-        public string AssetName { get; private set; }
+        public string NodeName { get; private set; }
         public string Department { get; private set; }
         public string Hours { get; private set; }
-        public TimeLogAddPopup(List<string> assets)
+        public TimeLogAddPopup(List<string> nodes)
         {
             InitializeComponent();
-            cbAsset.Items.AddRange(assets.ToArray());
-            cbAsset.SelectedIndex = 0;
+            cbNode.Items.AddRange(nodes.ToArray());
+            cbNode.SelectedIndex = 0;
         }
 
         private void btnOK_Click(object sender, EventArgs e)
         {
             {
-                AssetName = cbAsset.SelectedItem?.ToString();
+                NodeName = cbNode.SelectedItem?.ToString();
                 Department = cbDepartment.SelectedItem?.ToString();
                 Hours = tbTimeLogged.Text.Trim();
 

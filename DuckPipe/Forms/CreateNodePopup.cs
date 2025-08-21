@@ -12,15 +12,15 @@ using DuckPipe.Core.Services;
 
 namespace DuckPipe
 {
-    public partial class CreateAssetPopup : Form
+    public partial class CreateNodePopup : Form
     {
         private AssetManagerForm mainForm;
-        public CreateAssetPopup(AssetManagerForm form)
+        public CreateNodePopup(AssetManagerForm form)
         {
             InitializeComponent();
             mainForm = form;
 
-            cbAssetType.SelectedIndex = 0;
+            cbNodeType.SelectedIndex = 0;
             cbSeqChoice.Visible = false;
             lbSequence.Visible = false;
             lbRange.Visible = false;
@@ -28,15 +28,15 @@ namespace DuckPipe
             tbRangeOut.Visible = false;
             lbRangeSeparator.Visible = false;
         }
-        public string AssetName => txtAssetName.Text.Trim();
-        public string AssetType => cbAssetType.SelectedItem?.ToString();
+        public string NodeName => txtNodeName.Text.Trim();
+        public string NodeType => cbNodeType.SelectedItem?.ToString();
         public string SeqName => cbSeqChoice.SelectedItem?.ToString() ?? "";
         public string Description => tbDescription.Text.Trim();
         public string rangeIn => tbRangeIn.Text.Trim();
         public string rangeOut => tbRangeOut.Text.Trim();
         private void btnOK_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtAssetName.Text))
+            if (string.IsNullOrWhiteSpace(txtNodeName.Text))
             {
                 MessageBox.Show("Veuillez entrer un nom.");
                 return;
@@ -45,7 +45,7 @@ namespace DuckPipe
             Close();
         }
 
-        private void CreateAssetPopup_Load(object sender, EventArgs e)
+        private void CreateNodePopup_Load(object sender, EventArgs e)
         {
             if (mainForm.cbProdList.SelectedItem == null)
                 return;
@@ -69,9 +69,9 @@ namespace DuckPipe
             }
         }
 
-        private void cbAssetType_SelectedIndexChanged(object sender, EventArgs e)
+        private void cbNodeType_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if ((cbAssetType.SelectedItem?.ToString() == "Shots"))
+            if ((cbNodeType.SelectedItem?.ToString() == "Shots"))
             {
                 cbSeqChoice.Visible = true;
                 lbSequence.Visible = true;

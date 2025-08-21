@@ -4,7 +4,7 @@ using System.IO;
 using System.Xml.Linq;
 using System.Diagnostics;
 
-namespace DuckPipe.Core
+namespace DuckPipe.Core.Manipulator
 {
     public class AllPbPath
     {

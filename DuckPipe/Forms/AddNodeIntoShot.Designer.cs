@@ -1,6 +1,6 @@
 ﻿namespace DuckPipe.Forms
 {
-    partial class AddAssetIntoShot
+    partial class AddNodeIntoShot
     {
         /// <summary>
         /// Required designer variable.
@@ -107,16 +107,16 @@
             btnRemove.Text = "Remove Selected";
             btnRemove.UseVisualStyleBackColor = false;
             // 
-            // AddAssetIntoShot
+            // AddNodeIntoShot
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(45, 45, 45);
             ClientSize = new Size(739, 485);
             Controls.Add(splitContainer1);
-            Name = "AddAssetIntoShot";
+            Name = "AddNodeIntoShot";
             StartPosition = FormStartPosition.CenterParent;
-            Text = "AddAssetIntoShot";
+            Text = "AddNodeIntoShot";
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();

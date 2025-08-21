@@ -1,7 +1,7 @@
 ﻿
 using System.Diagnostics;
 using System.Text.Json;
-using DuckPipe.Core;
+using DuckPipe.Core.Manipulator;
 
 namespace DuckPipe
 {
@@ -22,12 +22,12 @@ namespace DuckPipe
 
         private void LoadFileOptions()
         {
-            JsonDocument doc = AssetManip.LoadAssetJson(assetJsonPath);
+            JsonDocument doc = NodeManip.LoadNodeJson(assetJsonPath);
 
             if (!doc.RootElement.TryGetProperty("departments", out JsonElement departments)) return;
             if (!departments.TryGetProperty(department, out JsonElement dept)) return;
 
-            string workPath = AssetManip.ReplaceEnvVariables(dept.GetProperty("workPath").GetString());
+            string workPath = NodeManip.ReplaceEnvVariables(dept.GetProperty("workPath").GetString());
 
             if (Directory.Exists(workPath))
             {
@@ -52,7 +52,7 @@ namespace DuckPipe
 
             string selectedFile = listBoxFiles.SelectedItem.ToString();
 
-            JsonDocument doc = AssetManip.LoadAssetJson(assetJsonPath);
+            JsonDocument doc = NodeManip.LoadNodeJson(assetJsonPath);
             string workPath = lbDepartementName.Text;
 
             string fullPath = Path.Combine(workPath, selectedFile);

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace DuckPipe.Core.Utils
+namespace DuckPipe.Core.Services
 {
-    internal class CreateMayaScene
+    internal class MayaService
     {
         public static void CreateBasicMaFile(string filePath, string sceneName)
         {

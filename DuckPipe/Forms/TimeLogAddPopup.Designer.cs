@@ -33,7 +33,7 @@
             label4 = new Label();
             label3 = new Label();
             flowLayoutPanel4 = new FlowLayoutPanel();
-            cbAsset = new ComboBox();
+            cbNode = new ComboBox();
             tbTimeLogged = new TextBox();
             btnOK = new Button();
             cbDepartment = new ComboBox();
@@ -62,7 +62,7 @@
             label1.Name = "label1";
             label1.Size = new Size(35, 15);
             label1.TabIndex = 5;
-            label1.Text = "Asset";
+            label1.Text = "Node";
             // 
             // label4
             // 
@@ -90,7 +90,7 @@
             // flowLayoutPanel4
             // 
             flowLayoutPanel4.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            flowLayoutPanel4.Controls.Add(cbAsset);
+            flowLayoutPanel4.Controls.Add(cbNode);
             flowLayoutPanel4.Controls.Add(cbDepartment);
             flowLayoutPanel4.Controls.Add(tbTimeLogged);
             flowLayoutPanel4.FlowDirection = FlowDirection.TopDown;
@@ -99,18 +99,18 @@
             flowLayoutPanel4.Size = new Size(164, 94);
             flowLayoutPanel4.TabIndex = 18;
             // 
-            // cbAsset
+            // cbNode
             // 
-            cbAsset.BackColor = Color.FromArgb(30, 30, 30);
-            cbAsset.DropDownStyle = ComboBoxStyle.DropDownList;
-            cbAsset.FlatStyle = FlatStyle.Flat;
-            cbAsset.ForeColor = Color.White;
-            cbAsset.FormattingEnabled = true;
-            cbAsset.Location = new Point(3, 3);
-            cbAsset.Name = "cbAsset";
-            cbAsset.Size = new Size(154, 23);
-            cbAsset.TabIndex = 6;
-            cbAsset.Tag = "";
+            cbNode.BackColor = Color.FromArgb(30, 30, 30);
+            cbNode.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbNode.FlatStyle = FlatStyle.Flat;
+            cbNode.ForeColor = Color.White;
+            cbNode.FormattingEnabled = true;
+            cbNode.Location = new Point(3, 3);
+            cbNode.Name = "cbNode";
+            cbNode.Size = new Size(154, 23);
+            cbNode.TabIndex = 6;
+            cbNode.Tag = "";
             // 
             // tbTimeLogged
             // 
@@ -178,8 +178,8 @@
         private Label lbSequence;
         private Label lbRange;
         private FlowLayoutPanel flowLayoutPanel4;
-        private TextBox txtAssetName;
-        private ComboBox cbAsset;
+        private TextBox txtNodeName;
+        private ComboBox cbNode;
         private TextBox tbTimeLogged;
         private ComboBox cbSeqChoice;
         private FlowLayoutPanel flowLayoutPanel5;

@@ -13,55 +13,57 @@ using Microsoft.VisualBasic;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using DuckPipe.Core.Model;
 using DuckPipe.Core.Services;
+using DuckPipe.Core.Manager;
+using DuckPipe.Core.Config;
 
-namespace DuckPipe.Core
+namespace DuckPipe.Core.Manipulator
 {
-    public static class AssetManip
+    public static class NodeManip
     {
-        public class AssetContext
+        public class NodeContext
         {
             public string FileName { get; set; }
             public string File { get; set; }
             public string Extension { get; set; }
             public string WorkFolder { get; set; }
-            public string AssetRoot { get; set; }
+            public string NodeRoot { get; set; }
             public string RelativeWorkPath { get; set; }
-            public string AssetType { get; set; }
+            public string NodeType { get; set; }
             public string Department { get; set; }
             public string RootPath { get; set; }
             public string ProdName { get; set; }
         }
 
-        private static AssetContext ExtractAssetContext(string assetPath)
+        private static NodeContext ExtractNodeContext(string nodePath)
         {
-            var ctx = new AssetContext
+            var ctx = new NodeContext
             {
-                FileName = Path.GetFileNameWithoutExtension(assetPath),
-                File = Path.GetFileName(assetPath),
-                Extension = Path.GetExtension(assetPath),
-                WorkFolder = Path.GetDirectoryName(assetPath),
+                FileName = Path.GetFileNameWithoutExtension(nodePath),
+                File = Path.GetFileName(nodePath),
+                Extension = Path.GetExtension(nodePath),
+                WorkFolder = Path.GetDirectoryName(nodePath),
                 RootPath = ProductionService.GetProductionRootPath()
             };
 
-            string[] assetParts = assetPath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
-            ctx.AssetRoot = assetParts[0];
-            ctx.RelativeWorkPath = assetParts[1];
+            string[] nodeParts = nodePath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
+            ctx.NodeRoot = nodeParts[0];
+            ctx.RelativeWorkPath = nodeParts[1];
 
-            string relativeToRoot = assetPath.Replace(ctx.RootPath, "").TrimStart('\\');
+            string relativeToRoot = nodePath.Replace(ctx.RootPath, "").TrimStart('\\');
             string[] segments = relativeToRoot.Split('\\');
             ctx.ProdName = segments.Length > 2 ? segments[0] : "Unknown";
-            ctx.AssetType = segments.Length > 2 ? segments[2] : "Unknown";
+            ctx.NodeType = segments.Length > 2 ? segments[2] : "Unknown";
             ctx.Department = segments.Length > 5 ? segments[5] : "Unknown";
 
             return ctx;
         }
 
-        public static JsonDocument LoadAssetJson(string assetJsonPath)
+        public static JsonDocument LoadNodeJson(string nodeJsonPath)
         {
-            if (!File.Exists(assetJsonPath))
-                throw new FileNotFoundException($"Fichier non trouvé : {assetJsonPath}");
+            if (!File.Exists(nodeJsonPath))
+                throw new FileNotFoundException($"Fichier non trouvé : {nodeJsonPath}");
 
-            string jsonText = File.ReadAllText(assetJsonPath);
+            string jsonText = File.ReadAllText(nodeJsonPath);
             return JsonDocument.Parse(jsonText);
         }
 
@@ -79,18 +81,18 @@ namespace DuckPipe.Core
 
         }
 
-        public static int GetLastWorkVersion(string assetPath)
+        public static int GetLastWorkVersion(string nodePath)
         {
-            if (!File.Exists(assetPath))
+            if (!File.Exists(nodePath))
             {
                 MessageBox.Show("Fichier introuvable.");
                 return 0;
             }
 
-            string fileName = Path.GetFileNameWithoutExtension(assetPath);
-            string extension = Path.GetExtension(assetPath);
+            string fileName = Path.GetFileNameWithoutExtension(nodePath);
+            string extension = Path.GetExtension(nodePath);
 
-            string workFolder = Path.GetDirectoryName(assetPath);
+            string workFolder = Path.GetDirectoryName(nodePath);
             string incrementalsDir = Path.Combine(workFolder, "incrementals");
 
             string[] existingFiles = Directory.GetFiles(incrementalsDir);
@@ -111,9 +113,9 @@ namespace DuckPipe.Core
             return maxVersion;
         }
 
-        public static void MarkDownstreamDepartmentsOutdated(string assetPath, string deptPublished)
+        public static void MarkDownstreamDepartmentsOutdated(string nodePath, string deptPublished)
         {
-            var ctx = ExtractAssetContext(assetPath);
+            var ctx = ExtractNodeContext(nodePath);
 
             string configPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "DangerZone", "config.json");
             string configJson = File.ReadAllText(configPath);
@@ -128,7 +130,7 @@ namespace DuckPipe.Core
             if (!deptInfo.TryGetProperty("downstream", out var downstreamList))
                 return;
 
-            string jsonPath = Path.Combine(ctx.AssetRoot, "asset.json");
+            string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
             if (!File.Exists(jsonPath))
                 return;
 
@@ -138,7 +140,7 @@ namespace DuckPipe.Core
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            var updatedAssetData = new Dictionary<string, object>();
+            var updatedNodeData = new Dictionary<string, object>();
 
             var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
                 root.GetProperty("workfile").GetRawText()
@@ -166,17 +168,17 @@ namespace DuckPipe.Core
                 }
             }
 
-            updatedAssetData["workfile"] = workfileDict;
+            updatedNodeData["workfile"] = workfileDict;
 
             foreach (var prop in root.EnumerateObject())
             {
                 if (prop.Name == "workfile") continue;
-                updatedAssetData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
+                updatedNodeData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
             }
 
             if (updated)
             {
-                string updatedJson = JsonSerializer.Serialize(updatedAssetData, options);
+                string updatedJson = JsonSerializer.Serialize(updatedNodeData, options);
                 File.WriteAllText(jsonPath, updatedJson);
             }
         }
@@ -209,18 +211,18 @@ namespace DuckPipe.Core
         }
 
         #region NOTES COMMITS
-        public static void AddNote(string assetPath, AssetManagerForm form)
+        public static void AddNote(string nodePath, AssetManagerForm form)
         {
-            var ctx = ExtractAssetContext(assetPath);
+            var ctx = ExtractNodeContext(nodePath);
 
-            int versionName = GetLastWorkVersion(assetPath);
+            int versionName = GetLastWorkVersion(nodePath);
             var msgPopup = new MessageBoxPopup();
             if (msgPopup.ShowDialog() == DialogResult.OK)
             {
                 AddPublishLog(ctx.WorkFolder, ctx.FileName, versionName, msgPopup.CommitMessage);
             }
-            UpdateAssetMetadata(assetPath, versionName, ctx.Department);
-            form.WorkTabRefreshPanel(ctx.AssetRoot);
+            UpdateNodeMetadata(nodePath, versionName, ctx.Department);
+            form.RefreshTab(ctx.NodeRoot);
         }
 
         public static void AddPublishLog(string workPath, string fileName, int version, string message)
@@ -268,10 +270,10 @@ namespace DuckPipe.Core
             public string Message { get; set; }
         }
 
-        private static void UpdateAssetMetadata(string assetPath, int version, string deptName)
+        private static void UpdateNodeMetadata(string nodePath, int version, string deptName)
         {
-            var ctx = ExtractAssetContext(assetPath);
-            string jsonPath = Path.Combine(ctx.AssetRoot, "asset.json");
+            var ctx = ExtractNodeContext(nodePath);
+            string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
 
             if (!File.Exists(jsonPath))
                 return;
@@ -282,7 +284,7 @@ namespace DuckPipe.Core
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            var updatedAssetData = new Dictionary<string, object>();
+            var updatedNodeData = new Dictionary<string, object>();
 
             var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
                 root.GetProperty("workfile").GetRawText()
@@ -303,25 +305,25 @@ namespace DuckPipe.Core
                 }
             }
 
-            updatedAssetData["workfile"] = workfileDict;
+            updatedNodeData["workfile"] = workfileDict;
 
             foreach (var prop in root.EnumerateObject())
             {
                 if (prop.Name == "workfile") continue;
 
-                updatedAssetData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
+                updatedNodeData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
             }
 
             if (updated)
             {
-                string updatedJson = JsonSerializer.Serialize(updatedAssetData, options);
+                string updatedJson = JsonSerializer.Serialize(updatedNodeData, options);
                 File.WriteAllText(jsonPath, updatedJson);
             }
         }
 
-        public static List<CommitEntry> GetAssetCommits(string assetPath)
+        public static List<CommitEntry> GetNodeCommits(string nodePath)
         {
-            var ctx = ExtractAssetContext(assetPath);
+            var ctx = ExtractNodeContext(nodePath);
             string changelogPath = Path.Combine(ctx.WorkFolder, $"{ctx.FileName}_changelog.json");
             var commits = new List<CommitEntry>();
 
@@ -355,29 +357,29 @@ namespace DuckPipe.Core
 
 
         #region TEMP FILE
-        public static string GetTempPath(string assetPath)
+        public static string GetTempPath(string nodePath)
         {
-            string tempAssetlPath = assetPath.Replace(UserConfig.Get().ProdBasePath, UserConfig.Get().userTempFolder);
+            string tempNodelPath = nodePath.Replace(UserConfig.Get().ProdBasePath, UserConfig.Get().userTempFolder);
 
-            return tempAssetlPath;
+            return tempNodelPath;
         }
 
-        public static void CopyAssetToTemp(string assetPath)
+        public static void CopyNodeToTemp(string nodePath)
         {
-            string tempAssetlPath = GetTempPath(assetPath);
-            string tempDirPath = Path.GetDirectoryName(tempAssetlPath)!;
+            string tempNodelPath = GetTempPath(nodePath);
+            string tempDirPath = Path.GetDirectoryName(tempNodelPath)!;
 
             if (Directory.Exists(tempDirPath))
                 Directory.Delete(tempDirPath, true);
 
             Directory.CreateDirectory(tempDirPath);
-            File.Copy(assetPath, tempAssetlPath, true);
+            File.Copy(nodePath, tempNodelPath, true);
         }
 
-        public static void DeleteTemp(string assetPath)
+        public static void DeleteTemp(string nodePath)
         {
-            string tempAssetlPath = GetTempPath(assetPath);
-            string tempDirPath = Path.GetDirectoryName(tempAssetlPath)!;
+            string tempNodelPath = GetTempPath(nodePath);
+            string tempDirPath = Path.GetDirectoryName(tempNodelPath)!;
 
             if (Directory.Exists(tempDirPath))
                 Directory.Delete(tempDirPath, true);
@@ -386,7 +388,7 @@ namespace DuckPipe.Core
 
 
         #region EXECUTE TASK ON ASSET
-        public static void LaunchAsset(string filePath, AssetManagerForm form)
+        public static void LaunchNode(string filePath, AssetManagerForm form)
         {
             string LocalFile = GetTempPath(filePath);
             if (File.Exists(LocalFile))
@@ -408,18 +410,18 @@ namespace DuckPipe.Core
 
         }
 
-        public static void ExecAsset(string assetPath, AssetManagerForm form)
+        public static void ExecNode(string nodePath, AssetManagerForm form)
         {
-            if (LockAssetDepartment.IsLockedByUser(assetPath))
+            if (LockNodeFileManager.IsLockedByUser(nodePath))
             {
-                var ctx = ExtractAssetContext(assetPath);
+                var ctx = ExtractNodeContext(nodePath);
 
-                string LocalFile = GetTempPath(assetPath);
-                string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
+                string LocalFile = GetTempPath(nodePath);
+                string publishFolder = Path.Combine(ctx.NodeRoot, "dlv");
                 string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
                 string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
 
-                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Exec", ctx.AssetType, $"{ctx.Department}.bat");
+                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Exec", ctx.NodeType, $"{ctx.Department}.bat");
                 if (File.Exists(batPath))
                 {
                     Process.Start(new ProcessStartInfo
@@ -432,28 +434,28 @@ namespace DuckPipe.Core
             }
             else
             {
-                MessageBox.Show($"Please Grab Asset First");
+                MessageBox.Show($"Please Grab Node First");
             }
         }
 
-        public static void PublishAsset(string assetPath, AssetManagerForm form)
+        public static void PublishNode(string nodePath, AssetManagerForm form)
         {
-            if (LockAssetDepartment.IsLockedByUser(assetPath))
+            if (LockNodeFileManager.IsLockedByUser(nodePath))
             {
-                VersionAsset(assetPath, form);
+                VersionNode(nodePath, form);
 
-                var ctx = ExtractAssetContext(assetPath);
+                var ctx = ExtractNodeContext(nodePath);
 
-                string publishFolder = Path.Combine(ctx.AssetRoot, "dlv");
+                string publishFolder = Path.Combine(ctx.NodeRoot, "dlv");
                 Directory.CreateDirectory(publishFolder);
 
                 string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
                 string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
 
-                File.Copy(assetPath, publishedFilePath, overwrite: true);
-                MessageBox.Show($"Asset publié : {publishedFileName}", "Succès");
+                File.Copy(nodePath, publishedFilePath, overwrite: true);
+                MessageBox.Show($"Node publié : {publishedFileName}", "Succès");
 
-                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Publish", ctx.AssetType, $"{ctx.Department}.bat");
+                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Publish", ctx.NodeType, $"{ctx.Department}.bat");
                 if (File.Exists(batPath))
                 {
                     Process.Start(new ProcessStartInfo
@@ -463,48 +465,48 @@ namespace DuckPipe.Core
                         UseShellExecute = true
                     });
                 }
-                AddNote(assetPath, form);
-                MarkDownstreamDepartmentsOutdated(assetPath, ctx.Department);
-                form.WorkTabRefreshPanel(ctx.AssetRoot);
+                AddNote(nodePath, form);
+                MarkDownstreamDepartmentsOutdated(nodePath, ctx.Department);
+                form.RefreshTab(ctx.NodeRoot);
             }
             else
             {
-                MessageBox.Show($"Please Grab Asset First");
+                MessageBox.Show($"Please Grab Node First");
             }
         }
 
-        public static void VersionAsset(string assetPath, AssetManagerForm form)
+        public static void VersionNode(string nodePath, AssetManagerForm form)
         {
-            if (LockAssetDepartment.IsLockedByUser(assetPath))
+            if (LockNodeFileManager.IsLockedByUser(nodePath))
             {
 
-                string LocalFile = GetTempPath(assetPath);
-                if (!File.Exists(assetPath))
+                string LocalFile = GetTempPath(nodePath);
+                if (!File.Exists(nodePath))
                 {
                     MessageBox.Show("Fichier Local introuvable.");
                     return;
                 }
 
-                var ctx = ExtractAssetContext(assetPath);
+                var ctx = ExtractNodeContext(nodePath);
                 string incrementalsDir = Path.Combine(ctx.WorkFolder, "incrementals");
 
                 Directory.CreateDirectory(incrementalsDir);
 
-                int newVersion = GetLastWorkVersion(assetPath) + 1;
+                int newVersion = GetLastWorkVersion(nodePath) + 1;
                 string versionedFileName = $"{ctx.FileName}_v{newVersion:D3}{ctx.Extension}";
                 string destinationPath = Path.Combine(incrementalsDir, versionedFileName);
 
                 File.Copy(LocalFile, destinationPath);
-                File.Copy(LocalFile, assetPath, true);
+                File.Copy(LocalFile, nodePath, true);
                 MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
 
-                UpdateAssetMetadata(assetPath, newVersion, ctx.Department);
+                UpdateNodeMetadata(nodePath, newVersion, ctx.Department);
 
-                form.WorkTabRefreshPanel(ctx.AssetRoot);
+                form.RefreshTab(ctx.NodeRoot);
             }
             else
             {
-                MessageBox.Show($"Please Grab Asset First");
+                MessageBox.Show($"Please Grab Node First");
             }
         }
         #endregion
@@ -630,8 +632,8 @@ namespace DuckPipe.Core
                 string shotRoot = Path.Combine(seqDir, "Shots");
                 foreach (string shotDir in Directory.GetDirectories(shotRoot))
                 {
-                    string assetJsonPath = Path.Combine(shotDir, "Asset.json");
-                    if (File.Exists(assetJsonPath))
+                    string nodeJsonPath = Path.Combine(shotDir, "Node.json");
+                    if (File.Exists(nodeJsonPath))
                     {
                         shotPaths.Add(shotDir);
                     }
@@ -641,13 +643,13 @@ namespace DuckPipe.Core
             return shotPaths;
         }
 
-        public static Dictionary<string, Dictionary<string, Models.TaskData>> ParseAssetsFromPaths(List<string> assetPaths)
+        public static Dictionary<string, Dictionary<string, Models.TaskData>> ParseNodesFromPaths(List<string> nodePaths)
         {
             var result = new Dictionary<string, Dictionary<string, Models.TaskData>>();
 
-            foreach (var path in assetPaths)
+            foreach (var path in nodePaths)
             {
-                string assetName;
+                string nodeName;
 
                 // Shot
                 if (path.Contains("\\Shots\\Sequences\\" ))
@@ -657,19 +659,19 @@ namespace DuckPipe.Core
                     {
                         var sequenceName = parts[5];
                         var shotName = Path.GetFileName(path);
-                        assetName = $"{sequenceName}_{shotName}";
+                        nodeName = $"{sequenceName}_{shotName}";
 
                     }
                     else
                     {
-                        assetName = Path.GetFileName(path);
+                        nodeName = Path.GetFileName(path);
                     }
                 }
                 else
                 {
-                    assetName = Path.GetFileName(path);
+                    nodeName = Path.GetFileName(path);
                 }
-                string jsonPath = Path.Combine(path, "Asset.json");
+                string jsonPath = Path.Combine(path, "Node.json");
 
                 if (!File.Exists(jsonPath))
                     continue;
@@ -696,17 +698,17 @@ namespace DuckPipe.Core
                     taskDict[dept] = taskData;
                 }
 
-                result[assetName] = taskDict;
+                result[nodeName] = taskDict;
             }
 
             return result;
         }
 
-        public static Dictionary<string, Dictionary<string, Dictionary<string, Models.TaskData>>> GetAllAssetsInProduction(string prodPath)
+        public static Dictionary<string, Dictionary<string, Dictionary<string, Models.TaskData>>> GetAllNodesInProduction(string prodPath)
         {
             var result = new Dictionary<string, Dictionary<string, Dictionary<string, Models.TaskData>>>();
 
-            var assetTypes = new Dictionary<string, string>
+            var nodeTypes = new Dictionary<string, string>
     {
         { "Characters", "Assets\\Characters" },
         { "Props", "Assets\\Props" },
@@ -715,7 +717,7 @@ namespace DuckPipe.Core
     };
 
             // 
-            foreach (var kvp in assetTypes)
+            foreach (var kvp in nodeTypes)
             {
                 string typeName = kvp.Key;
                 string relativePath = kvp.Value;
@@ -724,14 +726,14 @@ namespace DuckPipe.Core
                 if (!Directory.Exists(fullPath))
                     continue;
 
-                var assetPaths = Directory.GetDirectories(fullPath).ToList();
-                var parsedAssets = ParseAssetsFromPaths(assetPaths);
-                result[typeName] = parsedAssets;
+                var nodePaths = Directory.GetDirectories(fullPath).ToList();
+                var parsedNodes = ParseNodesFromPaths(nodePaths);
+                result[typeName] = parsedNodes;
             }
 
             // shots
             var shotPaths = GetAllShotPaths(prodPath);
-            var parsedShots = ParseAssetsFromPaths(shotPaths);
+            var parsedShots = ParseNodesFromPaths(shotPaths);
             result["Shots"] = parsedShots;
 
             return result;

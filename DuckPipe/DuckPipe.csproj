@@ -10,11 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="AssetStructure.Json" />
+    <None Remove="NodeStructure.Json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Data\AssetStructure.Json">
+    <Content Include="Data\NodeStructure.Json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Icons\ducky.ico">

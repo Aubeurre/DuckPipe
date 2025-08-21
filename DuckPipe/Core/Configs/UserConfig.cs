@@ -5,7 +5,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace DuckPipe
+namespace DuckPipe.Core.Config
 {
     public class UserConfig
     {

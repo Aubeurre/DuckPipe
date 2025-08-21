@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace DuckPipe.Forms
 {
-    public partial class AddAssetIntoShot : Form
+    public partial class AddNodeIntoShot : Form
     {
-        public AddAssetIntoShot(string proodRootPath)
+        public AddNodeIntoShot(string proodRootPath)
         {
             InitializeComponent();
             LoadTreeView(proodRootPath);

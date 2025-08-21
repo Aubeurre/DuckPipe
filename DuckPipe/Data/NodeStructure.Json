@@ -1,0 +1,129 @@
+{
+    "Props": {
+        "dlv": {
+            "maps": {}
+        },
+        "Work": {
+        },
+        "Modeling": {
+            "incrementals": {
+                "_files": [ "{nodenamepipeplaceholder}_model_v000.ma" ]
+            },
+            "_files": [ "{nodenamepipeplaceholder}_model.ma" ]
+        },
+        "Cfx": {
+            "incrementals": {
+                "_files": [ "{nodenamepipeplaceholder}_cfx_v000.ma" ]
+            },
+            "_files": [ "{nodenamepipeplaceholder}_cfx.ma" ]
+        },
+        "Surf": {
+            "incrementals": {
+                "_files": [ "{nodenamepipeplaceholder}_look_v000.spp" ]
+            },
+            "_files": [ "{nodenamepipeplaceholder}_look.spp" ]
+        },
+        "Rig": {
+            "incrementals": {
+                "_files": [ "{nodenamepipeplaceholder}_rig_v000.ma" ]
+            },
+            "_files": [ "{nodenamepipeplaceholder}_rig.ma" ]
+        }
+    },
+    "Characters": {
+        "dlv": {
+            "maps": {}
+        },
+        "Work": {
+            "Modeling": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_model_v000.ma" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_model.ma" ]
+            },
+            "Facial": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_facial_v000.ma" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_facial.ma" ]
+            },
+            "Cfx": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_cfx_v000.ma" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_cfx.ma" ]
+            },
+            "Groom": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_groom_v000.ma" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_groom.ma" ]
+            },
+            "Surf": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_look_v000.spp" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_look.spp" ]
+            },
+            "Rig": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_rig_v000.ma" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_rig.ma" ]
+            }
+        }
+    },
+    "Environments": {
+        "preprod": {},
+        "dlv": {},
+        "Work": {
+            "Assemble": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_assemble_v000.ma" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_assemble.ma" ]
+            }
+        }
+    },
+    "Sequences": {
+        "Work": {
+            "Previz": {
+                "incrementals": {
+                    "_files": [ "S{nodenamepipeplaceholder}_Previz_v000.ma" ]
+                },
+                "_files": [ "S{nodenamepipeplaceholder}_Previz.ma" ]
+            }
+        },
+        "Shots": {}
+    },
+    "Shots": {
+        "blast": {},
+        "dlv": {},
+        "Work": {
+            "Layout": {
+                "incrementals": {
+                    "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_layout_v000.ma" ]
+                },
+                "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_layout.ma" ]
+            },
+            "Anim": {
+                "incrementals": {
+                    "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_anim_v000.ma" ]
+                },
+                "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_anim.ma" ]
+            },
+            "Cfx": {
+                "incrementals": {
+                    "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_cfx_v000.ma" ]
+                },
+                "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_cfx.ma" ]
+            },
+            "Lighting": {
+                "incrementals": {
+                    "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_light_v000.ma" ]
+                },
+                "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_light.ma" ]
+            }
+        }
+    }
+}
