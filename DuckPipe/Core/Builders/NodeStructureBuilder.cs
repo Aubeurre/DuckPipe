@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Forms;
+using DuckPipe.Core.Manipulator;
 using DuckPipe.Core.Services;
 using static System.Windows.Forms.Design.AxImporter;
 
@@ -60,7 +61,9 @@ namespace DuckPipe.Core
 
             if (structure.Name == "Shots")
             {
-                string cleanPath = Path.Combine(Path.GetDirectoryName(nodePath), $"P{nodeName}");
+                string onlyShotName = nodeName.Split('-')[1];
+                string onlyShotNum = nodeName.Split('P')[1];
+                string cleanPath = Path.Combine(Path.GetDirectoryName(nodePath), onlyShotName);
                 Directory.CreateDirectory(cleanPath);
                 string jsonPath = CreateShotJson(rootPath, cleanPath, structure, nodeName, Description, rangeIn, rangeOut);
 
@@ -71,12 +74,12 @@ namespace DuckPipe.Core
                 AddNodeIntoShot(jsonPath, "", "Characters");
                 AddNodeIntoShot(jsonPath, "", "Props");
                 AddNodeIntoShot(jsonPath, "", "Environments");
-                AddNodeIntoGlobalJson(prodPath, nodePath, $"P{nodeName}", structure.Name);
+                AddNodeIntoGlobalJson(prodPath, nodePath, nodeName, structure.Name);
             }
 
             if (structure.Name == "Sequences")
             {
-                string cleanPath = Path.Combine(Path.GetDirectoryName(nodePath), $"S{nodeName}");
+                string cleanPath = Path.Combine(Path.GetDirectoryName(nodePath), nodeName);
                 Directory.CreateDirectory(cleanPath);
                 CreateSeqJson(rootPath, cleanPath, structure, nodeName, Description);
 
@@ -84,7 +87,7 @@ namespace DuckPipe.Core
                 {
                     CreateNode(Path.Combine(cleanPath, kvp.Key), kvp.Value, nodeName);
                 }
-                AddNodeIntoGlobalJson(prodPath, nodePath, $"S{nodeName}", structure.Name);
+                AddNodeIntoGlobalJson(prodPath, nodePath, nodeName, structure.Name);
             }
 
         }
@@ -138,6 +141,9 @@ namespace DuckPipe.Core
         {
             var workfileData = new Dictionary<string, object>();
             var taskData = new Dictionary<string, object>();
+            string relativePath = Path.GetRelativePath(rootPath, nodePath);
+            string firstFolder = relativePath.Split(Path.DirectorySeparatorChar)[0];
+            string prodPath = Path.Combine(rootPath, firstFolder);
 
             if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
             {
@@ -152,9 +158,9 @@ namespace DuckPipe.Core
                     string deptUpper = deptName.ToUpper();
                     string deptLower = deptName.ToLower();
 
-                    string workPath = Path.Combine(nodePath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName);
+                    string workPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "Work", deptName);
                     string incrementalPath = Path.Combine(workPath, "incrementals");
-                    string publishPath = Path.Combine(nodePath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "dlv");
+                    string publishPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "dlv");
 
                     if (deptNode.Files != null)
                     {
@@ -164,6 +170,15 @@ namespace DuckPipe.Core
                             string extension = Path.GetExtension(workFile);
                             string baseName = Path.GetFileNameWithoutExtension(workFile);
                             string publishFile = $"{baseName}_OK{extension}";
+
+                            // Liste de refNodes par défaut
+                            var refNodes = new List<string>();
+
+                            // Si on est en LAYOUT, on ajoute la caméra
+                            if (deptUpper == "LAYOUT")
+                            {
+                                refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(prodPath), "Shots", "Templates", "studioCamera.ma"));
+                            }
 
                             workfileData[workFile] = new
                             {
@@ -175,7 +190,8 @@ namespace DuckPipe.Core
                                 incrementalPath = incrementalPath,
                                 workFile = workFile,
                                 publishName = publishFile,
-                                lastModified = ""
+                                lastModified = "",
+                                refNodes = refNodes
                             };
                         }
 
@@ -217,6 +233,9 @@ namespace DuckPipe.Core
 
             var workfileData = new Dictionary<string, object>();
             var taskData = new Dictionary<string, object>();
+            string relativePath = Path.GetRelativePath(rootPath, nodePath);
+            string firstFolder = relativePath.Split(Path.DirectorySeparatorChar)[0];
+            string prodPath = Path.Combine(rootPath, firstFolder);
 
             if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
             {
@@ -235,9 +254,18 @@ namespace DuckPipe.Core
                     string sequenceName = sequenceFolder.StartsWith("S") ? sequenceFolder.Substring(1) : sequenceFolder;
 
 
-                    string workPath = Path.Combine(nodePath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName);
+                    string workPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "Work", deptName);
                     string incrementalPath = Path.Combine(workPath, "incrementals");
-                    string publishPath = Path.Combine(nodePath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "dlv");
+                    string publishPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "dlv");
+
+                    // Liste de refNodes par défaut
+                    var refNodes = new List<string>();
+
+                    // Si on est en LAYOUT, on ajoute la caméra
+                    if (deptUpper == "LAYOUT")
+                    {
+                        refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(prodPath), "Shots", "Templates", "studioCamera.ma"));
+                    }
 
                     if (deptNode.Files != null)
                     {
@@ -260,7 +288,8 @@ namespace DuckPipe.Core
                                 incrementalPath = incrementalPath,
                                 workFile = workFile,
                                 publishName = publishFile,
-                                lastModified = ""
+                                lastModified = "",
+                                refNodes = refNodes
                             };
                         }
 
@@ -299,6 +328,9 @@ namespace DuckPipe.Core
 
             var workfileData = new Dictionary<string, object>();
             var taskData = new Dictionary<string, object>();
+            string relativePath = Path.GetRelativePath(rootPath, nodePath);
+            string firstFolder = relativePath.Split(Path.DirectorySeparatorChar)[0];
+            string prodPath = Path.Combine(rootPath, firstFolder);
 
             if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
             {
@@ -314,9 +346,9 @@ namespace DuckPipe.Core
                     string deptLower = deptName.ToLower();
                     string sequenceName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(nodePath)));
 
-                    string workPath = Path.Combine(nodePath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "Work", deptName);
+                    string workPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "Work", deptName);
                     string incrementalPath = Path.Combine(workPath, "incrementals");
-                    string publishPath = Path.Combine(nodePath.Replace(rootPath, "${DUCKPIPE_ROOT}"), "dlv");
+                    string publishPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "dlv");
 
                     if (deptNode.Files != null)
                     {
@@ -329,6 +361,15 @@ namespace DuckPipe.Core
                             string baseName = Path.GetFileNameWithoutExtension(workFile);
                             string publishFile = $"{baseName}_OK{extension}";
 
+                            // Liste de refNodes par défaut
+                            var refNodes = new List<string>();
+
+                            // Si on est en LAYOUT, on ajoute la caméra
+                            if (deptUpper == "LAYOUT")
+                            {
+                                refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(prodPath), "Shots", "Templates", "studioCamera.ma"));
+                            }
+
                             workfileData[workFile] = new
                             {
                                 department = deptUpper,
@@ -339,7 +380,8 @@ namespace DuckPipe.Core
                                 incrementalPath = incrementalPath,
                                 workFile = workFile,
                                 publishName = publishFile,
-                                lastModified = ""
+                                lastModified = "",
+                                refNodes = refNodes
                             };
                         }
 
@@ -504,7 +546,7 @@ namespace DuckPipe.Core
         public static void AddNodeIntoGlobalJson(string prodPath, string nodePath, string nodeName, string nodeType)
         {
 
-            string globaljsonPath = Path.Combine(prodPath, "Dev", "DangerZone", "allNodes.json");
+            string globaljsonPath = Path.Combine(NodeManip.SetEnvVariables(prodPath), "Dev", "DangerZone", "allNodes.json");
 
             Dictionary<string, NodeInfo> allNodes;
 

@@ -5,13 +5,15 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DuckPipe.Core.Config;
-using DuckPipe.Core.Model;
 
 namespace DuckPipe.Core.Services
 {
     internal class ProductionService
     {
-
+        public static string GetUserName()
+        {
+            return UserConfig.Get().User;
+        }
         public static string GetProductionRootPath()
         {
             string envPath = UserConfig.Get().ProdBasePath;

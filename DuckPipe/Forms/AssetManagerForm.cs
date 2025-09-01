@@ -13,13 +13,11 @@ using System;
 using System.Text.Json.Nodes;
 using System.Windows.Forms;
 using DuckPipe.Core.Services;
-using DuckPipe.Core.Model;
 using DuckPipe.Core.Utils;
 using DuckPipe.Forms.Builder.NodeTab;
 using DuckPipe.Forms.Builder.Shared;
 using DuckPipe.Forms.Builder.Tabs;
 using DuckPipe.Core.Config;
-using DuckPipe.Core.Models;
 
 namespace DuckPipe
 {
@@ -146,6 +144,7 @@ namespace DuckPipe
         private void tvNodeList_AfterSelect(object sender, TreeViewEventArgs e)
         {
             string selectedProd = cbProdList.SelectedItem?.ToString();
+            string productionPath = GetSelectedProductionPath();
 
             // ON CHECK SI LA SELECTION EST DANS UN ASSET VALIDE
             string nodePath = TreeViewBuilder.GetPathFromNode(e.Node);
@@ -177,7 +176,7 @@ namespace DuckPipe
             }
 
             // ON CHARGE LES PANELS DE TRAVAIL ET D'ASSET
-            var nodeStructures = NodeStructureBuilder.LoadNodeStructures(ctx.ProductionPath);
+            var nodeStructures = NodeStructureBuilder.LoadNodeStructures(productionPath);
 
             if (nodeStructures != null && nodeStructures.TryGetValue(ctx.NodeType, out var structure))
             {
@@ -186,7 +185,7 @@ namespace DuckPipe
 
                 WorkTabBuilder.DisplayDepartments(WorkTabBuilder.GetContext(nodePath, selectedProd));
                 NodeTabBuilder.DisplayDepartments(NodeTabBuilder.GetContext(nodePath, selectedProd));
-                WorkTabBuilder.DisplayHeader( jsonNode, ctx, WorkTabBuilder.GetContext(nodePath, selectedProd));
+                WorkTabBuilder.DisplayHeader(jsonNode, ctx, WorkTabBuilder.GetContext(nodePath, selectedProd));
                 NodeTabBuilder.DisplayHeader(NodeTabBuilder.GetContext(nodePath, selectedProd));
             }
             else
@@ -232,7 +231,7 @@ namespace DuckPipe
         {
             string selectedPath = tvNodeList.SelectedNode?.Tag as string;
             FileExplorerService.OpenInExplorer(selectedPath);
-        }        
+        }
 
         private void cbProdList_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -244,30 +243,75 @@ namespace DuckPipe
             }
         }
 
-        private void btCreateNode_Click(object sender, EventArgs e)
+        private void btCreateAsset_Click(object sender, EventArgs e)
         {
-            // Ouvre le formulaire de création d'node
-            using (var form = new CreateNodePopup(this))
+            // Ouvre le formulaire de création d'asset
+            using (var form = new CreateAssetPopup(this))
             {
                 if (form.ShowDialog() != DialogResult.OK)
                     return;
 
                 string newItemName = form.NodeName.Trim();
                 string newItemType = form.NodeType;
-                string seqName = form.SeqName.Trim();
                 string Description = form.Description.Trim();
-                string rangeIn = form.rangeIn.Trim();
-                string rangeOut = form.rangeOut.Trim();
 
                 string selectedProd = cbProdList.SelectedItem?.ToString();
                 string rootPath = ProductionService.GetProductionRootPath();
                 string prodPath = Path.Combine(rootPath, selectedProd);
 
-                NodeService.createNode(prodPath, newItemName, newItemType, seqName, Description, rangeIn, rangeOut);
+                
+                NodeService.CreateAsset(prodPath, newItemName, newItemType, Description);
 
                 // Recharger  TreeView
                 LoadTreeViewFromFolder(rootPath, selectedProd);
             }
+        }
+
+        private void btCreateSeq_Click(object sender, EventArgs e)
+        {
+            // Ouvre le formulaire de création de séquence
+            using (var form = new CreateSequencePopup(this))
+            {
+                if (form.ShowDialog() != DialogResult.OK)
+                    return;
+                string newSeqName = $"S{form.NodeName.Trim()}";
+                string Description = form.Description.Trim();
+                string selectedProd = cbProdList.SelectedItem?.ToString();
+                string rootPath = ProductionService.GetProductionRootPath();
+                string prodPath = Path.Combine(rootPath, selectedProd);
+                NodeService.CreateSequence(prodPath, newSeqName, Description);
+
+                foreach (var shot in form.GetShots())
+                {
+                    NodeService.CreateShot(prodPath, newSeqName, shot.Name, shot.Description, shot.RangeIn, shot.RangeOut);
+                }
+
+                // Recharger  TreeView
+                LoadTreeViewFromFolder(rootPath, selectedProd);
+            }
+
+        }
+
+        private void btCreateShot_Click(object sender, EventArgs e)
+        {
+            // Ouvre le formulaire de création de séquence
+            using (var form = new CreateShotPopup(this))
+            {
+                if (form.ShowDialog() != DialogResult.OK)
+                    return;
+                string newShotName = $"P{form.NodeName.Trim()}";
+                string seqName = form.HostName;
+                string Description = form.Description.Trim();
+                string rangeIn = form.RangeIn.Trim();
+                string rangeOut = form.RangeOut.Trim();
+                string selectedProd = cbProdList.SelectedItem?.ToString();
+                string rootPath = ProductionService.GetProductionRootPath();
+                string prodPath = Path.Combine(rootPath, selectedProd);
+                NodeService.CreateShot(prodPath, seqName, newShotName, Description, rangeIn, rangeOut);
+                // Recharger  TreeView
+                LoadTreeViewFromFolder(rootPath, selectedProd);
+            }
+
         }
 
         private void btnCreateProduction_Click(object sender, EventArgs e)
@@ -331,7 +375,7 @@ namespace DuckPipe
                     {
                         NodeName = form.NodeName,
                         Department = form.Department,
-                        Artist = Environment.UserName,
+                        Artist = ProductionService.GetUserName(),
                         Hours = form.Hours,
                         Date = DateTime.Now
                     };
@@ -361,5 +405,6 @@ namespace DuckPipe
 
         }
         #endregion
+
     }
 }

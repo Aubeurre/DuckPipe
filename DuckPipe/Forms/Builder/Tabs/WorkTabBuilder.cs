@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using DuckPipe.Core.Services;
 using DuckPipe.Core.Utils;
 using System.Text.Json.Nodes;
-using DuckPipe.Core.Model;
 using System.Windows.Forms;
 using DuckPipe.Core.Manager;
 using DuckPipe.Core.Manipulator;
@@ -343,7 +342,7 @@ namespace DuckPipe.Forms.Builder.Tabs
             else
             {
                 lockedByUser = File.ReadAllText(lockFile);
-                if (lockedByUser == Environment.UserName)
+                if (lockedByUser == ProductionService.GetUserName())
                 {
                     Button ungrabBtn = CreateActionButton("Ungrab", LockNodeFileManager.UnlockFile, form, nodePath); //if user is grabbed
                     flpDeptButton.Controls.Add(ungrabBtn);
@@ -353,14 +352,23 @@ namespace DuckPipe.Forms.Builder.Tabs
             flpDeptButton.Controls.Add(runBtn);
             if (File.Exists(lockFile))
             {
-                // AddButton("Exec", NodeManip.ExecNode, form); // A voir avec les scripts, pour initialiser la scene
-                Button incrementBtn = CreateActionButton("Increment", NodeManip.VersionNode, form, nodePath); //if user is grabbed
-                flpDeptButton.Controls.Add(incrementBtn);
-                Button publishBtn = CreateActionButton("Publish", NodeManip.PublishNode, form, nodePath); //if user is grabbed
-                flpDeptButton.Controls.Add(publishBtn);
+                lockedByUser = File.ReadAllText(lockFile);
+                if (lockedByUser == ProductionService.GetUserName())
+                {
+                    Button ExecBtn = CreateActionButton("Exec", NodeManip.ExecNode, form, nodePath); //if user is grabbed
+                    flpDeptButton.Controls.Add(ExecBtn);
+                    Button incrementBtn = CreateActionButton("Increment", NodeManip.VersionNode, form, nodePath); //if user is grabbed
+                    flpDeptButton.Controls.Add(incrementBtn);
+                    Button publishBtn = CreateActionButton("Publish", NodeManip.PublishNode, form, nodePath); //if user is grabbed
+                    flpDeptButton.Controls.Add(publishBtn);
+                }
+                    
             }
             Button addBtn = CreateActionButton("Add Note", NodeManip.AddNote, form, nodePath);
             flpDeptButton.Controls.Add(addBtn);
+
+            Button editRefNode = CreateActionButton("Edit Ref Node", NodeManip.AddRef, form, nodePath);
+            flpDeptButton.Controls.Add(editRefNode);
         }
 
         public static void DisplayCommitsPanel(

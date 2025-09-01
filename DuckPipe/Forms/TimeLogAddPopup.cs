@@ -25,7 +25,6 @@ namespace DuckPipe.Forms
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            {
                 NodeName = cbNode.SelectedItem?.ToString();
                 Department = cbDepartment.SelectedItem?.ToString();
                 Hours = tbTimeLogged.Text.Trim();
@@ -38,7 +37,11 @@ namespace DuckPipe.Forms
 
                 DialogResult = DialogResult.OK;
                 Close();
-            }
+        }
+
+        private void cbDepartment_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

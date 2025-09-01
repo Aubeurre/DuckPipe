@@ -38,8 +38,12 @@ namespace DuckPipe
             tsmiDelete = new ToolStripMenuItem();
             viewInExplorerToolStripMenuItem = new ToolStripMenuItem();
             panel1 = new Panel();
-            btnCreateProduction = new Button();
+            groupBox1 = new GroupBox();
+            flowLayoutPanel3 = new FlowLayoutPanel();
             btCreateNode = new Button();
+            button2 = new Button();
+            button3 = new Button();
+            btnCreateProduction = new Button();
             cbProdList = new ComboBox();
             menuStrip1 = new MenuStrip();
             settingsToolStripMenuItem = new ToolStripMenuItem();
@@ -106,6 +110,8 @@ namespace DuckPipe
             lblTotalProjectShots = new Label();
             contextMenuTree.SuspendLayout();
             panel1.SuspendLayout();
+            groupBox1.SuspendLayout();
+            flowLayoutPanel3.SuspendLayout();
             menuStrip1.SuspendLayout();
             plNodeTaskInfo.SuspendLayout();
             pnlPipelineStatus.SuspendLayout();
@@ -153,7 +159,7 @@ namespace DuckPipe
             tvNodeList.LineColor = Color.White;
             tvNodeList.Location = new Point(12, 65);
             tvNodeList.Name = "tvNodeList";
-            tvNodeList.Size = new Size(193, 432);
+            tvNodeList.Size = new Size(193, 401);
             tvNodeList.TabIndex = 0;
             tvNodeList.AfterSelect += tvNodeList_AfterSelect;
             // 
@@ -161,35 +167,35 @@ namespace DuckPipe
             // 
             contextMenuTree.Items.AddRange(new ToolStripItem[] { tsmiRename, tsmiDelete, viewInExplorerToolStripMenuItem });
             contextMenuTree.Name = "contextMenuTree";
-            contextMenuTree.Size = new Size(158, 70);
+            contextMenuTree.Size = new Size(181, 92);
             contextMenuTree.Opening += contextMenuTree_Opening;
             // 
             // tsmiRename
             // 
             tsmiRename.Name = "tsmiRename";
-            tsmiRename.Size = new Size(157, 22);
+            tsmiRename.Size = new Size(180, 22);
             tsmiRename.Text = "Rename";
             tsmiRename.Click += tsmiRename_Click;
             // 
             // tsmiDelete
             // 
             tsmiDelete.Name = "tsmiDelete";
-            tsmiDelete.Size = new Size(157, 22);
+            tsmiDelete.Size = new Size(180, 22);
             tsmiDelete.Text = "Delete";
             tsmiDelete.Click += tsmiDelete_Click;
             // 
             // viewInExplorerToolStripMenuItem
             // 
             viewInExplorerToolStripMenuItem.Name = "viewInExplorerToolStripMenuItem";
-            viewInExplorerToolStripMenuItem.Size = new Size(157, 22);
+            viewInExplorerToolStripMenuItem.Size = new Size(180, 22);
             viewInExplorerToolStripMenuItem.Text = "View in explorer";
             viewInExplorerToolStripMenuItem.Click += viewInExplorerToolStripMenuItem_Click;
             // 
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(45, 45, 45);
+            panel1.Controls.Add(groupBox1);
             panel1.Controls.Add(btnCreateProduction);
-            panel1.Controls.Add(btCreateNode);
             panel1.Controls.Add(cbProdList);
             panel1.Controls.Add(tvNodeList);
             panel1.Controls.Add(menuStrip1);
@@ -200,6 +206,73 @@ namespace DuckPipe
             panel1.Name = "panel1";
             panel1.Size = new Size(227, 540);
             panel1.TabIndex = 2;
+            // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(flowLayoutPanel3);
+            groupBox1.ForeColor = Color.WhiteSmoke;
+            groupBox1.Location = new Point(12, 472);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(193, 58);
+            groupBox1.TabIndex = 9;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Create";
+            // 
+            // flowLayoutPanel3
+            // 
+            flowLayoutPanel3.Controls.Add(btCreateNode);
+            flowLayoutPanel3.Controls.Add(button2);
+            flowLayoutPanel3.Controls.Add(button3);
+            flowLayoutPanel3.Dock = DockStyle.Fill;
+            flowLayoutPanel3.Location = new Point(3, 19);
+            flowLayoutPanel3.Name = "flowLayoutPanel3";
+            flowLayoutPanel3.Size = new Size(187, 36);
+            flowLayoutPanel3.TabIndex = 9;
+            // 
+            // btCreateNode
+            // 
+            btCreateNode.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            btCreateNode.BackColor = Color.FromArgb(80, 80, 80);
+            btCreateNode.FlatAppearance.BorderSize = 0;
+            btCreateNode.FlatStyle = FlatStyle.Flat;
+            btCreateNode.ForeColor = Color.White;
+            btCreateNode.Location = new Point(3, 3);
+            btCreateNode.Name = "btCreateNode";
+            btCreateNode.Size = new Size(51, 25);
+            btCreateNode.TabIndex = 1;
+            btCreateNode.Text = "Asset";
+            btCreateNode.UseVisualStyleBackColor = false;
+            btCreateNode.Click += btCreateAsset_Click;
+            // 
+            // button2
+            // 
+            button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            button2.BackColor = Color.FromArgb(80, 80, 80);
+            button2.FlatAppearance.BorderSize = 0;
+            button2.FlatStyle = FlatStyle.Flat;
+            button2.ForeColor = Color.White;
+            button2.Location = new Point(60, 3);
+            button2.Name = "button2";
+            button2.Size = new Size(56, 25);
+            button2.TabIndex = 2;
+            button2.Text = "Seq";
+            button2.UseVisualStyleBackColor = false;
+            button2.Click += btCreateSeq_Click;
+            // 
+            // button3
+            // 
+            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            button3.BackColor = Color.FromArgb(80, 80, 80);
+            button3.FlatAppearance.BorderSize = 0;
+            button3.FlatStyle = FlatStyle.Flat;
+            button3.ForeColor = Color.White;
+            button3.Location = new Point(122, 3);
+            button3.Name = "button3";
+            button3.Size = new Size(61, 25);
+            button3.TabIndex = 3;
+            button3.Text = "Shot";
+            button3.UseVisualStyleBackColor = false;
+            button3.Click += btCreateShot_Click;
             // 
             // btnCreateProduction
             // 
@@ -216,21 +289,6 @@ namespace DuckPipe
             btnCreateProduction.Text = "+";
             btnCreateProduction.UseVisualStyleBackColor = false;
             btnCreateProduction.Click += btnCreateProduction_Click;
-            // 
-            // btCreateNode
-            // 
-            btCreateNode.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            btCreateNode.BackColor = Color.FromArgb(80, 80, 80);
-            btCreateNode.FlatAppearance.BorderSize = 0;
-            btCreateNode.FlatStyle = FlatStyle.Flat;
-            btCreateNode.ForeColor = Color.White;
-            btCreateNode.Location = new Point(12, 503);
-            btCreateNode.Name = "btCreateNode";
-            btCreateNode.Size = new Size(193, 25);
-            btCreateNode.TabIndex = 0;
-            btCreateNode.Text = "Add New";
-            btCreateNode.UseVisualStyleBackColor = false;
-            btCreateNode.Click += btCreateNode_Click;
             // 
             // cbProdList
             // 
@@ -1111,6 +1169,8 @@ namespace DuckPipe
             contextMenuTree.ResumeLayout(false);
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            groupBox1.ResumeLayout(false);
+            flowLayoutPanel3.ResumeLayout(false);
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             plNodeTaskInfo.ResumeLayout(false);
@@ -1160,7 +1220,6 @@ namespace DuckPipe
 
         private TreeView tvNodeList;
         private Panel panel1;
-        private Button btCreateNode;
         private Button btnCreateProduction;
         private ContextMenuStrip contextMenuTree;
         private ToolStripMenuItem tsmiRename;
@@ -1230,5 +1289,10 @@ namespace DuckPipe
         public ComboBox cbbGraphList;
         private FlowLayoutPanel flpAllDeptTimeLogsGraphs;
         public IconComboBox cbbNodeStatus;
+        private GroupBox groupBox1;
+        private FlowLayoutPanel flowLayoutPanel3;
+        private Button btCreateNode;
+        private Button button2;
+        private Button button3;
     }
 }

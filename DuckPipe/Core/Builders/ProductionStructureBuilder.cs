@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using DuckPipe.Core.Services;
 using Microsoft.VisualBasic.ApplicationServices;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -23,14 +24,17 @@ namespace DuckPipe.Core
             CreateDefaultFolders(prodPath);
             CopyNodeStructure(prodPath);
             CopyTools(prodPath);
-
-            name = prodName;
-            created = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-            version = "1.0";
-            deliveryDay = DateTime.Now.AddDays(365).ToString("yyyy-MM-dd");
-
-            InitializeDefaultDepartments();
+            CreateDefaultTemplateScene(prodPath);
             SaveProductionConfig(prodPath);
+        }
+
+        private void CreateDefaultTemplateScene(string prodPath)
+        {
+            // Implementation for creating a default template scene can be added here.
+            // This could involve copying a predefined scene file into the appropriate directory.
+            string templateScenePath = Path.Combine(prodPath, "Shots", "Templates", "studioCamera.ma");
+            if (!File.Exists(templateScenePath))
+                MayaService.CreateBasicMaFile(templateScenePath, "studioCamera.ma");
         }
 
         private void CreateDefaultFolders(string prodPath)
@@ -40,8 +44,8 @@ namespace DuckPipe.Core
                 "Assets/Characters",
                 "Assets/Props",
                 "Assets/Environments",
-                "Assets/Template",
-                "Shots/Template",
+                "Assets/Templates",
+                "Shots/Templates",
                 "Shots/Sequences",
                 "Renders",
                 "IO/In",
@@ -66,7 +70,7 @@ namespace DuckPipe.Core
         {
             string nodeStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "NodeStructure.json");
             string targetPath = Path.Combine(prodPath, "Dev", "DangerZone", "NodeStructure.json");
-            File.Copy(nodeStructurePath, targetPath, overwrite: true);
+            File.Copy(nodeStructurePath, targetPath, overwrite: false);
         }
 
         private void CopyTools(string prodPath)
@@ -96,12 +100,23 @@ namespace DuckPipe.Core
                 ["Cfx"] = new DepartmentStructure { downstream = new() { "Rig" } },
                 ["Groom"] = new DepartmentStructure { downstream = new() { "Rig" } },
                 ["Surf"] = new DepartmentStructure { downstream = new() { "Rig" } },
-                ["Rig"] = new DepartmentStructure { downstream = new() }
+                ["Rig"] = new DepartmentStructure { downstream = new() },
+                ["Layout"] = new DepartmentStructure { downstream = new() { "Anim", "Lighting", "Comp", "Cfx" } },
+                ["Anim"] = new DepartmentStructure { downstream = new() { "Lighting", "Comp", "Cfx" } },
+                ["Cfx"] = new DepartmentStructure { downstream = new() { "Comp" } },
+                ["Lighting"] = new DepartmentStructure { downstream = new() { "Comp" } }
             };
         }
 
         private void SaveProductionConfig(string prodPath)
         {
+            InitializeDefaultDepartments();
+
+            name = Path.GetFileName(prodPath);
+            created = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+            version = "1.0";
+            deliveryDay = DateTime.Now.AddDays(365).ToString("yyyy-MM-dd");
+
             var config = new
             {
                 name,
@@ -116,7 +131,8 @@ namespace DuckPipe.Core
             { "upToDate", "icons/APP.png" },
             { "wip", "icons/WIP.png" },
             { "pendingReview", "icons/PR.png" },
-            { "rtk", "icons/RTK.png" }
+            { "rtk", "icons/RTK.png" },
+            { "omit", "icons/OMIT.png" }
         },
                 color = new Dictionary<string, Color>
             {
@@ -128,19 +144,19 @@ namespace DuckPipe.Core
                 { "LIGHTING", Color.Gold },
                 { "GROOM", Color.MediumSpringGreen },
                 { "SURF", Color.LightSeaGreen },
-                { "PREVIZ", Color.CornflowerBlue },
                 { "LAYOUT", Color.DimGray },
                 { "ART", Color.OliveDrab }
         },
             Users = new List<string>()
                 {
-                    Environment.UserName.ToString(),
+                    ProductionService.GetUserName().ToString(),
                 }
             };
 
             string configPath = Path.Combine(prodPath, "Dev", "DangerZone", "config.json");
             var options = new JsonSerializerOptions { WriteIndented = true };
-            File.WriteAllText(configPath, JsonSerializer.Serialize(config, options));
+            if (!Directory.Exists(configPath))
+                File.WriteAllText(configPath, JsonSerializer.Serialize(config, options));
         }
 
         public void Check(string prodName, string prodPath)
@@ -148,6 +164,9 @@ namespace DuckPipe.Core
             string fullPath = Path.Combine(prodPath, prodName);
             CreateDefaultFolders(fullPath);
             CopyTools(fullPath);
+            CreateDefaultTemplateScene(fullPath);
+            SaveProductionConfig(fullPath);
+            CopyNodeStructure(fullPath);
         }
     }
 

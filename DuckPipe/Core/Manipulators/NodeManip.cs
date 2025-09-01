@@ -11,15 +11,19 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using DuckPipe.Core.Model;
 using DuckPipe.Core.Services;
 using DuckPipe.Core.Manager;
 using DuckPipe.Core.Config;
+using DuckPipe.Core.Utils;
+using System.Text.Json.Nodes;
+using DuckPipe.Forms;
 
 namespace DuckPipe.Core.Manipulator
 {
     public static class NodeManip
     {
+        // faudra revoir car tout ca gere pas un node mais un workfile
+        // un node est un ensemble de workfiles
         public class NodeContext
         {
             public string FileName { get; set; }
@@ -65,6 +69,17 @@ namespace DuckPipe.Core.Manipulator
 
             string jsonText = File.ReadAllText(nodeJsonPath);
             return JsonDocument.Parse(jsonText);
+        }
+
+        public static string SetEnvVariables(string path)
+        {
+            string envPath = UserConfig.Get().ProdBasePath;
+            if (!Directory.Exists(envPath))
+            {
+                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n{envPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+            return path.Replace(envPath ?? "", "${DUCKPIPE_ROOT}\\");
         }
 
         public static string ReplaceEnvVariables(string path)
@@ -221,7 +236,6 @@ namespace DuckPipe.Core.Manipulator
             {
                 AddPublishLog(ctx.WorkFolder, ctx.FileName, versionName, msgPopup.CommitMessage);
             }
-            UpdateNodeMetadata(nodePath, versionName, ctx.Department);
             form.RefreshTab(ctx.NodeRoot);
         }
 
@@ -254,20 +268,12 @@ namespace DuckPipe.Core.Manipulator
             {
                 Version = version.ToString("D3"),
                 Timestamp = DateTime.Now,
-                User = Environment.UserName,
+                User = ProductionService.GetUserName(),
                 Message = message
             });
 
             string updatedJson = JsonSerializer.Serialize(entries, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(changelogPath, updatedJson);
-        }
-
-        public class CommitEntry
-        {
-            public string Version { get; set; }
-            public DateTime Timestamp { get; set; }
-            public string User { get; set; }
-            public string Message { get; set; }
         }
 
         private static void UpdateNodeMetadata(string nodePath, int version, string deptName)
@@ -355,7 +361,165 @@ namespace DuckPipe.Core.Manipulator
         }
         #endregion
 
+        public static List<string> GetAllRefs(string nodePath)
+        {
+            var ctx = ExtractNodeContext(nodePath);
 
+            string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
+            var jsonNode = JsonHelper.ParseJson(jsonPath);
+
+            List<string> allRefs = new List<string>();
+            if (jsonNode?["workfile"] is JsonObject workfiles)
+            {
+                foreach (var wf in workfiles)
+                {
+                    string fileName = wf.Key;
+                    JsonObject wfData = wf.Value!.AsObject();
+
+                    string dept = wfData["department"]?.GetValue<string>() ?? "";
+                    if (dept.ToLower() == ctx.Department.ToLower())
+                    {
+
+                        if (wfData["refNodes"] is JsonArray refs)
+                        {
+                            foreach (var r in refs)
+                            {
+                                string refPath = r?.GetValue<string>() ?? "";
+                                if (!string.IsNullOrEmpty(refPath))
+                                {
+                                    refPath = ReplaceEnvVariables(refPath);
+                                    allRefs.Add(refPath);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return allRefs;
+        }
+
+        public static void AddRef(string nodePath, AssetManagerForm form)
+        {
+            var ctx = ExtractNodeContext(nodePath);
+            string prodPath = Path.Combine(ctx.RootPath, ctx.ProdName);
+
+            var nodesDict = GetAllNodesInProduction(prodPath);
+            var allNodes = nodesDict.SelectMany(typeEntry => typeEntry.Value.Select(nodeEntry => $"{typeEntry.Key}/{nodeEntry.Key}")).ToList(); //CRADE DE FOU
+
+            using (var popup = new AddreferencesPopup(allNodes, nodePath))
+            {
+                if (popup.ShowDialog() == DialogResult.OK)
+                {
+                    string NodeName = popup.NodeName;
+                    string Department = popup.Department;
+                    string PublishPath = NodeService.GetPublishPath(ctx.ProdName, NodeName.Split("/")[0], NodeName.Split("/")[1], Department, ctx.Extension);
+                    string EnvVarPath = SetEnvVariables(PublishPath);
+                    MessageBox.Show($"Référence ajoutée avec succès.\n{EnvVarPath}");
+
+                    // on ajoute la ref dans le json du node au departement demandé
+                    string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
+
+                    var json = File.ReadAllText(jsonPath);
+                    var options = new JsonSerializerOptions { WriteIndented = true };
+
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    var updatedNodeData = new Dictionary<string, object>();
+
+                    var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
+                        root.GetProperty("workfile").GetRawText()
+                    );
+
+                    var keys = workfileDict.Keys.ToList();
+                    foreach (var kvp in workfileDict)
+                    {
+                        var data = kvp.Value;
+                        if (data["workFile"]?.ToString().Equals(Path.GetFileName(nodePath), StringComparison.OrdinalIgnoreCase) == true)
+                        {
+                            if (data.ContainsKey("refNodes"))
+                            {
+                                var refs = JsonSerializer.Deserialize<List<string>>(data["refNodes"].ToString()) ?? new List<string>();
+                                if (!refs.Contains(EnvVarPath))
+                                    refs.Add(EnvVarPath);
+
+                                data["refNodes"] = refs;
+                            }
+                            else
+                            {
+                                data["refNodes"] = new List<string> { EnvVarPath };
+                            }
+                        }
+                    }
+                    updatedNodeData["workfile"] = workfileDict;
+
+                    // recopier les autres propriétés du root
+                    foreach (var prop in root.EnumerateObject())
+                    {
+                        if (prop.Name == "workfile") continue;
+                        updatedNodeData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
+                    }
+
+                    string updatedJson = JsonSerializer.Serialize(updatedNodeData, options);
+                    File.WriteAllText(jsonPath, updatedJson);
+
+                }
+            }
+        }
+
+        public static void RemoveRef(string path, string nodePath)
+        {
+            string refPath = path.Split('(')[1].TrimEnd(')');
+            refPath = SetEnvVariables(refPath).Replace("\\\\", "\\");
+            // on runover le json pour virer la ref.
+            var ctx = ExtractNodeContext(nodePath);
+
+            string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
+
+            var json = File.ReadAllText(jsonPath);
+            var options = new JsonSerializerOptions { WriteIndented = true };
+
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            var updatedNodeData = new Dictionary<string, object>();
+
+            var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
+                root.GetProperty("workfile").GetRawText()
+            );
+
+            var keys = workfileDict.Keys.ToList();
+            foreach (var kvp in workfileDict)
+            {
+                var data = kvp.Value;
+                if (data["workFile"]?.ToString().Equals(Path.GetFileName(nodePath), StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    // on vire la ref
+                    if (data.ContainsKey("refNodes"))
+                    {
+                        var refs = JsonSerializer.Deserialize<List<string>>(data["refNodes"].ToString()) ?? new List<string>();
+                        if (refs.Contains(refPath))
+                        {
+                            refs.Remove(refPath);
+                            MessageBox.Show($"Référence supprimée avec succès.\n{refPath}");
+                        }
+                        data["refNodes"] = refs;
+                    }
+                }
+            }
+            updatedNodeData["workfile"] = workfileDict;
+
+            // recopier les autres propriétés du root
+            foreach (var prop in root.EnumerateObject())
+            {
+                if (prop.Name == "workfile") continue;
+                updatedNodeData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
+            }
+
+            string updatedJson = JsonSerializer.Serialize(updatedNodeData, options);
+            File.WriteAllText(jsonPath, updatedJson);
+
+        }
         #region TEMP FILE
         public static string GetTempPath(string nodePath)
         {
@@ -391,23 +555,39 @@ namespace DuckPipe.Core.Manipulator
         public static void LaunchNode(string filePath, AssetManagerForm form)
         {
             string LocalFile = GetTempPath(filePath);
-            if (File.Exists(LocalFile))
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = LocalFile,
-                    UseShellExecute = true
-                });
-            }
-            else
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = filePath,
-                    UseShellExecute = true
-                });
-            }
+            string fileToOpen = File.Exists(LocalFile) ? LocalFile : filePath;
 
+            // Chemin temporaire pour le .bat
+            string tempBat = Path.Combine(Path.GetTempPath(), $"DuckPipe_Launch_{Guid.NewGuid()}.bat");
+
+            string batContent = $@"
+@echo off
+set PROD_ROOT={UserConfig.Get().ProdBasePath}
+start """" ""{fileToOpen}""
+";
+
+            File.WriteAllText(tempBat, batContent);
+
+            // Lancer le .bat
+            ProcessStartInfo psi = new ProcessStartInfo
+            {
+                FileName = tempBat,
+                UseShellExecute = true,
+                CreateNoWindow = true
+            };
+
+            Process proc = Process.Start(psi);
+
+            // On peut supprimer le .bat
+            Task.Run(() =>
+            {
+                proc.WaitForExit();
+                try
+                {
+                    File.Delete(tempBat);
+                }
+                catch {}
+            });
         }
 
         public static void ExecNode(string nodePath, AssetManagerForm form)
@@ -417,20 +597,64 @@ namespace DuckPipe.Core.Manipulator
                 var ctx = ExtractNodeContext(nodePath);
 
                 string LocalFile = GetTempPath(nodePath);
-                string publishFolder = Path.Combine(ctx.NodeRoot, "dlv");
-                string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
-                string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
 
-                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Exec", ctx.NodeType, $"{ctx.Department}.bat");
+                // on regarde si il existe un template
+                string TmplPath = string.Empty;
+
+                if (ctx.Department == "Anim" || ctx.Department == "Lighting" || ctx.Department == "Cfx" || ctx.Department == "Layout")
+                {
+                    TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Shots", "Templates");
+                }
+                else if (ctx.Department == "Rig" || ctx.Department == "Surf" || ctx.Department == "Groom" || ctx.Department == "Facial" || ctx.Department == "Modeling")
+                {
+                    TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Assets", "Templates");
+                }
+
+                if (!string.IsNullOrEmpty(TmplPath))
+                {
+                    string templateName = $"{ctx.NodeType}_{ctx.Department}_template{ctx.Extension}";
+                    string templateFile = Path.Combine(TmplPath, $"{templateName}");
+
+                    // remplacer la scene courante par le template si il existe
+                    if (File.Exists(templateFile))
+                    {
+                        File.Copy(templateFile, LocalFile, overwrite: true);
+                    }
+                    else
+                    {
+                        // si pas de template on cree un fichier de base
+                        if (ctx.Extension == ".ma")
+                        {
+                            MayaService.CreateBasicMaFile(templateFile, templateName);
+                            MessageBox.Show($"No template found for {templateName}.\nA basic scene has been created.", "Info");
+                        }
+                    }
+                }
+
+                // gestion des references
+                foreach (var refPath in GetAllRefs(nodePath))
+                {
+                    // pour Maya
+                    if (refPath.EndsWith(".ma", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string mayaPath = MayaService.PathIntoMayaFormat(refPath);
+                        MayaService.AddReference(LocalFile, mayaPath);
+                    }
+                }
+
+                // lancer le batch d'ouverture du node selon le department
+                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", $"{ctx.NodeType}_{ctx.Department}_exec.bat");
                 if (File.Exists(batPath))
                 {
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = batPath,
-                        Arguments = $"\"{publishedFilePath}\"",
+                        Arguments = $"\"{LocalFile}\"",
                         UseShellExecute = true
                     });
                 }
+                MessageBox.Show($"WorkFile Executed : {ctx.FileName}", "Succès");
+
             }
             else
             {
@@ -455,7 +679,7 @@ namespace DuckPipe.Core.Manipulator
                 File.Copy(nodePath, publishedFilePath, overwrite: true);
                 MessageBox.Show($"Node publié : {publishedFileName}", "Succès");
 
-                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", "Publish", ctx.NodeType, $"{ctx.Department}.bat");
+                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", $"{ctx.NodeType}_{ctx.Department}_publish.bat");
                 if (File.Exists(batPath))
                 {
                     Process.Start(new ProcessStartInfo
@@ -643,9 +867,9 @@ namespace DuckPipe.Core.Manipulator
             return shotPaths;
         }
 
-        public static Dictionary<string, Dictionary<string, Models.TaskData>> ParseNodesFromPaths(List<string> nodePaths)
+        public static Dictionary<string, Dictionary<string, TaskData>> ParseNodesFromPaths(List<string> nodePaths)
         {
-            var result = new Dictionary<string, Dictionary<string, Models.TaskData>>();
+            var result = new Dictionary<string, Dictionary<string, TaskData>>();
 
             foreach (var path in nodePaths)
             {
@@ -683,12 +907,12 @@ namespace DuckPipe.Core.Manipulator
                 if (!root.TryGetProperty("Tasks", out var tasksElement))
                     continue;
 
-                var taskDict = new Dictionary<string, Models.TaskData>();
+                var taskDict = new Dictionary<string, TaskData>();
 
                 foreach (var task in tasksElement.EnumerateObject())
                 {
                     string dept = task.Name;
-                    var taskData = new Models.TaskData();
+                    var taskData = new TaskData();
 
                     if (task.Value.TryGetProperty("status", out var status)) taskData.Status = status.GetString() ?? "";
                     if (task.Value.TryGetProperty("user", out var user)) taskData.User = user.GetString() ?? "";
@@ -704,9 +928,9 @@ namespace DuckPipe.Core.Manipulator
             return result;
         }
 
-        public static Dictionary<string, Dictionary<string, Dictionary<string, Models.TaskData>>> GetAllNodesInProduction(string prodPath)
+        public static Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> GetAllNodesInProduction(string prodPath)
         {
-            var result = new Dictionary<string, Dictionary<string, Dictionary<string, Models.TaskData>>>();
+            var result = new Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>>();
 
             var nodeTypes = new Dictionary<string, string>
     {

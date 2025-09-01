@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DuckPipe.Core.Manipulator;
+using DuckPipe.Core.Services;
 
 namespace DuckPipe.Core.Manager
 {
@@ -23,7 +24,7 @@ namespace DuckPipe.Core.Manager
                 return;
             }
 
-            lockedByUser = Environment.UserName;
+            lockedByUser = ProductionService.GetUserName();
             File.WriteAllText(lockFile, lockedByUser);
 
             string[] nodeParts = nodePath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
@@ -65,7 +66,7 @@ namespace DuckPipe.Core.Manager
         public static bool IsLockedByUser(string nodePath)
         {
             string userLock = GetuserLocked(nodePath);
-            if (userLock == Environment.UserName)
+            if (userLock == ProductionService.GetUserName())
             {
                 return true;
             }

@@ -69,7 +69,6 @@ namespace DuckPipe.Forms.Builder.Tabs
             public Label LblTotalProjectShots { get; set; }
         }
 
-
         private static void EmptyTimeLogs(StatsTabContext ctx)
         {
             for (int i = ctx.TblpnlTimeLogs.RowCount - 1; i > 0; i--)
@@ -158,7 +157,7 @@ namespace DuckPipe.Forms.Builder.Tabs
             string rootPath = ProductionService.GetProductionRootPath();
             string prodPath = Path.Combine(rootPath, ctx.SelectedProd);
             ctx.LblTotalProjectHours.Text = $"Total Logged Hours: {TimeLogStats.GetTotalHours(prodPath).ToString()}";
-            ctx.LblTotalProjectNodes.Text = $"Total Nodes: {TimeLogStats.GetTotalNodes(prodPath).ToString()}";
+            ctx.LblTotalProjectNodes.Text = $"Total Assets: {TimeLogStats.GetTotalAssets(prodPath).ToString()}";
             ctx.LblTotalProjectShots.Text = $"Total Shots: {TimeLogStats.GetTotalShots(prodPath).ToString()}";
 
             // un peu de magie pour les scrollbar vertical
@@ -168,7 +167,6 @@ namespace DuckPipe.Forms.Builder.Tabs
 
             ctx.CbbGraphList.SelectedIndex = 0;
         }
-
 
         public static void SetEmptyChart(Chart chart, ChartArea area)
         {
@@ -201,7 +199,6 @@ namespace DuckPipe.Forms.Builder.Tabs
             return chart;
         }
 
-
         public static Series CreateEmptySerie(string title)
         {
             var series = new Series(title)
@@ -214,7 +211,6 @@ namespace DuckPipe.Forms.Builder.Tabs
             series["PointWidth"] = "1";
             return series;
         }
-
 
         public static void DisplayDeptHourChart(StatsTabContext ctx)
         {
@@ -240,6 +236,7 @@ namespace DuckPipe.Forms.Builder.Tabs
             }
             ctx.FlpAllDeptTimeLogsGraphs.Controls.Add(chart);
         }
+
         public static void DisplaNodeHourChart(StatsTabContext ctx, string NodeType)
         {
             string rootPath = ProductionService.GetProductionRootPath();

@@ -87,11 +87,11 @@
     },
     "Sequences": {
         "Work": {
-            "Previz": {
+            "Layout": {
                 "incrementals": {
-                    "_files": [ "S{nodenamepipeplaceholder}_Previz_v000.ma" ]
+                    "_files": [ "S{nodenamepipeplaceholder}_Layout_v000.ma" ]
                 },
-                "_files": [ "S{nodenamepipeplaceholder}_Previz.ma" ]
+                "_files": [ "S{nodenamepipeplaceholder}_Layout.ma" ]
             }
         },
         "Shots": {}
@@ -102,27 +102,27 @@
         "Work": {
             "Layout": {
                 "incrementals": {
-                    "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_layout_v000.ma" ]
+                    "_files": [ "{nodenamepipeplaceholder}_layout_v000.ma" ]
                 },
-                "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_layout.ma" ]
+                "_files": [ "{nodenamepipeplaceholder}_layout.ma" ]
             },
             "Anim": {
                 "incrementals": {
-                    "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_anim_v000.ma" ]
+                    "_files": [ "{nodenamepipeplaceholder}_anim_v000.ma" ]
                 },
-                "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_anim.ma" ]
+                "_files": [ "{nodenamepipeplaceholder}_anim.ma" ]
             },
             "Cfx": {
                 "incrementals": {
-                    "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_cfx_v000.ma" ]
+                    "_files": [ "{nodenamepipeplaceholder}_cfx_v000.ma" ]
                 },
-                "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_cfx.ma" ]
+                "_files": [ "{nodenamepipeplaceholder}_cfx.ma" ]
             },
             "Lighting": {
                 "incrementals": {
-                    "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_light_v000.ma" ]
+                    "_files": [ "{nodenamepipeplaceholder}_light_v000.ma" ]
                 },
-                "_files": [ "S{seqnamepipeplaceholder}_P{nodenamepipeplaceholder}_light.ma" ]
+                "_files": [ "{nodenamepipeplaceholder}_light.ma" ]
             }
         }
     }

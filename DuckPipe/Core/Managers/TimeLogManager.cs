@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using DuckPipe.Core;
-using DuckPipe.Core.Models;
 using DuckPipe.Core.Services;
 using DuckPipe.Core.Utils;
 
@@ -19,7 +18,7 @@ public static class TimeLogStats
             .Sum(log => ParseHours(log.Hours));
     }
 
-    public static double GetTotalNodes(string prodPath)
+    public static double GetTotalAssets(string prodPath)
     {
         return NodeService.CountByType(prodPath, "Characters") +
                NodeService.CountByType(prodPath, "Props");

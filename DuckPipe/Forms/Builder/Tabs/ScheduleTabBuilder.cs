@@ -4,7 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Forms;
-using DuckPipe.Core.Models;
 using DuckPipe.Core.Services;
 using DuckPipe.Core.Manipulator;
 
@@ -240,7 +239,7 @@ namespace DuckPipe.Forms.Builder.Tabs
             return timelineHeader;
         }
 
-        private static void AddNodeRows(TableLayoutPanel mainTable, Dictionary<string, Dictionary<string, Dictionary<string, Core.Models.TaskData>>> allNodes, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int timelineWidth)
+        private static void AddNodeRows(TableLayoutPanel mainTable, Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> allNodes, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int timelineWidth)
         {
             ComboBox cbFilter = mainTable.GetControlFromPosition(0, 0) as ComboBox;
             string selectedValue = cbFilter.SelectedItem?.ToString();
@@ -280,7 +279,7 @@ namespace DuckPipe.Forms.Builder.Tabs
             }
         }
 
-        private static Panel CreateTaskLine(Dictionary<string, Core.Models.TaskData> tasks, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int width)
+        private static Panel CreateTaskLine(Dictionary<string, TaskData> tasks, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int width)
         {
             var taskLine = new Panel
             {

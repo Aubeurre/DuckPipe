@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using DuckPipe.Core.Model;
 
 namespace DuckPipe.Core.Services
 {
@@ -23,8 +22,6 @@ namespace DuckPipe.Core.Services
                 var ctx = new NodeContext
                 {
                     RootPath = rootPath,
-                    ProductionName = prodName,
-                    ProductionPath = Path.Combine(rootPath, prodName),
                 };
 
                 if (firstFolder == "Assets")
@@ -74,6 +71,21 @@ namespace DuckPipe.Core.Services
                 Debug.WriteLine($"[ExtractNodeContext] Erreur : {ex.Message}");
                 return null;
             }
+        }
+
+        public static void CreateShot(string selectedProd, string seqName, string newItemName, string Description, string rangeIn, string rangeOut)
+        {
+            MessageBox.Show($"Creation du shot {newItemName} dans la sequence {seqName}");
+            createNode(selectedProd, newItemName, "Shots", seqName, Description, rangeIn, rangeOut);
+        }
+        public static void CreateSequence(string selectedProd, string newItemName, string Description)
+        {
+            createNode(selectedProd, newItemName, "Sequences", "", Description, "", "");
+        }
+
+        public static void CreateAsset(string selectedProd, string newItemName, string newItemType, string Description)
+        {
+            createNode(selectedProd, newItemName, newItemType, "", Description, "", "");
         }
 
         public static void createNode(string selectedProd, string newItemName, string newItemType, string seqName, string Description, string rangeIn, string rangeOut)
@@ -157,7 +169,7 @@ namespace DuckPipe.Core.Services
                         MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
                         return;
                     }
-                    NodeStructureBuilder.CreateNodeStructure(rootPath, seqPath, nodeStructure, newItemName, Description, rangeIn, rangeOut);
+                    NodeStructureBuilder.CreateNodeStructure(rootPath, seqPath, nodeStructure, $"{seqName}-{newItemName}", Description, rangeIn, rangeOut);
 
                 }
         }
@@ -175,6 +187,29 @@ namespace DuckPipe.Core.Services
                       .EnumerateObject()
                       .Count(element => element.Value.TryGetProperty("Type", out var t) &&
                                         t.GetString()?.Equals(type, StringComparison.OrdinalIgnoreCase) == true);
+        }
+
+        public static string GetPublishPath(string selectedProd, string nodeType, string nodeName, string department, string desiredExt)
+        {
+            string rootPath = ProductionService.GetProductionRootPath();
+            string prodPath = Path.Combine(rootPath, selectedProd);
+
+            string baseNodeFolder = Path.Combine(prodPath, "Assets", nodeType);
+            string nodePath = Path.Combine(baseNodeFolder, nodeName);
+            string publishPath = Path.Combine(nodePath, "dlv");
+
+            // ca va poser probleme si plusieurs fichiers du meme departement.
+            // on run sur chaque fichier et trouve celui qui correspond au departement
+            foreach (var file in Directory.GetFiles(publishPath))
+            {
+                if (file.Contains($"_{department.ToLower()}_OK{desiredExt.ToLower()}"))
+                {
+                    return Path.Combine(publishPath, file);
+                }
+            }
+            // fallback si pas trouve
+            return Path.Combine(publishPath, $"{nodeName.ToLower()}_{department.ToLower()}_OK{desiredExt.ToLower()}");
+
         }
     }
 }

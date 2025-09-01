@@ -34,9 +34,9 @@
             label3 = new Label();
             flowLayoutPanel4 = new FlowLayoutPanel();
             cbNode = new ComboBox();
+            cbDepartment = new ComboBox();
             tbTimeLogged = new TextBox();
             btnOK = new Button();
-            cbDepartment = new ComboBox();
             flowLayoutPanel3.SuspendLayout();
             flowLayoutPanel4.SuspendLayout();
             SuspendLayout();
@@ -60,7 +60,7 @@
             label1.Location = new Point(3, 7);
             label1.Margin = new Padding(3, 7, 3, 7);
             label1.Name = "label1";
-            label1.Size = new Size(35, 15);
+            label1.Size = new Size(36, 15);
             label1.TabIndex = 5;
             label1.Text = "Node";
             // 
@@ -112,6 +112,21 @@
             cbNode.TabIndex = 6;
             cbNode.Tag = "";
             // 
+            // cbDepartment
+            // 
+            cbDepartment.BackColor = Color.FromArgb(30, 30, 30);
+            cbDepartment.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbDepartment.FlatStyle = FlatStyle.Flat;
+            cbDepartment.ForeColor = Color.White;
+            cbDepartment.FormattingEnabled = true;
+            cbDepartment.Items.AddRange(new object[] { "Modeling", "Rig", "Cfx", "Surfacing", "Facial", "Assemble", "-----", "Layout", "Anim", "Lighting", "-----", "Art", "Board", "-----", "Misc" });
+            cbDepartment.Location = new Point(3, 32);
+            cbDepartment.Name = "cbDepartment";
+            cbDepartment.Size = new Size(154, 23);
+            cbDepartment.TabIndex = 12;
+            cbDepartment.Tag = "";
+            cbDepartment.SelectedIndexChanged += cbDepartment_SelectedIndexChanged;
+            // 
             // tbTimeLogged
             // 
             tbTimeLogged.BackColor = Color.FromArgb(30, 30, 30);
@@ -136,20 +151,6 @@
             btnOK.Text = "OK";
             btnOK.UseVisualStyleBackColor = false;
             btnOK.Click += btnOK_Click;
-            // 
-            // cbDepartment
-            // 
-            cbDepartment.BackColor = Color.FromArgb(30, 30, 30);
-            cbDepartment.DropDownStyle = ComboBoxStyle.DropDownList;
-            cbDepartment.FlatStyle = FlatStyle.Flat;
-            cbDepartment.ForeColor = Color.White;
-            cbDepartment.FormattingEnabled = true;
-            cbDepartment.Items.AddRange(new object[] { "Modeling", "Rig", "Cfx", "Surfacing", "Facial", "-----", "Layout", "Anim", "Lighting", "-----", "Art", "Board", "-----", "Misc" });
-            cbDepartment.Location = new Point(3, 32);
-            cbDepartment.Name = "cbDepartment";
-            cbDepartment.Size = new Size(154, 23);
-            cbDepartment.TabIndex = 12;
-            cbDepartment.Tag = "";
             // 
             // TimeLogAddPopup
             // 

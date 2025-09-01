@@ -1,5 +1,4 @@
-﻿using DuckPipe.Core.Models;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 public static class TimeLogManager
 {
