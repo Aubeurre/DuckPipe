@@ -45,8 +45,17 @@ namespace DuckPipe
             var productions = ProductionService.GetProductionList();
             foreach (string prodName in productions)
             {
-                // on changera caplus tard pour check si le User est assigne a la prod en question
-                cbProdList.Items.Add(prodName);
+                // on check si le userName contenu dans userconfig est aussi dans la config de la prod
+                string UserName = ProductionService.GetUserName();
+                string rootPath = ProductionService.GetProductionRootPath();
+                string prodPath = Path.Combine(rootPath, prodName);
+                var prodUsers = ProductionService.LoadProdUsers(prodPath);
+                if (prodUsers.Count > 0 && !prodUsers.Contains(UserName))
+                    continue; // skip this production if user is not authorized
+                else
+                {
+                    cbProdList.Items.Add(prodName);
+                }
             }
 
             if (cbProdList.Items.Count > 0)

@@ -4,30 +4,30 @@
             "maps": {}
         },
         "Work": {
-        },
-        "Modeling": {
-            "incrementals": {
-                "_files": [ "{nodenamepipeplaceholder}_model_v000.ma" ]
+            "Modeling": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_model_v000.ma" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_model.ma" ]
             },
-            "_files": [ "{nodenamepipeplaceholder}_model.ma" ]
-        },
-        "Cfx": {
-            "incrementals": {
-                "_files": [ "{nodenamepipeplaceholder}_cfx_v000.ma" ]
+            "Cfx": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_cfx_v000.ma" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_cfx.ma" ]
             },
-            "_files": [ "{nodenamepipeplaceholder}_cfx.ma" ]
-        },
-        "Surf": {
-            "incrementals": {
-                "_files": [ "{nodenamepipeplaceholder}_look_v000.spp" ]
+            "Surf": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_look_v000.spp" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_look.spp" ]
             },
-            "_files": [ "{nodenamepipeplaceholder}_look.spp" ]
-        },
-        "Rig": {
-            "incrementals": {
-                "_files": [ "{nodenamepipeplaceholder}_rig_v000.ma" ]
-            },
-            "_files": [ "{nodenamepipeplaceholder}_rig.ma" ]
+            "Rig": {
+                "incrementals": {
+                    "_files": [ "{nodenamepipeplaceholder}_rig_v000.ma" ]
+                },
+                "_files": [ "{nodenamepipeplaceholder}_rig.ma" ]
+            }
         }
     },
     "Characters": {

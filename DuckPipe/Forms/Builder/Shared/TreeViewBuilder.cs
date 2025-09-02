@@ -36,10 +36,10 @@ namespace DuckPipe.Forms.Builder.Shared
                 { "Assets", 3 },
                 { "Shots", 5 },
                 { "Renders", 1 },
-                { "IO", 100 },
-                { "Dev", 100 },
-                { "RnD", 100 },
-                { "Preprod", 100 },
+                { "IO", 0 },
+                { "Dev", 0 },
+                { "RnD", 0 },
+                { "Preprod", 3 },
             };
 
             foreach (string dir in Directory.GetDirectories(prodPath))

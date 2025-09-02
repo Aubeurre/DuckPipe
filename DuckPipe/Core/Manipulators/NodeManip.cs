@@ -601,11 +601,11 @@ start """" ""{fileToOpen}""
                 // on regarde si il existe un template
                 string TmplPath = string.Empty;
 
-                if (ctx.Department == "Anim" || ctx.Department == "Lighting" || ctx.Department == "Cfx" || ctx.Department == "Layout")
+                if (ctx.Department == "Anim" || ctx.Department == "Lighting" || ctx.Department == "Cfx" || ctx.Department == "Layout" && nodePath.Contains("Shots"))
                 {
                     TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Shots", "Templates");
                 }
-                else if (ctx.Department == "Rig" || ctx.Department == "Surf" || ctx.Department == "Groom" || ctx.Department == "Facial" || ctx.Department == "Modeling")
+                else if (ctx.Department == "Rig" || ctx.Department == "Surf" || ctx.Department == "Cfx" || ctx.Department == "Groom" || ctx.Department == "Facial" || ctx.Department == "Modeling" && nodePath.Contains("Assets"))
                 {
                     TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Assets", "Templates");
                 }
