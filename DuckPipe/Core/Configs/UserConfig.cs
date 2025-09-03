@@ -12,6 +12,7 @@ namespace DuckPipe.Core.Config
         public string User { get; set; } = Environment.UserName;
         public string ProdBasePath { get; set; } = @"I:\PROD\";
         public string userTempFolder { get; set; } = Path.Combine(Path.GetTempPath(), "DuckPipe");
+        public string MayaLocation { get; set; } = @"C:\Program Files\Autodesk\Maya2023\";
 
         private static UserConfig? _instance;
 

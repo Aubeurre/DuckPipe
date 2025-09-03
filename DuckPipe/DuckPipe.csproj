@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <Folder Include="Install\" />
-    <Folder Include="Tools\Batches\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -89,6 +88,9 @@
     <None Update="Icons\PR.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Icons\OMIT.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Icons\RTK.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -99,6 +101,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Install\DuckPipeInstaller.iss">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\Characters_Rig_publish.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

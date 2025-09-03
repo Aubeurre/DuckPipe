@@ -601,7 +601,7 @@ start """" ""{fileToOpen}""
                 // on regarde si il existe un template
                 string TmplPath = string.Empty;
 
-                if (ctx.Department == "Anim" || ctx.Department == "Lighting" || ctx.Department == "Cfx" || ctx.Department == "Layout" && nodePath.Contains("Shots"))
+                if (ctx.Department == "Anim" || ctx.Department == "Lighting" || ctx.Department == "CfxShot" || ctx.Department == "Layout" && nodePath.Contains("Shots"))
                 {
                     TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Shots", "Templates");
                 }
@@ -642,8 +642,8 @@ start """" ""{fileToOpen}""
                     }
                 }
 
-                // lancer le batch d'ouverture du node selon le department
-                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", $"{ctx.NodeType}_{ctx.Department}_exec.bat");
+                // lancer le py d'ouverture du node selon le department
+                string batPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_exec.py");
                 if (File.Exists(batPath))
                 {
                     Process.Start(new ProcessStartInfo
@@ -664,39 +664,29 @@ start """" ""{fileToOpen}""
 
         public static void PublishNode(string nodePath, AssetManagerForm form)
         {
-            if (LockNodeFileManager.IsLockedByUser(nodePath))
+            VersionNode(nodePath, form);
+
+            var ctx = ExtractNodeContext(nodePath);
+
+            string publishFolder = Path.Combine(ctx.NodeRoot, "dlv");
+            Directory.CreateDirectory(publishFolder);
+
+            string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
+            string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
+
+            File.Copy(nodePath, publishedFilePath, overwrite: true);
+
+            // on lance la scene de publish pour lancer des scripts dedans
+            if (ctx.Extension == ".ma")
             {
-                VersionNode(nodePath, form);
-
-                var ctx = ExtractNodeContext(nodePath);
-
-                string publishFolder = Path.Combine(ctx.NodeRoot, "dlv");
-                Directory.CreateDirectory(publishFolder);
-
-                string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
-                string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
-
-                File.Copy(nodePath, publishedFilePath, overwrite: true);
-                MessageBox.Show($"Node publié : {publishedFileName}", "Succès");
-
-                string batPath = Path.Combine(ctx.RootPath, "Dev", "Batches", $"{ctx.NodeType}_{ctx.Department}_publish.bat");
-                if (File.Exists(batPath))
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = batPath,
-                        Arguments = $"\"{publishedFilePath}\"",
-                        UseShellExecute = true
-                    });
-                }
-                AddNote(nodePath, form);
-                MarkDownstreamDepartmentsOutdated(nodePath, ctx.Department);
-                form.RefreshTab(ctx.NodeRoot);
+                MessageBox.Show("Run Publish Script for maya");
+                MayaService.ExecuteMayaPublish(publishedFilePath, ctx.RootPath, ctx.ProdName, ctx.NodeType, ctx.Department);
             }
-            else
-            {
-                MessageBox.Show($"Please Grab Node First");
-            }
+
+            AddNote(nodePath, form);
+            MarkDownstreamDepartmentsOutdated(nodePath, ctx.Department);
+            form.RefreshTab(ctx.NodeRoot);
+            MessageBox.Show($"Node publié : {publishedFileName}", "Succès");
         }
 
         public static void VersionNode(string nodePath, AssetManagerForm form)

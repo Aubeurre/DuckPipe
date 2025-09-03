@@ -31,10 +31,18 @@ namespace DuckPipe.Core
         private void CreateDefaultTemplateScene(string prodPath)
         {
             // Implementation for creating a default template scene can be added here.
-            // This could involve copying a predefined scene file into the appropriate directory.
-            string templateScenePath = Path.Combine(prodPath, "Shots", "Templates", "studioCamera.ma");
-            if (!File.Exists(templateScenePath))
+
+            // STUDIO CAM FOR LAYOUT
+            string templateScenePath = Path.Combine(prodPath, "Shots", "Templates",
+                $"studioCamera{ProductionService.GetFileMainExt(prodPath, "LAYOUT")}");
+            if (ProductionService.GetFileMainExt(prodPath, "LAYOUT") == ".ma" && !File.Exists(templateScenePath))
                 MayaService.CreateBasicMaFile(templateScenePath, "studioCamera.ma");
+
+            // STUDIO LIGHT FOR LIGHTING
+            templateScenePath = Path.Combine(prodPath, "Shots", "Templates",
+                $"studioLight{ProductionService.GetFileMainExt(prodPath, "LIGHTING")}");
+            if (ProductionService.GetFileMainExt(prodPath, "LIGHTING") == ".ma" && !File.Exists(templateScenePath))
+                MayaService.CreateBasicMaFile(templateScenePath, "studioLight.ma");
         }
 
         private void CreateDefaultFolders(string prodPath)
@@ -70,7 +78,8 @@ namespace DuckPipe.Core
         {
             string nodeStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "NodeStructure.json");
             string targetPath = Path.Combine(prodPath, "Dev", "DangerZone", "NodeStructure.json");
-            File.Copy(nodeStructurePath, targetPath, overwrite: false);
+            if (!File.Exists(targetPath))
+                File.Copy(nodeStructurePath, targetPath, overwrite: false);
         }
 
         private void CopyTools(string prodPath)
@@ -95,16 +104,16 @@ namespace DuckPipe.Core
         {
             departments = new Dictionary<string, DepartmentStructure>
             {
-                ["Modeling"] = new DepartmentStructure { downstream = new() { "Facial", "Cfx", "Groom", "Surf", "Rig" } },
-                ["Facial"] = new DepartmentStructure { downstream = new() { "Rig" } },
-                ["Cfx"] = new DepartmentStructure { downstream = new() { "Rig" } },
-                ["Groom"] = new DepartmentStructure { downstream = new() { "Rig" } },
-                ["Surf"] = new DepartmentStructure { downstream = new() { "Rig" } },
-                ["Rig"] = new DepartmentStructure { downstream = new() },
-                ["Layout"] = new DepartmentStructure { downstream = new() { "Anim", "Lighting", "Comp", "Cfx" } },
-                ["Anim"] = new DepartmentStructure { downstream = new() { "Lighting", "Comp", "Cfx" } },
-                ["Cfx"] = new DepartmentStructure { downstream = new() { "Comp" } },
-                ["Lighting"] = new DepartmentStructure { downstream = new() { "Comp" } }
+                ["Modeling"] = new DepartmentStructure { downstream = new() { "Facial", "Cfx", "Groom", "Surf", "Rig" }, mainFileExt = ".ma"},
+                ["Facial"] = new DepartmentStructure { downstream = new() { "Rig" }, mainFileExt = ".ma" },
+                ["Cfx"] = new DepartmentStructure { downstream = new() { "Rig" }, mainFileExt = ".ma" },
+                ["Groom"] = new DepartmentStructure { downstream = new() { "Rig" }, mainFileExt = ".ma" },
+                ["Surf"] = new DepartmentStructure { downstream = new() { "Rig" }, mainFileExt = ".ma" },
+                ["Rig"] = new DepartmentStructure { downstream = new(), mainFileExt = ".ma" },
+                ["Layout"] = new DepartmentStructure { downstream = new() { "Anim", "Lighting", "Comp", "CfxShot" }, mainFileExt = ".ma" },
+                ["Anim"] = new DepartmentStructure { downstream = new() { "Lighting", "Comp", "CfxShot" }, mainFileExt = ".ma" },
+                ["CfxShot"] = new DepartmentStructure { downstream = new() { "Comp" }, mainFileExt = ".ma" },
+                ["Lighting"] = new DepartmentStructure { downstream = new() { "Comp" }, mainFileExt = ".blend" }
             };
         }
 
@@ -140,6 +149,7 @@ namespace DuckPipe.Core
                 { "MODELING", Color.SteelBlue },
                 { "FACIAL", Color.IndianRed },
                 { "CFX", Color.Goldenrod },
+                { "CFXSHOT", Color.Goldenrod },
                 { "ANIM", Color.MediumPurple },
                 { "LIGHTING", Color.Gold },
                 { "GROOM", Color.MediumSpringGreen },
@@ -173,5 +183,6 @@ namespace DuckPipe.Core
     public class DepartmentStructure
     {
         public List<string> downstream { get; set; } = new();
+        public string mainFileExt { get; set; } = ".ma";
     }
 }

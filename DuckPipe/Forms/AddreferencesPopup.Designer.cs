@@ -75,7 +75,7 @@
             cbDepartment.FlatStyle = FlatStyle.Flat;
             cbDepartment.ForeColor = Color.White;
             cbDepartment.FormattingEnabled = true;
-            cbDepartment.Items.AddRange(new object[] { "Modeling", "Rig", "Cfx", "Surfacing", "Facial", "Assemble", "-----", "Layout", "Anim", "Lighting", "-----", "Art", "Board", "-----", "Misc" });
+            cbDepartment.Items.AddRange(new object[] { "Modeling", "Rig", "Cfx", "Surfacing", "Facial", "Assemble", "-----", "Layout", "Anim", "CfxShot", "Lighting", "-----", "Art", "Board", "-----", "Misc" });
             cbDepartment.Location = new Point(171, 159);
             cbDepartment.Name = "cbDepartment";
             cbDepartment.Size = new Size(154, 23);

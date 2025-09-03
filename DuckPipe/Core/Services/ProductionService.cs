@@ -14,6 +14,7 @@ namespace DuckPipe.Core.Services
         {
             return UserConfig.Get().User;
         }
+
         public static string GetProductionRootPath()
         {
             string envPath = UserConfig.Get().ProdBasePath;
@@ -49,15 +50,17 @@ namespace DuckPipe.Core.Services
             List<string> prodUser = new();
             string configPath = Path.Combine(prodPath, "Dev", "DangerZone", "config.json");
 
-            using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
-            if (configDoc.RootElement.TryGetProperty("Users", out JsonElement userArray))
+            if (File.Exists(configPath) == true)
             {
-                foreach (var user in userArray.EnumerateArray())
+                using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
+                if (configDoc.RootElement.TryGetProperty("Users", out JsonElement userArray))
                 {
-                    prodUser.Add(user.GetString() ?? "");
+                    foreach (var user in userArray.EnumerateArray())
+                    {
+                        prodUser.Add(user.GetString() ?? "");
+                    }
                 }
             }
-
             return prodUser;
         }
 
@@ -121,6 +124,32 @@ namespace DuckPipe.Core.Services
             return colors;
         }
 
+        public static string GetFileMainExt(string prodPath, string Department)
+        {
+            // ouvre le config.json et lit l'extension principale pour le département donné
+            string configPath = Path.Combine(prodPath, "Dev", "DangerZone", "config.json");
 
+            if (File.Exists(configPath) == true)
+            {
+                using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
+                if (configDoc.RootElement.TryGetProperty("departments", out JsonElement deptElement))
+                {
+                    foreach (var dept in deptElement.EnumerateObject())
+                    {
+                        if (dept.Name.Equals(Department, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (dept.Value.TryGetProperty("mainFileExt", out JsonElement extElement))
+                            {
+                                return extElement.GetString() ?? "";
+                            }
+                        }
+                    }
+                }
+                return "";
+
+            }
+            
+            return "";
+        }
     }
 }

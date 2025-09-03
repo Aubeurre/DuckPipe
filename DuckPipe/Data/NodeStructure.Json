@@ -18,9 +18,15 @@
             },
             "Surf": {
                 "incrementals": {
-                    "_files": [ "{nodenamepipeplaceholder}_look_v000.spp" ]
+                    "_files": [
+                        "{nodenamepipeplaceholder}_look_v000.spp",
+                        "{nodenamepipeplaceholder}_look_v000.ma"
+                    ]
                 },
-                "_files": [ "{nodenamepipeplaceholder}_look.spp" ]
+                "_files": [
+                    "{nodenamepipeplaceholder}_look.spp",
+                    "{nodenamepipeplaceholder}_look.ma"
+                ]
             },
             "Rig": {
                 "incrementals": {
@@ -61,9 +67,15 @@
             },
             "Surf": {
                 "incrementals": {
-                    "_files": [ "{nodenamepipeplaceholder}_look_v000.spp" ]
+                    "_files": [
+                        "{nodenamepipeplaceholder}_look_v000.spp",
+                        "{nodenamepipeplaceholder}_look_v000.ma"
+                    ]
                 },
-                "_files": [ "{nodenamepipeplaceholder}_look.spp" ]
+                "_files": [
+                    "{nodenamepipeplaceholder}_look.spp",
+                    "{nodenamepipeplaceholder}_look.ma"
+                ]
             },
             "Rig": {
                 "incrementals": {
@@ -74,7 +86,6 @@
         }
     },
     "Environments": {
-        "preprod": {},
         "dlv": {},
         "Work": {
             "Assemble": {
@@ -86,12 +97,19 @@
         }
     },
     "Sequences": {
+        "dlv": {},
         "Work": {
             "Layout": {
                 "incrementals": {
                     "_files": [ "S{nodenamepipeplaceholder}_Layout_v000.ma" ]
                 },
                 "_files": [ "S{nodenamepipeplaceholder}_Layout.ma" ]
+            },
+            "Lighting": {
+                "incrementals": {
+                    "_files": [ "S{nodenamepipeplaceholder}_light_v000.blend" ]
+                },
+                "_files": [ "S{nodenamepipeplaceholder}_light.blend" ]
             }
         },
         "Shots": {}
@@ -112,17 +130,17 @@
                 },
                 "_files": [ "{nodenamepipeplaceholder}_anim.ma" ]
             },
-            "Cfx": {
+            "CfxShot": {
                 "incrementals": {
-                    "_files": [ "{nodenamepipeplaceholder}_cfx_v000.ma" ]
+                    "_files": [ "{nodenamepipeplaceholder}_CfxShot_v000.ma" ]
                 },
-                "_files": [ "{nodenamepipeplaceholder}_cfx.ma" ]
+                "_files": [ "{nodenamepipeplaceholder}_CfxShot.ma" ]
             },
             "Lighting": {
                 "incrementals": {
-                    "_files": [ "{nodenamepipeplaceholder}_light_v000.ma" ]
+                    "_files": [ "{nodenamepipeplaceholder}_light_v000.blend" ]
                 },
-                "_files": [ "{nodenamepipeplaceholder}_light.ma" ]
+                "_files": [ "{nodenamepipeplaceholder}_light.blend" ]
             }
         }
     }
