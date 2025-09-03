@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using DuckPipe.Core.Services;
+using DuckPipe.Core.Services.Softwares;
 using Microsoft.VisualBasic.ApplicationServices;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -16,17 +17,78 @@ namespace DuckPipe.Core
         public string deliveryDay { get; set; }
         public Dictionary<string, DepartmentStructure> departments { get; set; } = new();
 
-        public void CreateProductionStructure(string prodName, string rootPath)
+        public void CreateProductionStructure(string prodName, string rootPath, Dictionary<string, Dictionary<string, List<string>>> prodStructure)
         {
             string prodPath = Path.Combine(rootPath, prodName);
             Directory.CreateDirectory(prodPath);
 
             CreateDefaultFolders(prodPath);
-            CopyNodeStructure(prodPath);
+            BuildNodeStructure(prodPath, prodStructure);
+            // CopyNodeStructure(prodPath);
             CopyTools(prodPath);
             CreateDefaultTemplateScene(prodPath);
             SaveProductionConfig(prodPath);
         }
+
+        private static void BuildNodeStructure(string prodPath, Dictionary<string, Dictionary<string, List<string>>> prodStructure)
+        {
+            var nodeStructure = new Dictionary<string, object>();
+
+            foreach (var category in prodStructure)
+            {
+                var categoryObj = new Dictionary<string, object>
+                {
+                    ["dlv"] = new Dictionary<string, object>()
+                };
+
+                var worksDict = new Dictionary<string, object>();
+
+                foreach (var work in category.Value)
+                {
+                    string deptName = work.Key;
+                    if (string.IsNullOrEmpty(deptName)) continue;
+
+                    var tools = work.Value ?? new List<string>();
+
+                    if (!tools.Any()) continue;
+
+                    var incrementals = new List<string>();
+                    var finals = new List<string>();
+
+                    foreach (var tool in tools)
+                    {
+                        string toolLower = tool.ToLower();
+                        incrementals.Add($"{{nodenamepipeplaceholder}}_{deptName.ToLower()}_v000.{toolLower}");
+                        finals.Add($"{{nodenamepipeplaceholder}}_{deptName.ToLower()}.{toolLower}");
+                    }
+
+                    var workNode = new Dictionary<string, object>
+                    {
+                        ["incrementals"] = new Dictionary<string, object> { ["_files"] = incrementals },
+                        ["_files"] = finals
+                    };
+
+                    worksDict[deptName] = workNode;
+                }
+
+                if (worksDict.Any())
+                    categoryObj["Work"] = worksDict;
+
+                nodeStructure[category.Key] = categoryObj;
+            }
+
+
+            string configDir = Path.Combine(prodPath, "Dev", "DangerZone");
+            string configPath = Path.Combine(configDir, "NodeStructure.json");
+
+            if (!Directory.Exists(configDir))
+                Directory.CreateDirectory(configDir);
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            if (!Directory.Exists(configPath))
+                File.WriteAllText(configPath, JsonSerializer.Serialize(nodeStructure, options));
+        }
+
 
         private void CreateDefaultTemplateScene(string prodPath)
         {
@@ -176,7 +238,7 @@ namespace DuckPipe.Core
             CopyTools(fullPath);
             CreateDefaultTemplateScene(fullPath);
             SaveProductionConfig(fullPath);
-            CopyNodeStructure(fullPath);
+            // CopyNodeStructure(fullPath);
         }
     }
 

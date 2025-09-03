@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using System.Windows.Forms;
 using DuckPipe.Core.Builders;
 using DuckPipe.Core.Manipulator;
-using DuckPipe.Core.Services;
+using DuckPipe.Core.Services.Softwares;
 using DuckPipe.Forms.Builder.Tabs;
 using static System.Windows.Forms.Design.AxImporter;
 

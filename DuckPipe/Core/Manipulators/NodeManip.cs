@@ -1,22 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Runtime.InteropServices.JavaScript;
+﻿using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
-using Microsoft.VisualBasic;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using DuckPipe.Core.Services;
 using DuckPipe.Core.Manager;
 using DuckPipe.Core.Config;
 using DuckPipe.Core.Utils;
 using System.Text.Json.Nodes;
 using DuckPipe.Forms;
+using DuckPipe.Core.Services.Softwares;
 
 namespace DuckPipe.Core.Manipulator
 {
@@ -677,10 +668,11 @@ start """" ""{fileToOpen}""
             File.Copy(nodePath, publishedFilePath, overwrite: true);
 
             // on lance la scene de publish pour lancer des scripts dedans
+            string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_publish.py");
             if (ctx.Extension == ".ma")
             {
                 MessageBox.Show("Run Publish Script for maya");
-                MayaService.ExecuteMayaPublish(publishedFilePath, ctx.RootPath, ctx.ProdName, ctx.NodeType, ctx.Department);
+                MayaService.ExecuteMayaBatchScript(publishedFilePath, pyPath);
             }
 
             AddNote(nodePath, form);

@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Data\NodeStructure.Json">
+    <Content Include="Data OLD\NodeStructure.Json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Icons\ducky.ico">

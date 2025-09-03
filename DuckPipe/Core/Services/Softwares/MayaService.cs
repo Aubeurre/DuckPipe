@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 
-namespace DuckPipe.Core.Services
+namespace DuckPipe.Core.Services.Softwares
 {
     internal class MayaService
     {
@@ -50,17 +50,16 @@ namespace DuckPipe.Core.Services
             return mayaPath;
         }
 
-        public static void ExecuteMayaPublish(string publishedFilePath, string RootPath, string ProdName, string NodeType, string Department)
+        public static void ExecuteMayaBatchScript(string scenePath, string pyPath)
         {
-            string pyPath = Path.Combine(RootPath, ProdName, "Dev", "Pythons", $"{NodeType}_{Department}_publish.py");
             string pyPathEsc = pyPath.Replace("\\", "/");
-            string publishedEsc = publishedFilePath.Replace("\\", "/");
+            string publishedEsc = scenePath.Replace("\\", "/");
             string pythonInline =
                 $"import sys; sys.argv=['']; sys.argv.append(r'{publishedEsc}'); "
-              + $"ns={{}}; exec(open(r'{pyPathEsc}').read(), ns); ns['main'](r'{publishedEsc}')"; string args = $"-file \"{publishedFilePath}\" -command \"python(\\\"{pythonInline}\\\")\"";
+              + $"ns={{}}; exec(open(r'{pyPathEsc}').read(), ns); ns['main'](r'{publishedEsc}')"; string args = $"-file \"{scenePath}\" -command \"python(\\\"{pythonInline}\\\")\"";
 
 
-            string mayabatch = Path.Combine(GetMayaPath(), "bin", "mayabatch.exe"); 
+            string mayabatch = Path.Combine(GetMayaPath(), "bin", "mayabatch.exe");
 
             if (File.Exists(pyPath) && File.Exists(mayabatch))
             {

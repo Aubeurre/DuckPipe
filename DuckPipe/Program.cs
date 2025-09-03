@@ -9,14 +9,12 @@ namespace DuckPipe
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static async Task Main()
+        static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            UserConfig.LoadOrCreate();
-            await CheckForUpdates();
             ApplicationConfiguration.Initialize();
-            Application.Run(new AssetManagerForm());
+            UserConfig.LoadOrCreate();
+            Application.Run(new AssetManagerForm()); 
+            CheckForUpdates();
         }
         public static readonly string CurrentVersion = "1.5.0"; //pre
         public static async Task CheckForUpdates()

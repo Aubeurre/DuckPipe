@@ -18,6 +18,7 @@ using DuckPipe.Forms.Builder.NodeTab;
 using DuckPipe.Forms.Builder.Shared;
 using DuckPipe.Forms.Builder.Tabs;
 using DuckPipe.Core.Config;
+using System.Collections.Generic;
 
 namespace DuckPipe
 {
@@ -331,11 +332,12 @@ namespace DuckPipe
                 if (form.ShowDialog() == DialogResult.OK)
                 {
                     string prodName = form.ProductionName;
+                    var prodStructure = form.ProductionStructure;
 
                     string rootPath = ProductionService.GetProductionRootPath();
                     var productionConfig = new ProductionStructureBuilder { name = prodName };
 
-                    productionConfig.CreateProductionStructure(prodName, rootPath);
+                     productionConfig.CreateProductionStructure(prodName, rootPath, prodStructure);
 
                     MessageBox.Show($"Production '{prodName}' créée !");
 
