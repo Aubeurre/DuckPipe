@@ -10,7 +10,7 @@ namespace DuckPipe.Core.Services.Softwares
     {
         public static void CreateBasicMaFile(string filePath, string sceneName)
         {
-            string[] maLines = new string[]
+            string[] maLines =
             {
                 "//Maya ASCII 2023 scene",
                 "//Name: " + sceneName,

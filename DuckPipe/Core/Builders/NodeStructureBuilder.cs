@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Windows.Forms;
-using DuckPipe.Core.Builders;
 using DuckPipe.Core.Manipulator;
 using DuckPipe.Core.Services.Softwares;
-using DuckPipe.Forms.Builder.Tabs;
-using static System.Windows.Forms.Design.AxImporter;
 
-namespace DuckPipe.Core
+namespace DuckPipe.Core.Builders
 {
     public class NodeTypeDefinition
     {
@@ -25,7 +18,7 @@ namespace DuckPipe.Core
         public string Name { get; set; }
 
         [JsonPropertyName("structure")]
-        public Dictionary<string, NodeNode> Structure { get; set; } = new();
+        public Dictionary<string, NodeNode> Structure { get; set; }
     }
 
     public class NodeNode
@@ -34,7 +27,7 @@ namespace DuckPipe.Core
         public Dictionary<string, JsonElement> Children { get; set; }
 
         [JsonPropertyName("_files")]
-        public List<string> Files { get; set; } = new();
+        public List<string> Files { get; set; }
     }
 
     public static class NodeStructureBuilder
@@ -64,7 +57,6 @@ namespace DuckPipe.Core
             if (structure.Name == "Shots")
             {
                 string onlyShotName = nodeName.Split('-')[1];
-                string onlyShotNum = nodeName.Split('P')[1];
                 string cleanPath = Path.Combine(Path.GetDirectoryName(nodePath), onlyShotName);
                 Directory.CreateDirectory(cleanPath);
                 string jsonPath = CreateShotJson(rootPath, cleanPath, structure, nodeName, Description, rangeIn, rangeOut);
@@ -119,6 +111,10 @@ namespace DuckPipe.Core
                     {
                         MayaService.CreateBasicMaFile(filePath, Path.GetFileNameWithoutExtension(fileName));
                     }
+                    else if (filePath.EndsWith(".blend", StringComparison.OrdinalIgnoreCase))
+                    {
+                        BlenderService.CreateBasicBlendFile(filePath);
+                    }
                     else
                     {
                         File.Create(filePath).Dispose();
@@ -158,7 +154,6 @@ namespace DuckPipe.Core
 
                     string deptName = department.Key;
                     string deptUpper = deptName.ToUpper();
-                    string deptLower = deptName.ToLower();
 
                     string workPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "Work", deptName);
                     string incrementalPath = Path.Combine(workPath, "incrementals");
@@ -198,12 +193,6 @@ namespace DuckPipe.Core
                         };
                     }
                 }
-                taskData["ART"] = new
-                {
-                    status = "not_started",
-                    startDate = DateTime.Today,
-                    dueDate = DateTime.Today
-                };
             }
 
             var nodeJson = new
@@ -243,7 +232,6 @@ namespace DuckPipe.Core
 
                     string deptName = department.Key;
                     string deptUpper = deptName.ToUpper();
-                    string deptLower = deptName.ToLower();
                     string sequenceFolder = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(nodePath)));
                     string seqDlvPath = Path.Combine(sequenceFolder, "dlv");
 
@@ -332,7 +320,6 @@ namespace DuckPipe.Core
 
                     string deptName = department.Key;
                     string deptUpper = deptName.ToUpper();
-                    string deptLower = deptName.ToLower();
                     string sequenceName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(nodePath)));
 
                     string workPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "Work", deptName);
@@ -401,12 +388,11 @@ namespace DuckPipe.Core
             {
                 var jsonText = File.ReadAllText(nodeJsonPath);
                 var options = new JsonSerializerOptions { WriteIndented = true };
-                var docObj = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonText, options);
 
                 var fullJson = JsonDocument.Parse(jsonText);
                 var rootObj = fullJson.RootElement;
 
-                List<string> updatedCostumes = new List<string>();
+                List<string> updatedCostumes = new ();
                 if (rootObj.TryGetProperty("costumes", out JsonElement currentCostumes) && currentCostumes.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var item in currentCostumes.EnumerateArray())

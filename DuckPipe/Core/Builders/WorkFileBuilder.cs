@@ -73,11 +73,11 @@ namespace DuckPipe.Core.Builders
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(publishPath),
                     $"{nodeName.ToLower()}_layout_OK{ProductionService.GetFileMainExt(prodPath, "LAYOUT")}"));
             }
-            // Si on est en LIGHTING, on ajoute le publish du light de la sequence
-            if (deptUpper == "LIGHTING")
+            // Si on est en LIGHT, on ajoute le publish du light de la sequence
+            if (deptUpper == "LIGHT")
             {
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(seqDlvPath),
-                    $"{nodeName.ToLower()}_lighting_OK{ProductionService.GetFileMainExt(prodPath, "LIGHTING")}"));
+                    $"{nodeName.ToLower()}_light_OK{ProductionService.GetFileMainExt(prodPath, "LIGHT")}"));
             }
             return refNodes;
         }
@@ -92,11 +92,11 @@ namespace DuckPipe.Core.Builders
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(prodPath), "Shots", "Templates",
                     $"studioCamera{ProductionService.GetFileMainExt(prodPath, "LAYOUT")}"));
             }
-            // Si on est en LIGHTING, on ajoute le light studio
-            if (deptUpper == "LIGHTING")
+            // Si on est en LIGHT, on ajoute le light studio
+            if (deptUpper == "LIGHT")
             {
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(prodPath), "Shots", "Templates",
-                    $"studioLight{ProductionService.GetFileMainExt(prodPath, "LIGHTING")}"));
+                    $"studioLight{ProductionService.GetFileMainExt(prodPath, "LIGHT")}"));
             }
             return refNodes;
         }

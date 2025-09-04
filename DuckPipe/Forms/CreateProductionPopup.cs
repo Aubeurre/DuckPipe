@@ -17,13 +17,13 @@ namespace DuckPipe
             InitializeComponent();
         }
 
-        public Dictionary<string, Dictionary<string, List<string>>> ProductionStructure { get; private set; }
+        public Dictionary<string, Dictionary<string, DeptInfo>> ProductionStructure { get; private set; }
 
 
         #region DRAG AND DROP
         private void DropPanel_DragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.StringFormat))
+            if (e.Data.GetDataPresent(typeof(ValueTuple<string, Color>)))
                 e.Effect = DragDropEffects.Copy;
             else
                 e.Effect = DragDropEffects.None;
@@ -32,9 +32,9 @@ namespace DuckPipe
 
         private void DropPanel_DragDrop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.StringFormat))
+            if (e.Data.GetDataPresent(typeof(ValueTuple<string, Color>)))
             {
-                string workName = (string)e.Data.GetData(DataFormats.StringFormat);
+                var (workName, color) = ((string, Color))e.Data.GetData(typeof(ValueTuple<string, Color>));
                 FlowLayoutPanel pnl = sender as FlowLayoutPanel;
 
 
@@ -59,7 +59,7 @@ namespace DuckPipe
                 Label lbl = new Label
                 {
                     Text = workName,
-                    ForeColor = Color.White,
+                    ForeColor = color,
                     BackColor = Color.FromArgb(90, 90, 90),
                     AutoSize = false,
                     Width = pnl.ClientSize.Width - 4,
@@ -73,9 +73,9 @@ namespace DuckPipe
         }
         private void DropFile_DragDrop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.StringFormat))
+            if (e.Data.GetDataPresent(typeof(ValueTuple<string, Color>)))
             {
-                string workName = (string)e.Data.GetData(DataFormats.StringFormat);
+                var (workName, color) = ((string, Color))e.Data.GetData(typeof(ValueTuple<string, Color>));
                 FlowLayoutPanel pnl = sender as FlowLayoutPanel;
 
                 Label extlbl = new Label
@@ -100,13 +100,22 @@ namespace DuckPipe
             if (e.Item != null)
             {
                 ListViewItem item = (ListViewItem)e.Item;
-                DoDragDrop(item.Text, DragDropEffects.Copy);
+                var dragData = (item.Text, item.ForeColor);
+                DoDragDrop(dragData, DragDropEffects.Copy);
             }
         }
 
-        private Dictionary<string, List<string>> GetWorksFromPanel(FlowLayoutPanel panel)
+        #endregion
+
+        public class DeptInfo
         {
-            Dictionary<string, List<string>> DeptPanelList = new Dictionary<string, List<string>>();
+            public string ColorHex { get; set; }
+            public List<string> Works { get; set; }
+        }
+
+        private Dictionary<string, DeptInfo> GetWorksFromPanel(FlowLayoutPanel panel)
+        {
+            Dictionary<string, DeptInfo> DeptPanelList = new Dictionary<string, DeptInfo>();
 
             foreach (FlowLayoutPanel flowLayoutPanel in panel.Controls.OfType<FlowLayoutPanel>())
             {
@@ -117,14 +126,21 @@ namespace DuckPipe
                     works.Add(label.Text);
                 }
 
+                Label label1 = flowLayoutPanel.Controls.OfType<Label>().FirstOrDefault();
+                Color color = label1.ForeColor;
+                string hexColor = ColorTranslator.ToHtml(color);
+
                 string deptName = flowLayoutPanel.Tag?.ToString() ?? "Unknown";
-                DeptPanelList[deptName] = works;
+
+                DeptPanelList[deptName] = new DeptInfo
+                {
+                    ColorHex = hexColor,
+                    Works = works
+                };
             }
 
             return DeptPanelList;
         }
-
-        #endregion
 
 
         private void btnOK_Click_1(object sender, EventArgs e)
@@ -147,7 +163,7 @@ namespace DuckPipe
 
             // on cree la structure [props: propsWorks, chara: charaWorks, env: envWorks, seq: seqWorks, shots: shotsWorks]
 
-            ProductionStructure = new Dictionary<string, Dictionary<string, List<string>>>
+            ProductionStructure = new Dictionary<string, Dictionary<string, DeptInfo>>
     {
         { "Props", propsWorks },
         { "Characters", charaWorks },

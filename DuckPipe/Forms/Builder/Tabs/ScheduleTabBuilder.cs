@@ -62,14 +62,12 @@ namespace DuckPipe.Forms.Builder.Tabs
             int totalDays = (int)(endDate - startingDate).TotalDays;
             int todayOffset = (int)(DateTime.Today - startingDate).TotalDays;
 
-            var taskColors = ProductionService.GetTaskColorsFromConfig(doc);
-
             var mainTable = CreateMainTable(totalDays, ctx);
             var timelineHeader = CreateTimelineHeader(startingDate, totalDays);
 
             mainTable.Controls.Add(timelineHeader, 1, 0);
 
-            AddNodeRows(mainTable, allNodes, taskColors, startingDate, todayOffset, timelineHeader.Width);
+            AddNodeRows(ctx.ProdPath, mainTable, allNodes, startingDate, todayOffset, timelineHeader.Width);
 
             var scrollWrapper = new Panel
             {
@@ -124,7 +122,6 @@ namespace DuckPipe.Forms.Builder.Tabs
 
             string configJsonPath = ProductionService.getConfigJsonPath(ctx.ProdPath);
             using var doc = JsonDocument.Parse(File.ReadAllText(configJsonPath));
-            var taskColors = ProductionService.GetTaskColorsFromConfig(doc);
 
             var allNodes = NodeManip.GetAllNodesInProduction(ctx.ProdPath);
             DateTime startingDate = DateTime.Parse(doc.RootElement.GetProperty("created").GetString());
@@ -132,7 +129,7 @@ namespace DuckPipe.Forms.Builder.Tabs
 
             int timelineWidth = mainTable.GetControlFromPosition(1, 0).Width;
 
-            AddNodeRows(mainTable, allNodes, taskColors, startingDate, todayOffset, timelineWidth);
+            AddNodeRows(ctx.ProdPath, mainTable, allNodes, startingDate, todayOffset, timelineWidth);
         }
 
         private static void ClearTableLayout(TableLayoutPanel tableLayout)
@@ -239,7 +236,7 @@ namespace DuckPipe.Forms.Builder.Tabs
             return timelineHeader;
         }
 
-        private static void AddNodeRows(TableLayoutPanel mainTable, Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> allNodes, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int timelineWidth)
+        private static void AddNodeRows(string prodPath, TableLayoutPanel mainTable, Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> allNodes, DateTime startingDate, int todayOffset, int timelineWidth)
         {
             ComboBox cbFilter = mainTable.GetControlFromPosition(0, 0) as ComboBox;
             string selectedValue = cbFilter.SelectedItem?.ToString();
@@ -271,7 +268,7 @@ namespace DuckPipe.Forms.Builder.Tabs
 
                         mainTable.Controls.Add(lblNode, 0, currentRow);
 
-                        var taskLine = CreateTaskLine(tasks, taskColors, startingDate, todayOffset, timelineWidth);
+                        var taskLine = CreateTaskLine(prodPath, tasks, startingDate, todayOffset, timelineWidth);
                         mainTable.Controls.Add(taskLine, 1, currentRow);
                     }
                 }
@@ -279,7 +276,7 @@ namespace DuckPipe.Forms.Builder.Tabs
             }
         }
 
-        private static Panel CreateTaskLine(Dictionary<string, TaskData> tasks, Dictionary<string, Color> taskColors, DateTime startingDate, int todayOffset, int width)
+        private static Panel CreateTaskLine(string prodPath, Dictionary<string, TaskData> tasks, DateTime startingDate, int todayOffset, int width)
         {
             var taskLine = new Panel
             {
@@ -307,6 +304,8 @@ namespace DuckPipe.Forms.Builder.Tabs
             {
                 DateTime start = DateTime.Parse(taskEntry.Value.StartDate);
                 DateTime end = DateTime.Parse(taskEntry.Value.DueDate);
+
+                var taskColors = ProductionService.GetTaskColorsFromConfig(prodPath, taskEntry.Key);
 
                 int offsetDays = (int)(start - startingDate).TotalDays + 1;
                 int durationDays = Math.Max(1, (int)(end - start).TotalDays + 1);

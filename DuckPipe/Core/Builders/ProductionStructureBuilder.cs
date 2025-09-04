@@ -6,6 +6,7 @@ using DuckPipe.Core.Services;
 using DuckPipe.Core.Services.Softwares;
 using Microsoft.VisualBasic.ApplicationServices;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static DuckPipe.CreateProductionPopup;
 
 namespace DuckPipe.Core
 {
@@ -17,20 +18,19 @@ namespace DuckPipe.Core
         public string deliveryDay { get; set; }
         public Dictionary<string, DepartmentStructure> departments { get; set; } = new();
 
-        public void CreateProductionStructure(string prodName, string rootPath, Dictionary<string, Dictionary<string, List<string>>> prodStructure)
+        public void CreateProductionStructure(string prodName, string rootPath, Dictionary<string, Dictionary<string, DeptInfo>> prodStructure)
         {
             string prodPath = Path.Combine(rootPath, prodName);
             Directory.CreateDirectory(prodPath);
 
             CreateDefaultFolders(prodPath);
+            SaveProductionConfig(prodPath, prodStructure);
             BuildNodeStructure(prodPath, prodStructure);
-            // CopyNodeStructure(prodPath);
-            CopyTools(prodPath);
             CreateDefaultTemplateScene(prodPath);
-            SaveProductionConfig(prodPath);
+            CopyTools(prodPath);
         }
 
-        private static void BuildNodeStructure(string prodPath, Dictionary<string, Dictionary<string, List<string>>> prodStructure)
+        private static void BuildNodeStructure(string prodPath, Dictionary<string, Dictionary<string, DeptInfo>> prodStructure)
         {
             var nodeStructure = new Dictionary<string, object>();
 
@@ -45,12 +45,10 @@ namespace DuckPipe.Core
 
                 foreach (var work in category.Value)
                 {
-                    string deptName = work.Key;
+                    string deptName = work.Key.Split("|")[0];
                     if (string.IsNullOrEmpty(deptName)) continue;
 
-                    var tools = work.Value ?? new List<string>();
-
-                    if (!tools.Any()) continue;
+                    var tools = work.Value.Works ?? new List<string>();
 
                     var incrementals = new List<string>();
                     var finals = new List<string>();
@@ -96,15 +94,19 @@ namespace DuckPipe.Core
 
             // STUDIO CAM FOR LAYOUT
             string templateScenePath = Path.Combine(prodPath, "Shots", "Templates",
-                $"studioCamera{ProductionService.GetFileMainExt(prodPath, "LAYOUT")}");
-            if (ProductionService.GetFileMainExt(prodPath, "LAYOUT") == ".ma" && !File.Exists(templateScenePath))
+                $"studioCamera{ProductionService.GetFileMainExt(prodPath, "Layout")}");
+            if (ProductionService.GetFileMainExt(prodPath, "Layout") == ".ma" && !File.Exists(templateScenePath))
                 MayaService.CreateBasicMaFile(templateScenePath, "studioCamera.ma");
+            if (ProductionService.GetFileMainExt(prodPath, "Layout") == ".blend" && !File.Exists(templateScenePath))
+                BlenderService.CreateBasicBlendFile(templateScenePath);
 
-            // STUDIO LIGHT FOR LIGHTING
+            // STUDIO LIGHT FOR LIGHT
             templateScenePath = Path.Combine(prodPath, "Shots", "Templates",
-                $"studioLight{ProductionService.GetFileMainExt(prodPath, "LIGHTING")}");
-            if (ProductionService.GetFileMainExt(prodPath, "LIGHTING") == ".ma" && !File.Exists(templateScenePath))
+                $"studioLight{ProductionService.GetFileMainExt(prodPath, "Light")}");
+            if (ProductionService.GetFileMainExt(prodPath, "Light") == ".ma" && !File.Exists(templateScenePath))
                 MayaService.CreateBasicMaFile(templateScenePath, "studioLight.ma");
+            if (ProductionService.GetFileMainExt(prodPath, "Light") == ".blend" && !File.Exists(templateScenePath))
+                BlenderService.CreateBasicBlendFile(templateScenePath);
         }
 
         private void CreateDefaultFolders(string prodPath)
@@ -136,14 +138,6 @@ namespace DuckPipe.Core
                 Directory.CreateDirectory(Path.Combine(prodPath, folder));
         }
 
-        private void CopyNodeStructure(string prodPath)
-        {
-            string nodeStructurePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "NodeStructure.json");
-            string targetPath = Path.Combine(prodPath, "Dev", "DangerZone", "NodeStructure.json");
-            if (!File.Exists(targetPath))
-                File.Copy(nodeStructurePath, targetPath, overwrite: false);
-        }
-
         private void CopyTools(string prodPath)
         {
             string sourceToolPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
@@ -162,26 +156,37 @@ namespace DuckPipe.Core
             }
         }
 
-        private void InitializeDefaultDepartments()
+        private void InitializeDefaultDepartments(Dictionary<string, Dictionary<string, DeptInfo>> prodStructure)
         {
-            departments = new Dictionary<string, DepartmentStructure>
+            foreach (var category in prodStructure)
             {
-                ["Modeling"] = new DepartmentStructure { downstream = new() { "Facial", "Cfx", "Groom", "Surf", "Rig" }, mainFileExt = ".ma"},
-                ["Facial"] = new DepartmentStructure { downstream = new() { "Rig" }, mainFileExt = ".ma" },
-                ["Cfx"] = new DepartmentStructure { downstream = new() { "Rig" }, mainFileExt = ".ma" },
-                ["Groom"] = new DepartmentStructure { downstream = new() { "Rig" }, mainFileExt = ".ma" },
-                ["Surf"] = new DepartmentStructure { downstream = new() { "Rig" }, mainFileExt = ".ma" },
-                ["Rig"] = new DepartmentStructure { downstream = new(), mainFileExt = ".ma" },
-                ["Layout"] = new DepartmentStructure { downstream = new() { "Anim", "Lighting", "Comp", "CfxShot" }, mainFileExt = ".ma" },
-                ["Anim"] = new DepartmentStructure { downstream = new() { "Lighting", "Comp", "CfxShot" }, mainFileExt = ".ma" },
-                ["CfxShot"] = new DepartmentStructure { downstream = new() { "Comp" }, mainFileExt = ".ma" },
-                ["Lighting"] = new DepartmentStructure { downstream = new() { "Comp" }, mainFileExt = ".blend" }
-            };
+                foreach (var work in category.Value)
+                {
+                    string deptName = work.Key;
+                    string deptColor = work.Value.ColorHex;
+                    Color color = ColorTranslator.FromHtml(deptColor);
+
+                    // on prend le premier work si dispo
+                    string tool = (work.Value.Works != null && work.Value.Works.Count > 0)
+                        ? work.Value.Works[0]
+                        : "";
+
+                    if (!departments.ContainsKey(deptName))
+                    {
+                        departments[deptName] = new DepartmentStructure
+                        {
+                            downstream = new List<string>(),
+                            mainFileExt = $".{tool}",
+                            color = color
+                        };
+                    }
+                }
+            }
         }
 
-        private void SaveProductionConfig(string prodPath)
+        private void SaveProductionConfig(string prodPath, Dictionary<string, Dictionary<string, DeptInfo>> prodStructure)
         {
-            InitializeDefaultDepartments();
+            InitializeDefaultDepartments(prodStructure);
 
             name = Path.GetFileName(prodPath);
             created = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
@@ -205,20 +210,6 @@ namespace DuckPipe.Core
             { "rtk", "icons/RTK.png" },
             { "omit", "icons/OMIT.png" }
         },
-                color = new Dictionary<string, Color>
-            {
-                { "RIG", Color.Teal },
-                { "MODELING", Color.SteelBlue },
-                { "FACIAL", Color.IndianRed },
-                { "CFX", Color.Goldenrod },
-                { "CFXSHOT", Color.Goldenrod },
-                { "ANIM", Color.MediumPurple },
-                { "LIGHTING", Color.Gold },
-                { "GROOM", Color.MediumSpringGreen },
-                { "SURF", Color.LightSeaGreen },
-                { "LAYOUT", Color.DimGray },
-                { "ART", Color.OliveDrab }
-        },
             Users = new List<string>()
                 {
                     ProductionService.GetUserName().ToString(),
@@ -237,8 +228,6 @@ namespace DuckPipe.Core
             CreateDefaultFolders(fullPath);
             CopyTools(fullPath);
             CreateDefaultTemplateScene(fullPath);
-            SaveProductionConfig(fullPath);
-            // CopyNodeStructure(fullPath);
         }
     }
 
@@ -246,5 +235,6 @@ namespace DuckPipe.Core
     {
         public List<string> downstream { get; set; } = new();
         public string mainFileExt { get; set; } = ".ma";
+        public Color color { get; set; } = Color.Gray;
     }
 }

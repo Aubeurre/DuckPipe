@@ -592,11 +592,11 @@ start """" ""{fileToOpen}""
                 // on regarde si il existe un template
                 string TmplPath = string.Empty;
 
-                if (ctx.Department == "Anim" || ctx.Department == "Lighting" || ctx.Department == "CfxShot" || ctx.Department == "Layout" && nodePath.Contains("Shots"))
+                if (ctx.Department == "Anim" || ctx.Department == "Light" || ctx.Department == "CfxShot" || ctx.Department == "Layout" && nodePath.Contains("Shots"))
                 {
                     TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Shots", "Templates");
                 }
-                else if (ctx.Department == "Rig" || ctx.Department == "Surf" || ctx.Department == "Cfx" || ctx.Department == "Groom" || ctx.Department == "Facial" || ctx.Department == "Modeling" && nodePath.Contains("Assets"))
+                else if (ctx.Department == "Rig" || ctx.Department == "Surf" || ctx.Department == "Cfx" || ctx.Department == "Groom" || ctx.Department == "Facial" || ctx.Department == "Model" && nodePath.Contains("Assets"))
                 {
                     TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Assets", "Templates");
                 }
@@ -619,6 +619,11 @@ start """" ""{fileToOpen}""
                             MayaService.CreateBasicMaFile(templateFile, templateName);
                             MessageBox.Show($"No template found for {templateName}.\nA basic scene has been created.", "Info");
                         }
+                        else if (ctx.Extension == ".blend")
+                        {
+                            BlenderService.CreateBasicBlendFile(templateFile);
+                            MessageBox.Show($"No template found for {templateName}.\nA basic scene has been created.", "Info");
+                        }
                     }
                 }
 
@@ -630,6 +635,12 @@ start """" ""{fileToOpen}""
                     {
                         string mayaPath = MayaService.PathIntoMayaFormat(refPath);
                         MayaService.AddReference(LocalFile, mayaPath);
+                    }
+                    // pour Blender
+                    else if (refPath.EndsWith(".blend", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string blenderPath = BlenderService.PathIntoBlenderFormat(refPath);
+                        BlenderService.AddReference(LocalFile, blenderPath);
                     }
                 }
 

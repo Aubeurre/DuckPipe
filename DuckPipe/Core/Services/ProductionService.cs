@@ -105,23 +105,39 @@ namespace DuckPipe.Core.Services
             return statusImageList;
         }
 
-        public static Dictionary<string, Color> GetTaskColorsFromConfig(JsonDocument doc)
+        public static Dictionary<string, Color> GetTaskColorsFromConfig(string prodPath, string Department)
         {
-            var colors = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
+            MessageBox.Show($"Récupération de la couleur pour le département : {Department}");
+            // ouvre le config.json et lit l'extension principale pour le département donné
+            string configPath = Path.Combine(prodPath, "Dev", "DangerZone", "config.json");
 
-            if (!doc.RootElement.TryGetProperty("color", out var colorSection))
-                return colors;
-
-            foreach (var item in colorSection.EnumerateObject())
+            if (File.Exists(configPath) == true)
             {
-                var r = item.Value.GetProperty("R").GetInt32();
-                var g = item.Value.GetProperty("G").GetInt32();
-                var b = item.Value.GetProperty("B").GetInt32();
-                var a = item.Value.GetProperty("A").GetInt32();
-                colors[item.Name.ToUpper()] = Color.FromArgb(a, r, g, b);
-            }
+                using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
+                if (configDoc.RootElement.TryGetProperty("departments", out JsonElement deptElement))
+                {
+                    foreach (var dept in deptElement.EnumerateObject())
+                    {
+                        if (dept.Name.Equals(Department, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (dept.Value.TryGetProperty("color", out JsonElement extElement))
+                            {
+                                var r = extElement.GetProperty("R").GetInt32();
+                                var g = extElement.GetProperty("G").GetInt32();
+                                var b = extElement.GetProperty("B").GetInt32();
+                                var a = extElement.GetProperty("A").GetInt32();
+                                return new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
+                                {
+                                    { Department.ToUpper(), Color.FromArgb(a, r, g, b) }
+                                };
+                            }
+                        }
+                    }
+                }
+                return new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
 
-            return colors;
+            }
+            return new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
         }
 
         public static string GetFileMainExt(string prodPath, string Department)

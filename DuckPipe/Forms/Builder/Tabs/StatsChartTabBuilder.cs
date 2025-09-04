@@ -217,22 +217,21 @@ namespace DuckPipe.Forms.Builder.Tabs
             string rootPath = ProductionService.GetProductionRootPath();
             string prodPath = Path.Combine(rootPath, ctx.SelectedProd);
 
-            string configJsonPath = ProductionService.getConfigJsonPath(prodPath);
-
-            using var configDoc = JsonDocument.Parse(File.ReadAllText(configJsonPath));
-            var colors = ProductionService.GetTaskColorsFromConfig(configDoc);
-
             Series series = CreateEmptySerie("Heures par département");
             Chart chart = CreateEmptyChart(ctx, series);
 
             foreach (var dept in TimeLogStats.GetAllDepartments(prodPath))
             {
                 double hours = TimeLogStats.GetTotalHoursByDepartment(prodPath, dept);
+                var colors = ProductionService.GetTaskColorsFromConfig(prodPath, dept);
                 var point = series.Points.Add(hours);
                 point.AxisLabel = dept;
                 point.Label = $"{hours:0.#} h";
-                if (colors.TryGetValue(dept.ToUpper(), out var color))
-                    point.Color = color;
+                if (colors.TryGetValue(dept, out Color myColor))
+                {
+                    point.Color = myColor;
+                }
+                
             }
             ctx.FlpAllDeptTimeLogsGraphs.Controls.Add(chart);
         }
@@ -244,7 +243,6 @@ namespace DuckPipe.Forms.Builder.Tabs
 
             string configJsonPath = ProductionService.getConfigJsonPath(prodPath);
             using var configDoc = JsonDocument.Parse(File.ReadAllText(configJsonPath));
-            var colors = ProductionService.GetTaskColorsFromConfig(configDoc);
 
             var allNodes = NodeManip.GetAllNodesInProduction(prodPath);
 
@@ -269,8 +267,12 @@ namespace DuckPipe.Forms.Builder.Tabs
                     ChartType = SeriesChartType.StackedColumn,
                     LabelForeColor = Color.White
                 };
-                if (colors.TryGetValue(dept.ToUpper(), out var color))
-                    series.Color = color;
+
+                var colors = ProductionService.GetTaskColorsFromConfig(prodPath, dept);
+                if (colors.TryGetValue(dept, out Color myColor))
+                {
+                    series.Color = myColor;
+                }
 
                 chart.Series.Add(series);
                 seriesDict[dept] = series;
