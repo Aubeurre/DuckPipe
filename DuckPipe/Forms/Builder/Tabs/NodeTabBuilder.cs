@@ -146,9 +146,6 @@ namespace DuckPipe.Forms.Builder.NodeTab
             if (ctx.CbbNodeStatus.SelectedItem == null)
                 return;
 
-            MessageBox.Show("cbbNodeStatus_SelectedIndexChanged");
-            MessageBox.Show(ctx.CbbNodeStatus.SelectedItem.ToString());
-            MessageBox.Show(ctx.CbbNodeStatus.Tag.ToString());
 
             string selectedStatus = ctx.CbbNodeStatus.SelectedItem?.ToString();
 
@@ -156,7 +153,6 @@ namespace DuckPipe.Forms.Builder.NodeTab
             string NodeName = new DirectoryInfo(nodePath).Name;
             string rootPath = ProductionService.GetProductionRootPath();
 
-            MessageBox.Show(NodeName, selectedStatus);
 
             // allNodes.json
             string configPath = Path.Combine(rootPath, ctx.SelectedProd, "Dev", "DangerZone", "allNodes.json");
@@ -212,7 +208,6 @@ namespace DuckPipe.Forms.Builder.NodeTab
             int offsetX = 10;
             foreach (var image in images)
             {
-                MessageBox.Show(image.FullPath);
                 var thumb = new PictureBox
                 {
                     ImageLocation = image.FullPath,

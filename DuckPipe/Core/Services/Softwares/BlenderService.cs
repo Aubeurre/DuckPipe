@@ -115,7 +115,7 @@ namespace DuckPipe.Core.Services.Softwares
                 p.WaitForExit();
             }
 
-            MessageBox.Show($"Blender Batch terminé.\n\n--- STDOUT ---\n{stdout}\n--- STDERR ---\n{stderr}", "Blender Batch");
+           //  MessageBox.Show($"Blender Batch terminé.\n\n--- STDOUT ---\n{stdout}\n--- STDERR ---\n{stderr}", "Blender Batch");
         }
         public static string PathIntoBlenderFormat(string path)
         {

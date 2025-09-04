@@ -184,7 +184,7 @@ namespace DuckPipe.Forms.Builder.Tabs
                 string dept = deptProp.GetString() ?? "";
                 if (dept != department) continue;
 
-                string workPath = NodeManip.ReplaceEnvVariables(fileData.GetProperty("workPath").GetString());
+                string workPath = NodeManip.ReplaceEnvVariables(Path.Combine(Path.GetDirectoryName(nodeJsonPath), "Work", dept));
                 string status = fileData.GetProperty("status").GetString() ?? "not_started";
                 string version = fileData.GetProperty("version").GetString() ?? "v000";
                 string fileName = fileData.GetProperty("workFile").GetString() ?? "";

@@ -87,7 +87,7 @@ namespace DuckPipe.Core.Services.Softwares
                     p.WaitForExit();
                 }
 
-                MessageBox.Show($"Maya Batch terminé.\n\n--- STDOUT ---\n{stdout}\n--- STDERR ---\n{stderr}", "Maya Batch");
+                // MessageBox.Show($"Maya Batch terminé.\n\n--- STDOUT ---\n{stdout}\n--- STDERR ---\n{stderr}", "Maya Batch");
 
             }
             else

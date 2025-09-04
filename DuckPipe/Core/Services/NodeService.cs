@@ -112,7 +112,7 @@ namespace DuckPipe.Core.Services
 
                     if (Directory.Exists(nodePath))
                     {
-                        MessageBox.Show("Cet node existe déjà.");
+                        MessageBox.Show("Ce node existe déjà.");
                         return;
                     }
 

@@ -107,7 +107,6 @@ namespace DuckPipe.Core.Services
 
         public static Dictionary<string, Color> GetTaskColorsFromConfig(string prodPath, string Department)
         {
-            MessageBox.Show($"Récupération de la couleur pour le département : {Department}");
             // ouvre le config.json et lit l'extension principale pour le département donné
             string configPath = Path.Combine(prodPath, "Dev", "DangerZone", "config.json");
 

@@ -19,7 +19,7 @@ namespace DuckPipe.Core.Builders
             if (deptUpper == "RIG")
             {
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(publishPath),
-                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODELING")}"));
+                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODEL")}"));
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(publishPath),
                     $"{nodeName.ToLower()}_cfx_OK{ProductionService.GetFileMainExt(prodPath, "CFX")}"));
                 if (nodeType == "Character")
@@ -32,7 +32,7 @@ namespace DuckPipe.Core.Builders
             if (deptUpper == "CFX")
             {
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(publishPath),
-                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODELING")}"));
+                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODEL")}"));
             }
             // Si on est en CFX, on ajoute le publish du layout
             if (deptUpper == "SURF")
@@ -40,19 +40,19 @@ namespace DuckPipe.Core.Builders
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(publishPath),
                     $"{nodeName.ToLower()}_cfx_OK{ProductionService.GetFileMainExt(prodPath, "CFX")}"));
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(publishPath),
-                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODELING")}"));
+                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODEL")}"));
             }
             // Si on est en CFX, on ajoute le publish du layout
             if (deptUpper == "GROOM")
             {
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(publishPath),
-                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODELING")}"));
+                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODEL")}"));
             }
             // Si on est en CFX, on ajoute le publish du layout
             if (deptUpper == "FACIAL")
             {
                 refNodes.Add(Path.Combine(NodeManip.SetEnvVariables(publishPath),
-                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODELING")}"));
+                    $"{nodeName.ToLower()}_model_OK{ProductionService.GetFileMainExt(prodPath, "MODEL")}"));
             }
             return refNodes;
         }
