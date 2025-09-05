@@ -11,9 +11,8 @@
         <nav>
             <ul>
                 <li><a href="index.html">Overview</a></li>
-                <li><a href="assets.html">Nodes</a></li>
-                <li><a href="shots.html">Shots</a></li>
-                <li><a href="pipeline.html">Ducky Node Manager</a></li>
+                <li><a href="pipeline.html">DuckyPipe Prod Manager</a></li>
+                <li><a href="assets.html">Graphistes Workflow</a></li>
                 <li><a href="nomenclature.html">Nomenclature</a></li>
                 <li><a href="storage.html">Connexion au NAS & stockage local</a></li>
             </ul>
@@ -25,24 +24,16 @@
 
         <p>DuckPipe fonctionne avec un système de stockage unifié, qui peut être :</p>
         <ul>
-            <li><strong>Local :</strong> utilisé en mode fallback, pour les tests hors réseau.</li>
-            <li><strong>NAS Synology :</strong> utilisé pour les productions en réseau, via le protocole DSM.</li>
+            <li><strong>Local :</strong> utilisé en mode fallback, pour les tests hors réseau. WIP</li>
+            <li><strong>NAS Synology :</strong> utilisé pour les productions en réseau.</li>
         </ul>
 
         <h2>Installation de Tailscale (accès au NAS)</h2>
         <ol>
             <li>Télécharge et installe <a href="https://tailscale.com/download" target="_blank">Tailscale</a>.</li>
-            <li>Crée un compte ou connecte-toi avec Google/GitHub.</li>
+            <li>Crée un compte ou connecte-toi avec Google (l'adresse utilise avec le mail recu).</li>
             <li>Laisse l'application ouverte en arrière-plan. Tu es maintenant connecté au réseau Ichigo !</li>
         </ol>
-
-        <h2>Accès au NAS via le navigateur (optionnel)</h2>
-        <p><strong>Note :</strong> cette méthode est <em>déconseillée</em> pour travailler avec DuckPipe. Elle est fournie à titre informatif uniquement.</p>
-        <ul>
-            <li>Va sur : <a href="https://ichigo-nas.tailf74707.ts.net:5001/" target="_blank">ichigo-nas.tailf74707.ts.net:5001</a></li>
-            <li>Ignore l'alerte de sécurité et continue vers le site.</li>
-            <li>Connecte-toi avec tes identifiants DSM.</li>
-        </ul>
 
         <h2>Montage du NAS comme lecteur réseau (recommandé)</h2>
         <p>Cette méthode permet à DuckPipe d’accéder directement à la structure de production :</p>
@@ -54,8 +45,8 @@
             <li>
                 Connecte-toi avec :
                 <ul>
-                    <li><strong>Nom d’utilisateur :</strong> ton identifiant DSM</li>
-                    <li><strong>Mot de passe :</strong> ton mot de passe DSM</li>
+                    <li><strong>Nom d’utilisateur :</strong> ton identifiant DSM (celui synologie, pas tailscale)</li>
+                    <li><strong>Mot de passe :</strong> ton mot de passe DSM (celui synologie, pas tailscale)</li>
                 </ul>
             </li>
             <li>(Optionnel) Coche "Mémoriser mes identifiants"</li>

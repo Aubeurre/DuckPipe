@@ -64,9 +64,6 @@
     <None Update="Docs\storage.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Docs\shots.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Docs\Index.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

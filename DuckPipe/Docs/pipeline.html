@@ -11,9 +11,8 @@
         <nav>
             <ul>
                 <li><a href="index.html">Overview</a></li>
-                <li><a href="assets.html">Nodes</a></li>
-                <li><a href="shots.html">Shots</a></li>
-                <li><a href="pipeline.html">Ducky Node Manager</a></li>
+                <li><a href="pipeline.html">DuckyPipe Prod Manager</a></li>
+                <li><a href="assets.html">Graphistes Workflow</a></li>
                 <li><a href="nomenclature.html">Nomenclature</a></li>
                 <li><a href="storage.html">Connexion au NAS & stockage local</a></li>
             </ul>
@@ -40,48 +39,225 @@
 
         </br><hr></br>
 
-        <h2>Config</h2>
+        <h2>Gestion d'une production</h2>
         <section>
-            <h3>Configuration des productions</h3>
+            <h3>Creation des productions</h3>
             <p>
-                DuckPipe s’appuie sur un fichier <code>config.json</code> pour définir les types d’assets disponibles, les départements de production, les chemins relatifs, et les règles spécifiques au projet.</br>
-                Chaque production dispose de son propre fichier de configuration, copié automatiquement lors de sa création.</br>
-                Modifier ce fichier permet d’adapter le pipeline aux besoins spécifiques d’un projet sans toucher au code source.
+                DuckPipe permet la creation de production 100% personnalisée, en fonction des besoins du studio.</br>
+                Lors de la création d’une nouvelle production, une arborescence standardisée est générée automatiquement, incluant les dossiers pour les assets, séquences, plans, et autres éléments nécessaires.</br>
+                C'est vous qui décidez de la structure de vos dossiers, des départements impliqués dans chaque assets, ainsi que le ou les logiciels utilisé pour chaque departements.
             </p>
         </section>
 
         <section>
-            <h3>Structure et configuration : <code>NodeStructure.json</code> </h3>
+            <h3>Configuration des productions : <code>config.json</code></h3>
+            <p>
+                DuckPipe s’appuie sur un fichier <code>config.json</code> pour définir règles spécifiques au projet.</br>
+                Chaque production dispose de son propre fichier de configuration, cree automatiquement lors de la création de la production.</br>
+                Modifier ce fichier permet d’adapter le pipeline aux besoins spécifiques d’un projet sans toucher au code source</br>
+                Vous pouvez definir les utilisateurs qui accedent a la productionm la customisation des couleurs de chaque departements, les status disponibles, ainsi que la date de debut et fin de production.
+            </p>
+        </section>
+
+        <section>
+            <h3>Structure et hierarchie : <code>NodeStructure.json</code> </h3>
             <p>
                 Le fichier <code>NodeStructure.json</code> définit la structure par défaut des dossiers et fichiers pour chaque type d’asset (ex: Props, Characters, Sequences, Shots).</br>
                 Il indique les départements impliqués, les chemins à créer, ainsi que les modèles de noms de fichiers.</br>
-                Lors de la création d’un nouvel asset, cette structure est utilisée pour générer automatiquement l’arborescence correspondante.</br>
+                Lors de la création d’un nouveau node, cette structure est utilisée pour générer automatiquement l’arborescence correspondante.</br>
                 </br>
                 Il est donc possible d'editer le fichier afin de constituer une arboressence unique pour chaque production.</br>
             </p>
 
             <h4>🛠️ Extrait de <code>NodeStructure.json</code> pour le type <em>Props</em></h4>
             <pre><code>
-{
-  "Props": {
-    "departments": {
-      "Model": {
-        "folders": ["work", "publish"],
-        "files": ["work/xxx_model_v001.ma"]
-      },
-      "Rig": {
-        "folders": ["work", "publish"],
-        "files": []
-      }
-    }
-  }
-}
-    </code></pre>
+    "Props": {
+        "dlv": {},
+        "Work": {
+            "Concept": {
+                "incrementals": {
+                    "_files": []
+                },
+                "_files": []
+            },
+            "Model": {
+                "incrementals": {
+                    "_files": [
+                        "{nodenamepipeplaceholder}_model_v000.ma",
+                        "{nodenamepipeplaceholder}_model_v000.ztl"
+                    ]
+                },
+                "_files": [
+                    "{nodenamepipeplaceholder}_model.ma",
+                    "{nodenamepipeplaceholder}_model.ztl"
+                ]
+            }
+                . . .
+
+</code></pre>
 
             <p>
                 Grâce à cette configuration dynamique, le pipeline reste flexible et évolutif selon les besoins du studio.
             </p>
         </section>
+
+        <section>
+            <h3>Gestion des Users</h3>
+            <p>
+                DuckPipe intègre une gestion des utilisateurs pour contrôler l’accès aux productions et aux fonctionnalités.</br>
+                </br>
+                La gestion des noms d'utilisateurs se fait via le fichier <code>user_config.json</code> situé dans le dossier utilisateur de chaque machine.</br>
+                Ce fichier est généré automatiquement à la première ouverture de DuckPipe, et peut être édité directement dans l'interface du tool.</br>
+                </br>
+                Chaque production peut definir les utilisateurs qui font partie de la production, et ainsi restreindre l'accès aux personnes autorisées uniquement.</br>
+                Les utilisateurs assignes a la production se retrouveront dans les listes droulantes d''assignation des taches, et dans les historiques de modification.</br>
+            </p>
+        </section>
+
+        </br><hr></br>
+
+        <h2>UI de DuckPipe</h2>
+        <section>
+            <h3>Overview</h3>
+            <p>
+                L'UI se decoupe en 2 parties principales : la barre latérale de navigation (a gauche), et le panneau principal de gestion.</br>
+                La barre latérale permet de naviguer a travers les fichiers de chaque production. mais aussi de creer production ou node.</br>
+                Le panneau principal affiche les détails de l'élément sélectionné, Il permet d'agire sur le node.</br>
+                Il peut se decomposer en 4 sections :</br>
+                <ul>
+                    <li>Node (detail sur les assignation, les due date, et statue de chaque departement)</li>
+                    <li>Work (action sur les scene de travial)</li>
+                    <li>Shedule (Planing de la production)</li>
+                    <li>Stats (Time logs et statistiques de la production)</li>
+                </ul>
+            </p>
+        </section>
+
+        </br><hr></br>
+
+        <h2>Gestion d'un Node et travail</h2>
+        <section>
+            <h3>Creation : <code>Node.json</code></h3>
+            <p>
+                A la creation d'un nouveau node, un fichier <code>Node.json</code> est généré automatiquement dans le dossier racine du node.</br>
+                Ce fichier contient les informations de suivi du node, comme les versions de fichiers de travail, les publications, les statuts des departements, et les utilisateurs assignés.</br>
+                le node est inscrit dans le fichier <code>allNodes.json</code> de la production.</br>
+            </p>
+        </section>
+
+        <section>
+            <h3>Action sur le Node</h3>
+            <p>
+                Depuis le panneau principal, il est possible d'agir sur le node de plusieurs façons :</br>
+                </br>
+                Onglet <strong>Node</strong> </br>
+                <ul>
+                    <li>Changer le statut d'un ou plusieurs departements</li>
+                    <li>Gerer les start et due Date</li>
+                    <li>Gerer les Assignation</li>
+                </ul>
+                </br>
+                Onglet <strong>Work</strong> </br>
+                <ul>
+                    <li><strong>Grab</strong> / Ungrab (permet de lock un asset et eviter les conflits)</li>
+                    <li><strong>Exec</strong> (permet de creer ou recreer la scene dans son etat de base, avec template et references)</li>
+                    <li><strong>Run</strong> (Lance le work selectionne)</li>
+                    <li><strong>Increment</strong> (copie le local sur le serveur, et enregistre une versiondans les incrementals</li>
+                    <li><strong>Publish</strong> (fait une incremental, lance les scripts de publish, puis genere un "_OK" dans "dlv" .</li>
+                    <li><strong>Edit</strong> Ref (Permet d'ajouter ou suprimer les references a importer dans la scene (pour maya et blender)</li>
+                </ul>
+                Toutes ces actions mettent à jour le fichier <code>Node.json</code> pour refléter l'état actuel du node (n'oubliez pas le bouton "Save").
+            </p>
+        </section>
+
+        <section>
+            <h3>Grab / Ungrab</h3>
+            <p>
+                Le bouton "Grab" permet de verrouiller un asset pour éviter les conflits de modification entre plusieurs utilisateurs.</br>
+                Lorsqu'un utilisateur clique sur "Grab", plusieurs actions sont effectuées automatiquement :</br>
+                <ul>
+                    <li>Le fichier work est copie du serveur vers le dossier local de l'utilisateur. (ON NE TRAVAIL PAS DIRECTEMENT SUR LE SERVEUR)</li>
+                    <li>un fichier <code>.lock</code> est cree a la racine de la scene ed travail pour indiquer que l'asset est verrouillé par cet utilisateur.</li>
+                    <li>Le nom de l'utilisateur est affiché dans l'interface pour informer les autres utilisateurs que l'asset est en cours d'édition.</li>
+                    <li>Les autres utilisateurs ne peuvent pas modifier ou publier cet asset tant qu'il est verrouillé.</li>
+                </ul>
+                Pour libérer l'asset, l'utilisateur peut cliquer sur "Ungrab", ce qui deletera le fichier <code>.lock</code> et permettra aux autres utilisateurs d'accéder à nouveau à l'asset.</br>
+                L'asset en local est suprimé, et il faudra refaire un "Grab" pour travailler a nouveau dessus.</br>
+                <strong>Toute modification effectuée en local doit être sauvegardée sur le serveur via le bouton "Increment" avant de faire un "Ungrab".</strong></br>
+                Cela garantit que les modifications sont effectuées de manière ordonnée et évite les conflits de version.
+            </p>
+        </section>
+
+        <section>
+            <h3>Exec</h3>
+            <p>
+                Le bouton "Exec" permet de créer ou recréer la scène de travail dans son état de base.</br>
+                Lorsqu'un utilisateur clique sur "Exec", plusieurs actions sont effectuées automatiquement :</br>
+                <ul>
+                    <li>Le dossier de travail local est créé s'il n'existe pas déjà.</li>
+                    <li>Les références définies dans le fichier <code>Node.json</code> sont importées dans la scène.</li>
+                    <li>Le template spécifique au type de node et au département est chargé si disponible.</li>
+                </ul>
+                Si une scène de travail existe déjà, elle sera remplacée par la nouvelle version générée par "Exec".</br>
+                Cela garantit que l'utilisateur travaille toujours avec une scène propre et à jour, conforme aux standards du studio.
+            </p>
+        </section>
+
+        <section>
+            <h3>Template</h3>
+            <p>
+                Pour chaque Type de node et chaque departements, il est possible de definir un template de scene de travail.</br>
+                Par exemple, pour le departement Model d'un Props, on peut definir un template qui portera le nom <code>Props_Model_template.{ext</code>}</br>
+                Lors de l'exec de la scene de travail, le template prendra la place de la scene de travail.</br>
+                Si aucun template n'est defini, une scene vierge sera ouverte.</br>
+                Attention, le template doit se trouver dans un dossier specifique de la production</br>
+                <ul>
+                    <li><code>..\ProdName\Assets\Templates</code>, pour les templates des Assets</li>
+                    <li><code>..\ProdName\Shots\Templates</code>, pour les templates des Shots et Sequences</li>
+                </ul>
+            </p>
+        </section>
+
+        <section>
+            <h3>Publish</h3>
+            <p>
+                Le publish permet de valider et de partager les travaux réalisés.</br>
+                Lorsqu'un utilisateur clique sur le bouton "Publish", plusieurs actions sont effectuées automatiquement :</br>
+                <ul>
+                    <li>Une sauvegarde incrémentale est créée dans le dossier "incrementals" du département concerné.</li>
+                    <li>Les scripts de publication spécifiques au département sont exécutés (par exemple, l'exportation de fichiers, la génération de playblasts, etc.).</li>
+                    <li>Un fichier "_OK" est généré dans le dossier "dlv" pour indiquer que le travail a été publié avec succès.</li>
+                    <li>Le fichier <code>Node.json</code> est mis à jour pour refléter la nouvelle version publiée et les changements de statut.</li>
+                </ul>
+                Les scripts de publication sont définis dans le dossier <code>..\MixedProd\Dev\Pythons</code> de la production.</br>
+                Ils peuvent être cree et personnalisés pour chaque département.</br>
+                Par exemple, un script de publication pour le département "Rig" d'un "Characters" portera le nom <code>Characters_Rig_publish.py</code>.</br>
+            </p>
+        </section>
+
+        <section>
+            <h3>Edit References</h3>
+            <p>
+                Le bouton "Edit Ref" permet de gérer les références à importer dans la scène de travail.</br>
+                Lorsqu'un utilisateur clique sur "Edit Ref", une fenêtre s'ouvre pour permettre d'ajouter ou de supprimer des références.</br>
+                Les références peuvent être des assets existants dans la production, tels que des personnages, des décors ou des accessoires.</br>
+                Une fois les modifications effectuées, le fichier <code>Node.json</code> est mis à jour pour refléter les nouvelles références.</br>
+                Lors du prochain "Exec", les références définies seront automatiquement importées dans la scène de travail.</br>
+                Certaines scenes ont deja des references par defaut, qui seront importées a chaque exec. tel que la camera, pour les layout par exemple.</br>
+            </p>
+        </section>
+
+
+        <section>
+            <h3>TimeLog</h3>
+            <p>
+                DuckPipe intègre un système de suivi du temps de travail pour chaque utilisateur sur chaque node.</br>
+                L'utilisateur peut (et doit) enregistrer son temps de travail dans l'onglet "stats", bouton "Add Timelog"</br>
+                Le panneau "Stats" dans l'interface principale affiche un résumé des temps de travail pour chaque département, permettant a la prod de suivre la progression et d'analyser la charge de travail.</br>
+                Cela aide à identifier les goulets d'étranglement dans le pipeline et à optimiser la répartition des tâches.</br>
+            </p>
+        </section>
+
     </main>
 
     <footer>

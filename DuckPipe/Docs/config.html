@@ -11,9 +11,8 @@
         <nav>
             <ul>
                 <li><a href="index.html">Overview</a></li>
-                <li><a href="assets.html">Nodes</a></li>
-                <li><a href="shots.html">Shots</a></li>
-                <li><a href="pipeline.html">Ducky Node Manager</a></li>
+                <li><a href="pipeline.html">DuckyPipe Prod Manager</a></li>
+                <li><a href="assets.html">Graphistes Workflow</a></li>
                 <li><a href="nomenclature.html">Nomenclature</a></li>
                 <li><a href="storage.html">Connexion au NAS & stockage local</a></li>
             </ul>
@@ -44,7 +43,7 @@
                 Tu peux l’éditer directement dans le tool (il comprend notamment le chemin vers les disques de prod, donc il faut y avoir accès pour que le tool se lance proprement).
             </p>
             <p>
-                📦 Dernière version : <a href="https://github.com/Aubeurre/DuckPipe/releases/tag/v1.2.1" target="_blank">v1.2.1</a>
+                📦 Dernière version : <a href="https://github.com/Aubeurre/DuckPipe/releases1" target="_blank">v1.8.0</a>
             </p>
             <p>
                 🔄 Pour les mises à jour : DuckPipe vous indique si vous êtes à jour. Il faudra désinstaller puis réinstaller la dernière version depuis l’exécutable disponible sur GitHub.
@@ -62,20 +61,12 @@
             <ol>
                 <li>Télécharge l'application Tailscale ici : <a href="https://tailscale.com/download" target="_blank">https://tailscale.com/download</a></li>
                 <li>Installe l'application et connecte-toi (via Google ou GitHub par exemple).</li>
-                <li>Laisse Tailscale ouvert en arrière-plan : vous êtes maintenant connecté au réseau privé Ichigo ✨</li>
+                <li>Laisse Tailscale ouvert en arrière-plan : tu es maintenant connecté au réseau privé Ichigo ✨</li>
             </ol>
         </section>
 
         <section>
-            <h4>2. Accès au NAS (Interface Web)</h4>
-            <p>Tu peux accéder au NAS depuis ton navigateur à l’adresse :</p>
-            <pre><a href="https://ichigo-nas.tailf74707.ts.net:5001/" target="_blank">https://ichigo-nas.tailf74707.ts.net:5001/</a></pre>
-            <p>⚠ Si une alerte "connexion non sécurisée" apparaît, clique sur <strong>“Avancé”</strong> puis <strong>“Continuer vers le site”</strong>. C’est normal, la sécurité est assurée par Tailscale.</p>
-            <p>Connecte-toi avec tes identifiants DSM.</p>
-        </section>
-
-        <section>
-            <h4>3. Montage du lecteur réseau</h4>
+            <h4>2. Montage du lecteur réseau</h4>
             <p>Pour que DuckPipe fonctionne correctement, le dossier <code>PROD</code> doit être monté comme un lecteur réseau dans l’explorateur Windows :</p>
             <ol>
                 <li>Ouvre l’<strong>Explorateur de fichiers</strong> (Win + E).</li>
@@ -96,7 +87,6 @@
             <ul>
                 <li>Le montage réseau ne fonctionne que si Tailscale est actif ou que vous êtes connecté au réseau du studio.</li>
                 <li>DuckPipe est prévu pour éviter de naviguer manuellement dans l’arborescence — tout passe par l’interface !</li>
-                <li>Actuellement, DuckPipe se connecte automatiquement avec l’utilisateur <code>AlexBis</code> pour simplifier le setup (ce nom sera renommé plus tard en <code>DuckyPipe</code>).</li>
             </ul>
         </section>
 
