@@ -18,6 +18,9 @@ namespace DuckPipe
         public CreateAssetPopup(AssetManagerForm form)
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
             mainForm = form;
 
             cbNodeType.SelectedIndex = 0;

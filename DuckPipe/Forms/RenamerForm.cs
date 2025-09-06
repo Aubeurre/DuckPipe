@@ -15,6 +15,9 @@ namespace DuckPipe.Forms
         public RenamerForm()
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
         }
     }
 }

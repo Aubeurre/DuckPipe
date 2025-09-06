@@ -22,6 +22,15 @@ namespace DuckPipe.Forms.Builder.Tabs
             };
         }
 
+        private static float GetScaleFactor()
+        {
+            // Get the system DPI scale factor
+            using (var g = Graphics.FromHwnd(IntPtr.Zero))
+            {
+                return g.DpiX / 96f; // 96 DPI = 100%
+            }
+        }
+
         public static TimelineContext GetContext(string selectedProd)
         {
             if (_ctx == null)
@@ -155,10 +164,13 @@ namespace DuckPipe.Forms.Builder.Tabs
 
         private static FlowLayoutPanel CreateTimelineHeader(DateTime startDate, int totalDays)
         {
+            float scale = GetScaleFactor();
+            int cellSize = (int)(15 * scale);
+
             var timelineHeader = new FlowLayoutPanel
             {
-                Height = 45,
-                Width = totalDays * 15,
+                Height = (int)(45 * scale),
+                Width = totalDays * cellSize,
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = false,
                 AutoScroll = false,
@@ -180,8 +192,8 @@ namespace DuckPipe.Forms.Builder.Tabs
 
                 var monthPanel = new FlowLayoutPanel
                 {
-                    Height = 45,
-                    Width = daysToDisplay * 15,
+                    Height = (int)(45 * scale),
+                    Width = daysToDisplay * cellSize,
                     FlowDirection = FlowDirection.TopDown,
                     Margin = new Padding(0),
                     BackColor = bgColor,
@@ -191,18 +203,18 @@ namespace DuckPipe.Forms.Builder.Tabs
                 monthPanel.Controls.Add(new Label
                 {
                     Text = currentDate.ToString("MMMM"),
-                    Height = 15,
-                    Width = daysToDisplay * 15,
+                    Height = (int)(15 * scale),
+                    Width = daysToDisplay * cellSize,
                     Margin = new Padding(0),
                     TextAlign = ContentAlignment.MiddleCenter,
-                    Font = new Font("Segoe UI", 7, FontStyle.Bold),
+                    Font = new Font("Segoe UI", 7 , FontStyle.Bold),
                     ForeColor = Color.White
                 });
 
                 var dayPanel = new FlowLayoutPanel
                 {
-                    Height = 15,
-                    Width = daysToDisplay * 15,
+                    Height = (int)(15 * scale),
+                    Width = daysToDisplay * cellSize,
                     FlowDirection = FlowDirection.LeftToRight,
                     Margin = new Padding(0),
                     WrapContents = false
@@ -214,9 +226,9 @@ namespace DuckPipe.Forms.Builder.Tabs
                     dayPanel.Controls.Add(new Label
                     {
                         Text = dayNumber.ToString(),
-                        Width = 15,
-                        Height = 15,
-                        Font = new Font("Segoe UI", 6),
+                        Width = cellSize,
+                        Height = cellSize,
+                        Font = new Font("Segoe UI", 4),
                         BackColor = bgColor,
                         ForeColor = Color.White,
                         TextAlign = ContentAlignment.MiddleCenter,
@@ -236,8 +248,11 @@ namespace DuckPipe.Forms.Builder.Tabs
             return timelineHeader;
         }
 
+
         private static void AddNodeRows(string prodPath, TableLayoutPanel mainTable, Dictionary<string, Dictionary<string, Dictionary<string, TaskData>>> allNodes, DateTime startingDate, int todayOffset, int timelineWidth)
         {
+            float scale = GetScaleFactor();
+
             ComboBox cbFilter = mainTable.GetControlFromPosition(0, 0) as ComboBox;
             string selectedValue = cbFilter.SelectedItem?.ToString();
 
@@ -256,8 +271,8 @@ namespace DuckPipe.Forms.Builder.Tabs
                         var lblNode = new Label
                         {
                             Text = nodeName,
-                            Width = 150,
-                            Height = 15,
+                            Width = (int)(150 * scale),
+                            Height = (int)(15 * scale),
                             Font = new Font("Segoe UI", 8),
                             ForeColor = Color.White,
                             TextAlign = ContentAlignment.MiddleLeft,
@@ -272,16 +287,19 @@ namespace DuckPipe.Forms.Builder.Tabs
                         mainTable.Controls.Add(taskLine, 1, currentRow);
                     }
                 }
-
             }
         }
 
+
         private static Panel CreateTaskLine(string prodPath, Dictionary<string, TaskData> tasks, DateTime startingDate, int todayOffset, int width)
         {
+            float scale = GetScaleFactor();
+            int cellSize = (int)(15 * scale);
+
             var taskLine = new Panel
             {
                 Width = width,
-                Height = tasks.Count * 14,
+                Height = tasks.Count * (int)(14 * scale),
                 BackColor = Color.FromArgb(60, 60, 60),
                 AutoScroll = true,
                 Padding = new Padding(0)
@@ -290,10 +308,10 @@ namespace DuckPipe.Forms.Builder.Tabs
             // Ligne "Today"
             var taskTodayLine = new Panel
             {
-                Width = 2,
+                Width = (int)(2 * scale),
                 Height = taskLine.Height,
                 BackColor = Color.Red,
-                Location = new Point(todayOffset * 15, 0),
+                Location = new Point(todayOffset * cellSize, 0),
                 Margin = new Padding(0)
             };
             taskLine.Controls.Add(taskTodayLine);
@@ -310,8 +328,8 @@ namespace DuckPipe.Forms.Builder.Tabs
                 int offsetDays = (int)(start - startingDate).TotalDays + 1;
                 int durationDays = Math.Max(1, (int)(end - start).TotalDays + 1);
 
-                int leftMargin = offsetDays * 15;
-                int blockWidth = durationDays * 15;
+                int leftMargin = offsetDays * cellSize;
+                int blockWidth = durationDays * cellSize;
 
                 Color blockColor = taskColors.TryGetValue(taskEntry.Key.ToUpper(), out var color)
                     ? color
@@ -320,10 +338,10 @@ namespace DuckPipe.Forms.Builder.Tabs
                 var block = new Panel
                 {
                     Width = blockWidth,
-                    Height = 10,
+                    Height = (int)(10 * scale),
                     BackColor = blockColor,
                     Margin = new Padding(0),
-                    Location = new Point(leftMargin, taskIndex * 14)
+                    Location = new Point(leftMargin, taskIndex * (int)(14 * scale))
                 };
 
                 var lblTask = new Label
@@ -347,5 +365,6 @@ namespace DuckPipe.Forms.Builder.Tabs
 
             return taskLine;
         }
+
     }
 }

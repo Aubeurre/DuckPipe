@@ -15,6 +15,9 @@ namespace DuckPipe
         public CreateProductionPopup()
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
         }
 
         public Dictionary<string, Dictionary<string, DeptInfo>> ProductionStructure { get; private set; }

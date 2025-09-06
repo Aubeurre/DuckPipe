@@ -56,6 +56,16 @@ namespace DuckPipe.Forms.Builder.NodeTab
 
             public FlowLayoutPanel FlpNodeTask { get; set; }
         }
+
+        private static float GetScaleFactor()
+        {
+            // Get the system DPI scale factor
+            using (var g = Graphics.FromHwnd(IntPtr.Zero))
+            {
+                return g.DpiX / 96f; // 96 DPI = 100%
+            }
+        }
+
         public static NodeTabContext GetContext(string nodePath, string selectedProd)
         {
             if (_ctx == null)
@@ -182,12 +192,13 @@ namespace DuckPipe.Forms.Builder.NodeTab
 
         public static void DisplayImagePanel(NodeTabContext ctx)
         {
+            float scale = GetScaleFactor();
             ctx.FlpNodeTask.SuspendLayout();
 
             Panel pbpPnel = new()
             {
                 AutoSize = false,
-                Size = new Size(ctx.FlpNodeTask.ClientSize.Width - 30, 100),
+                Size = new Size((int)((ctx.FlpNodeTask.ClientSize.Width - 30 * scale)), (int)(100 * scale)),
                 BackColor = Color.FromArgb(80, 80, 80),
                 Padding = new Padding(5),
                 Margin = new Padding(5)
@@ -212,10 +223,10 @@ namespace DuckPipe.Forms.Builder.NodeTab
                 {
                     ImageLocation = image.FullPath,
                     SizeMode = PictureBoxSizeMode.Zoom,
-                    Size = new Size(100, 60),
+                    Size = new Size((int)(100 * scale),(int)(60 * scale)),
                     Cursor = Cursors.Hand,
                     Tag = image.FullPath,
-                    Location = new Point(offsetX, 30)
+                    Location = new Point((int)(offsetX * scale),(int)( 30 * scale))
                 };
 
                 thumb.DoubleClick += (s, e) =>
@@ -289,14 +300,15 @@ namespace DuckPipe.Forms.Builder.NodeTab
         private static void DisplayPlayBlastPanel(NodeTabContext ctx)
         {
             ctx.FlpNodeTask.SuspendLayout();
+            float scale = GetScaleFactor();
 
             Panel pbpPnel = new()
             {
                 AutoSize = false,
-                Size = new Size(ctx.FlpNodeTask.ClientSize.Width - 30, 100),
+                Size = new Size((int)(ctx.FlpNodeTask.ClientSize.Width - 30 * scale),(int)( 100 * scale)),
                 BackColor = Color.FromArgb(80, 80, 80),
-                Padding = new Padding(5),
-                Margin = new Padding(5)
+                Padding = new Padding((int)(5 * scale)),
+                Margin = new Padding((int)(5 * scale))
             };
 
             // Label
@@ -305,7 +317,7 @@ namespace DuckPipe.Forms.Builder.NodeTab
                 Text = " - Playblasts",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Location = new Point(5, 5),
+                Location = new Point((int)(5 * scale), (int)( 5 * scale)),
                 ForeColor = Color.White,
             });
 
@@ -318,10 +330,10 @@ namespace DuckPipe.Forms.Builder.NodeTab
                 {
                     ImageLocation = ShotManip.GenerateThumbnail(playblast.FullPath),
                     SizeMode = PictureBoxSizeMode.Zoom,
-                    Size = new Size(100, 60),
+                    Size = new Size((int) (100 * scale), (int)( 60 * scale)),
                     Cursor = Cursors.Hand,
                     Tag = playblast.FullPath,
-                    Location = new Point(offsetX, 30)
+                    Location = new Point((int)(offsetX * scale),(int)( 30 * scale))
                 };
 
                 image.DoubleClick += (s, e) =>
@@ -349,14 +361,17 @@ namespace DuckPipe.Forms.Builder.NodeTab
             Dictionary<string, string> statusIcons,
             List<string> users)
         {
+
+            float scale = GetScaleFactor();
+
             // ---- Panel racine
             var departmentPanel = new RoundedPanel
             {
                 AutoSize = false,
-                Size = new Size( /* largeur sera gérée par le parent */ 600, 80),
+                Size = new Size((int)(600 * scale),(int)( 80 *scale)),
                 BackColor = Color.FromArgb(80, 80, 80),
-                Padding = new Padding(8),
-                Margin = new Padding(5),
+                Padding = new Padding((int)(8 * scale)),
+                Margin = new Padding((int)(5 * scale)),
                 BorderColor = Color.FromArgb(90, 90, 90),
                 BorderRadius = 5,
                 BorderThickness = 0,
@@ -390,15 +405,15 @@ namespace DuckPipe.Forms.Builder.NodeTab
                 RowCount = 2,
                 Dock = DockStyle.Fill,
                 BackColor = Color.FromArgb(60, 60, 60),
-                Padding = new Padding(3),
-                Margin = new Padding(5),
+                Padding = new Padding((int)(3* scale)),
+                Margin = new Padding((int)(5 * scale)),
                 BorderStyle = BorderStyle.FixedSingle,
             };
             bigTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30));
             bigTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
             bigTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
             bigTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30));
-            bigTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+            bigTable.RowStyles.Add(new RowStyle(SizeType.Absolute, ((int)20 * scale)));
             bigTable.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
             // Labels

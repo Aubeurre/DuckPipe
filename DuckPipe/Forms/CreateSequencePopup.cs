@@ -16,6 +16,9 @@ namespace DuckPipe.Forms
         public CreateSequencePopup(AssetManagerForm form)
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
             mainForm = form;
 
         }

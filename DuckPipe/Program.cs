@@ -13,18 +13,26 @@ namespace DuckPipe
         {
             ApplicationConfiguration.Initialize();
             UserConfig.LoadOrCreate();
-            Application.Run(new AssetManagerForm()); 
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             CheckForUpdates();
+            Application.Run(new AssetManagerForm());
         }
-        public static readonly string CurrentVersion = "1.8.0"; //release
-        public static async Task CheckForUpdates()
+
+        public static readonly string CurrentVersion = "1.8.1"; //release
+
+        public static void CheckForUpdates()
         {
             try
             {
                 using HttpClient client = new HttpClient();
-                string latestVersion = await client.GetStringAsync("https://raw.githubusercontent.com/Aubeurre/DuckPipe/master/version.txt");
 
-                if (latestVersion.Trim() != CurrentVersion)
+                string latestVersion = client.GetStringAsync("https://raw.githubusercontent.com/Aubeurre/DuckPipe/master/version.txt")
+                                             .GetAwaiter().GetResult()
+                                             .Trim();
+
+                if (latestVersion != CurrentVersion)
                 {
                     DialogResult result = MessageBox.Show(
                         $"Une nouvelle version ({latestVersion}) est disponible. Voulez-vous l’ouvrir sur GitHub ?",

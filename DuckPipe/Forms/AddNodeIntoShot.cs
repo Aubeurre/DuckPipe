@@ -15,6 +15,9 @@ namespace DuckPipe.Forms
         public AddNodeIntoShot(string proodRootPath)
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
             LoadTreeView(proodRootPath);
         }
 

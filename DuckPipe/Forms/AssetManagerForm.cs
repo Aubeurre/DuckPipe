@@ -24,6 +24,9 @@ namespace DuckPipe
         public AssetManagerForm()
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
             LoadProductionList();
             WorkTabBuilder.InitWorkTab(flpPipelineStatus, flpNodeInspect, flpDeptButton, lblNodeName, lblNodeType, lbDescription, this);
             NodeTabBuilder.InitNodeTab(flpNodeTask, lblNodeName2, lblNodeType2, lbDescription2, cbbNodeStatus, btnEditNode, this);
@@ -263,7 +266,7 @@ namespace DuckPipe
                 string rootPath = ProductionService.GetProductionRootPath();
                 string prodPath = Path.Combine(rootPath, selectedProd);
 
-                
+
                 NodeService.CreateAsset(prodPath, newItemName, newItemType, Description);
 
                 // Recharger  TreeView
@@ -331,7 +334,7 @@ namespace DuckPipe
                     string rootPath = ProductionService.GetProductionRootPath();
                     var productionConfig = new ProductionStructureBuilder { name = prodName };
 
-                     productionConfig.CreateProductionStructure(prodName, rootPath, prodStructure);
+                    productionConfig.CreateProductionStructure(prodName, rootPath, prodStructure);
 
                     MessageBox.Show($"Production '{prodName}' créée !");
 
@@ -410,6 +413,7 @@ namespace DuckPipe
 
         }
         #endregion
+
 
     }
 }

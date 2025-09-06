@@ -17,6 +17,9 @@ namespace DuckPipe.Forms
         public CreateShotPopup(AssetManagerForm form)
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
             mainForm = form;
 
         }

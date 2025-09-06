@@ -15,6 +15,9 @@ namespace DuckPipe
         public MessageBoxPopup()
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
         }
         public string CommitMessage => rtbMessage.Text;
 

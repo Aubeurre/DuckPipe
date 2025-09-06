@@ -19,6 +19,9 @@ namespace DuckPipe.Forms
         public TimeLogAddPopup(List<string> nodes)
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
             cbNode.Items.AddRange(nodes.ToArray());
             cbNode.SelectedIndex = 0;
         }

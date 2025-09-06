@@ -75,6 +75,15 @@ namespace DuckPipe.Forms.Builder.Tabs
         /// <summary> 
         /// 
 
+        private static float GetScaleFactor()
+        {
+            // Get the system DPI scale factor
+            using (var g = Graphics.FromHwnd(IntPtr.Zero))
+            {
+                return g.DpiX / 96f; // 96 DPI = 100%
+            }
+        }
+
         public static Panel BuildWorkDepartmentsPanel(
             string jsonPath,
             string deptName,
@@ -85,31 +94,30 @@ namespace DuckPipe.Forms.Builder.Tabs
             string selectedProd,
             string rootPath)
         {
+            float scale = GetScaleFactor();
 
             var departmentPanel = new RoundedPanel
             {
                 AutoSize = false,
-                Size = new Size(panelWidth - 30, 80),
+                Size = new Size((int)((panelWidth - 30 * scale) ), (int)(80 * scale)),
                 BackColor = Color.FromArgb(80, 80, 80),
-                Padding = new Padding(8),
-                Margin = new Padding(5),
-                Location = new Point(20, 20),
+                Padding = new Padding((int)(8 * scale)),
+                Margin = new Padding((int)(5 * scale)),
+                Location = new Point((int)(20 * scale), (int)(20 * scale)),
                 BorderColor = Color.FromArgb(90, 90, 90),
                 BorderRadius = 5,
                 BorderThickness = 0,
             };
 
-            // Label
             departmentPanel.Controls.Add(new Label
             {
                 Text = $" - {deptName}",
                 AutoSize = true,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Location = new Point(5, 5),
+                Font = new Font("Segoe UI", 10, FontStyle.Bold), // fonts fixes
+                Location = new Point((int)(5 * scale), (int)(5 * scale)),
                 ForeColor = Color.White,
             });
 
-            // ListView
             var listView = new ListView()
             {
                 View = View.Details,
@@ -122,10 +130,9 @@ namespace DuckPipe.Forms.Builder.Tabs
             };
             listView.HeaderStyle = ColumnHeaderStyle.None;
 
-            // Ajoute les colonnes
-            listView.Columns.Add("Fichier", panelWidth - 180);
-            listView.Columns.Add("User", 70);
-            listView.Columns.Add("Version", 50);
+            listView.Columns.Add("Fichier", (int)((panelWidth - 180 * scale)));
+            listView.Columns.Add("User", (int)(70 * scale));
+            listView.Columns.Add("Version", (int)(50 * scale));
 
             listView.MouseClick += (s, e) =>
             {
@@ -137,27 +144,22 @@ namespace DuckPipe.Forms.Builder.Tabs
                 }
             };
 
-            // Ajout du contexte à .Tag
             listView.Tag = Tuple.Create(jsonPath, deptName);
 
-            // Panel contenant la list
             Panel listContainer = new Panel
             {
                 Dock = DockStyle.Bottom,
-                Height = 50,
-                Padding = new Padding(3),
+                Height = (int)(50 * scale),
+                Padding = new Padding((int)(3 * scale)),
             };
-
             listContainer.Controls.Add(listView);
             departmentPanel.Controls.Add(listContainer);
 
-            // Récupère les infos
-            var info = (Tuple<string, string>)listView.Tag;
             FillDepartementPanel(listView, jsonPath, deptName, statusImageList, statusIcons, selectedProd, rootPath);
 
             return departmentPanel;
         }
-        
+
         public static void FillDepartementPanel(
             ListView listView,
             string nodeJsonPath,
@@ -285,21 +287,30 @@ namespace DuckPipe.Forms.Builder.Tabs
                 ctx.FlpPipelineStatus.Controls.Add(departmentPanel);
             }
 
+
             ctx.FlpPipelineStatus.ResumeLayout();
         }
 
+
         private static Button CreateActionButton(
-            string label, 
-            Action<string, AssetManagerForm> onValidSelection, 
-            AssetManagerForm form, 
+            string label,
+            Action<string, AssetManagerForm> onValidSelection,
+            AssetManagerForm form,
             string nodePath)
         {
+            float scale = GetScaleFactor();
+
             var btn = new Button
             {
                 Text = label,
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(105, 105, 105),
                 ForeColor = Color.White,
+                Padding = new Padding((int)(0)),
+                Margin = new Padding((int)(0)),
+        AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                MinimumSize = new Size((int)(60 * scale), (int)(25 * scale))
             };
             btn.FlatAppearance.BorderSize = 0;
             btn.FlatAppearance.MouseOverBackColor = Color.LightGray;
@@ -307,14 +318,10 @@ namespace DuckPipe.Forms.Builder.Tabs
             btn.Click += (s, e) =>
             {
                 if (!string.IsNullOrEmpty(nodePath))
-                {
                     onValidSelection(nodePath, form);
-                }
                 else
-                {
                     MessageBox.Show("Aucun node sélectionné dans l’arborescence.", "Erreur",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
             };
 
             return btn;
@@ -326,7 +333,8 @@ namespace DuckPipe.Forms.Builder.Tabs
             AssetManagerForm form)
         {
             flpDeptButton.Controls.Clear();
-            
+
+
             // on check le lock pour voir quelles actions l'user peut faire.
             // on ajoutera un SuperUser plus tard
             string workFolderPath = Path.GetDirectoryName(nodePath);
@@ -369,12 +377,17 @@ namespace DuckPipe.Forms.Builder.Tabs
 
             Button editRefNode = CreateActionButton("Edit Ref Node", NodeManip.AddRef, form, nodePath);
             flpDeptButton.Controls.Add(editRefNode);
+
+            float ratio = 0.85f;
+            form.splitContWorkPanel.SplitterDistance = (int)(form.splitContWorkPanel.Height * ratio);
+            form.splitContWorkPanel.Panel2Collapsed = false;
         }
 
         public static void DisplayCommitsPanel(
-            string nodePath, 
-            FlowLayoutPanel flpNodeInspect)
+     string nodePath,
+     FlowLayoutPanel flpNodeInspect)
         {
+            float scale = GetScaleFactor();
             flpNodeInspect.SuspendLayout();
             flpNodeInspect.Controls.Clear();
 
@@ -385,11 +398,11 @@ namespace DuckPipe.Forms.Builder.Tabs
             {
                 var panel = new Panel
                 {
-                    Width = flpNodeInspect.ClientSize.Width - 10,
+                    Width = (int)((flpNodeInspect.ClientSize.Width - 10 * scale)),
                     AutoSize = false,
                     BackColor = Color.LightGray,
-                    Padding = new Padding(5),
-                    Margin = new Padding(3)
+                    Padding = new Padding((int)(5 * scale)),
+                    Margin = new Padding((int)(3 * scale))
                 };
 
                 var lblHeader = new Label
@@ -403,13 +416,13 @@ namespace DuckPipe.Forms.Builder.Tabs
                 {
                     Text = commit.Message,
                     AutoSize = true,
-                    MaximumSize = new Size(panel.Width - 10, 0),
+                    MaximumSize = new Size(panel.Width - (int)(10 * scale), 0),
                     Font = new Font("Segoe UI", 9)
                 };
 
                 panel.Controls.Add(lblHeader);
                 panel.Controls.Add(lblMessage);
-                lblMessage.Location = new Point(0, lblHeader.Bottom + 4);
+                lblMessage.Location = new Point(0, lblHeader.Bottom + (int)(4 * scale));
 
                 flpNodeInspect.Controls.Add(panel);
             }

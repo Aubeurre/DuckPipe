@@ -21,6 +21,9 @@ namespace DuckPipe.Forms
         public AddreferencesPopup(List<string> nodes, string nodePath)
         {
             InitializeComponent();
+            this.Font = SystemFonts.MessageBoxFont;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.PerformAutoScale();
             cbNode.Items.AddRange(nodes.ToArray());
             cbNode.SelectedIndex = 0;
             FillRefList(nodePath);
