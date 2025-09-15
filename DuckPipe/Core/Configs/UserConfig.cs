@@ -11,6 +11,7 @@ namespace DuckPipe.Core.Config
     {
         public string User { get; set; } = Environment.UserName;
         public string ProdBasePath { get; set; } = @"I:\PROD\";
+        public string FallBackPath { get; set; } = @"D:\ICHIGO\";
         public string userTempFolder { get; set; } = Path.Combine(Path.GetTempPath(), "DuckPipe");
         public string MayaLocation { get; set; } = @"C:\Program Files\Autodesk\Maya2023\";
         public string BlenderLocation { get; set; } = @"C:\Program Files\Blender Foundation\Blender 4.4\blender.exe";

@@ -38,6 +38,8 @@ namespace DuckPipe.Core.Builders
             string firstFolder = relativePath.Split(Path.DirectorySeparatorChar)[0];
             string prodPath = Path.Combine(rootPath, firstFolder);
 
+            CreateTemplates(prodPath, structure);
+
             if (structure.Name == "Characters" || structure.Name == "Props" || structure.Name == "Environments")
             {
                 Directory.CreateDirectory(nodePath);
@@ -153,7 +155,6 @@ namespace DuckPipe.Core.Builders
                     if (deptNode == null) continue;
 
                     string deptName = department.Key;
-                    string deptUpper = deptName.ToUpper();
 
                     string workPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "Work", deptName);
                     string incrementalPath = Path.Combine(workPath, "incrementals");
@@ -168,11 +169,11 @@ namespace DuckPipe.Core.Builders
                             string baseName = Path.GetFileNameWithoutExtension(workFile);
                             string publishFile = $"{baseName}_OK{extension}";
 
-                            List<string> refNodes = WorkFileBuilder.CreateBasicReferencesStructure(nodeName, structure.Name, deptUpper, publishPath, prodPath);
+                            List<string> refNodes = WorkFileBuilder.CreateBasicReferencesStructure(nodeName, structure.Name, deptName, publishPath, prodPath);
 
                             workfileData[workFile] = new
                             {
-                                department = deptUpper,
+                                department = deptName,
                                 status = "not_started",
                                 version = "v000",
                                 workFile = workFile,
@@ -182,7 +183,7 @@ namespace DuckPipe.Core.Builders
                             };
                         }
 
-                        taskData[deptUpper] = new
+                        taskData[deptName] = new
                         {
                             status = "not_started",
                             startDate = DateTime.Today,
@@ -228,7 +229,6 @@ namespace DuckPipe.Core.Builders
                     if (deptNode == null) continue;
 
                     string deptName = department.Key;
-                    string deptUpper = deptName.ToUpper();
                     string sequenceFolder = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(nodePath)));
                     string seqDlvPath = Path.Combine(sequenceFolder, "dlv");
 
@@ -240,7 +240,7 @@ namespace DuckPipe.Core.Builders
                     string publishPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "dlv");
 
 
-                    List<string> refNodes = WorkFileBuilder.CreateShotBasicReferencesStructure(nodeName, deptUpper, publishPath, prodPath, seqDlvPath);
+                    List<string> refNodes = WorkFileBuilder.CreateShotBasicReferencesStructure(nodeName, deptName, publishPath, prodPath, seqDlvPath);
                     if (deptNode.Files != null)
                     {
                         foreach (var fileTemplate in deptNode.Files)
@@ -254,7 +254,7 @@ namespace DuckPipe.Core.Builders
 
                             workfileData[workFile] = new
                             {
-                                department = deptUpper,
+                                department = deptName,
                                 status = "not_started",
                                 version = "v000",
                                 workFile = workFile,
@@ -264,7 +264,7 @@ namespace DuckPipe.Core.Builders
                             };
                         }
 
-                        taskData[deptUpper] = new
+                        taskData[deptName] = new
                         {
                             status = "not_started",
                             startDate = DateTime.Today,
@@ -313,7 +313,6 @@ namespace DuckPipe.Core.Builders
                     if (deptNode == null) continue;
 
                     string deptName = department.Key;
-                    string deptUpper = deptName.ToUpper();
                     string sequenceName = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(nodePath)));
 
                     string workPath = Path.Combine(NodeManip.SetEnvVariables(nodePath), "Work", deptName);
@@ -331,11 +330,11 @@ namespace DuckPipe.Core.Builders
                             string baseName = Path.GetFileNameWithoutExtension(workFile);
                             string publishFile = $"{baseName}_OK{extension}";
 
-                            List<string> refNodes = WorkFileBuilder.CreateSequenceBasicReferencesStructure(nodeName, deptUpper, publishPath, prodPath);
+                            List<string> refNodes = WorkFileBuilder.CreateSequenceBasicReferencesStructure(nodeName, deptName, publishPath, prodPath);
 
                             workfileData[workFile] = new
                             {
-                                department = deptUpper,
+                                department = deptName,
                                 status = "not_started",
                                 version = "v000",
                                 workFile = workFile,
@@ -345,7 +344,7 @@ namespace DuckPipe.Core.Builders
                             };
                         }
 
-                        taskData[deptUpper] = new
+                        taskData[deptName] = new
                         {
                             status = "not_started",
                             startDate = DateTime.Today,
@@ -492,6 +491,45 @@ namespace DuckPipe.Core.Builders
             {
                 MessageBox.Show($"Erreur lors de la lecture de NodeStructure.json :\n{ex.Message}");
                 return null;
+            }
+        }
+
+        public static void CreateTemplates(string prodPath, NodeStructure structure)
+        {
+            string templatesDir;
+            if (structure.Name == "Characters" || structure.Name == "Props" || structure.Name == "Environments")
+            {
+                templatesDir = Path.Combine(prodPath, "Assets", "Templates");
+            }
+            else
+            {
+                templatesDir = Path.Combine(prodPath, "Shots", "Templates");
+            }
+
+            if (!Directory.Exists(templatesDir))
+            {
+                MessageBox.Show($"Dossier de templates manquant dans :\n{templatesDir}");
+                return;
+            }
+
+            if (structure.Structure.TryGetValue("Work", out var workNode) && workNode.Children != null)
+            {
+                foreach (var department in workNode.Children)
+                {
+                    if (department.Key == "_files")
+                    {
+                        foreach (var file in workNode.Files)
+                        {
+                            string extension = Path.GetExtension(file);
+                            string templateFile = Path.Combine(templatesDir, $"{department}_{structure.Name}_template", extension);
+                            if (!File.Exists(templateFile))
+                            {
+                                MessageBox.Show($"Creation de :\n{templateFile}");
+                            }
+                        }
+
+                    }
+                }
             }
         }
 

@@ -20,7 +20,7 @@ namespace DuckPipe.Core.Services.Softwares
             };
 
             File.WriteAllLines(filePath, maLines);
-            Console.WriteLine($"Fichier .ma créé : {filePath}");
+            Console.WriteLine($"Fichier .ma cree : {filePath}");
         }
 
         public static void AddReference(string maFilePath, string referencePath)
@@ -35,7 +35,7 @@ namespace DuckPipe.Core.Services.Softwares
             {
                 sw.WriteLine(referenceLine);
             }
-            Console.WriteLine($"Référence ajoutée dans {maFilePath} : {referencePath}");
+            Console.WriteLine($"Reference ajoutee dans {maFilePath} : {referencePath}");
         }
 
         public static string GetMayaPath()
@@ -55,9 +55,9 @@ namespace DuckPipe.Core.Services.Softwares
             string pyPathEsc = pyPath.Replace("\\", "/");
             string publishedEsc = scenePath.Replace("\\", "/");
             string pythonInline =
-                $"import sys; sys.argv=['']; sys.argv.append(r'{publishedEsc}'); "
-              + $"ns={{}}; exec(open(r'{pyPathEsc}').read(), ns); ns['main'](r'{publishedEsc}')"; string args = $"-file \"{scenePath}\" -command \"python(\\\"{pythonInline}\\\")\"";
+                $"import sys; sys.argv=['','{pyPathEsc}']; exec(open(r'{pyPathEsc}').read())";
 
+            string args = $"-file \"{scenePath}\" -command \"python(\\\"{pythonInline}\\\")\"";
 
             string mayabatch = Path.Combine(GetMayaPath(), "bin", "mayabatch.exe");
 
@@ -87,7 +87,7 @@ namespace DuckPipe.Core.Services.Softwares
                     p.WaitForExit();
                 }
 
-                // MessageBox.Show($"Maya Batch terminé.\n\n--- STDOUT ---\n{stdout}\n--- STDERR ---\n{stderr}", "Maya Batch");
+                MessageBox.Show($"Maya Batch termine.\n\n--- STDOUT ---\n{stdout}\n--- STDERR ---\n{stderr}", "Maya Batch");
 
             }
             else

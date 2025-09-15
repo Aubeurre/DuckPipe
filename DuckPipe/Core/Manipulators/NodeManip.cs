@@ -56,7 +56,7 @@ namespace DuckPipe.Core.Manipulator
         public static JsonDocument LoadNodeJson(string nodeJsonPath)
         {
             if (!File.Exists(nodeJsonPath))
-                throw new FileNotFoundException($"Fichier non trouvé : {nodeJsonPath}");
+                throw new FileNotFoundException($"Fichier non trouve : {nodeJsonPath}");
 
             string jsonText = File.ReadAllText(nodeJsonPath);
             return JsonDocument.Parse(jsonText);
@@ -64,26 +64,26 @@ namespace DuckPipe.Core.Manipulator
 
         public static string SetEnvVariables(string path)
         {
-            string envPath = UserConfig.Get().ProdBasePath;
-            if (!Directory.Exists(envPath))
+            string rootPath = ProductionService.GetProductionRootPath();
+            if (!Directory.Exists(rootPath))
             {
-                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n{envPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Le chemin defini dans DUCKPIPE_ROOT est invalide :\n{rootPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-            return path.Replace(envPath ?? "", "${DUCKPIPE_ROOT}\\");
+            return path.Replace(rootPath ?? "", "${DUCKPIPE_ROOT}\\");
         }
 
         public static string ReplaceEnvVariables(string path)
         {
-            string envPath = UserConfig.Get().ProdBasePath;
+            string rootPath = ProductionService.GetProductionRootPath();
 
-            if (!Directory.Exists(envPath))
+            if (!Directory.Exists(rootPath))
             {
-                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n{envPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Le chemin defini dans DUCKPIPE_ROOT est invalide :\n{rootPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
 
-            return path.Replace("${DUCKPIPE_ROOT}", envPath ?? "");
+            return path.Replace("${DUCKPIPE_ROOT}", rootPath ?? "");
 
         }
 
@@ -405,9 +405,9 @@ namespace DuckPipe.Core.Manipulator
                     string Department = popup.Department;
                     string PublishPath = NodeService.GetPublishPath(ctx.ProdName, NodeName.Split("/")[0], NodeName.Split("/")[1], Department, ctx.Extension);
                     string EnvVarPath = SetEnvVariables(PublishPath);
-                    MessageBox.Show($"Référence ajoutée avec succès.\n{EnvVarPath}");
+                    MessageBox.Show($"Reference ajoutee avec succès.\n{EnvVarPath}");
 
-                    // on ajoute la ref dans le json du node au departement demandé
+                    // on ajoute la ref dans le json du node au departement demande
                     string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
 
                     var json = File.ReadAllText(jsonPath);
@@ -444,7 +444,7 @@ namespace DuckPipe.Core.Manipulator
                     }
                     updatedNodeData["workfile"] = workfileDict;
 
-                    // recopier les autres propriétés du root
+                    // recopier les autres proprietes du root
                     foreach (var prop in root.EnumerateObject())
                     {
                         if (prop.Name == "workfile") continue;
@@ -492,7 +492,7 @@ namespace DuckPipe.Core.Manipulator
                         if (refs.Contains(refPath))
                         {
                             refs.Remove(refPath);
-                            MessageBox.Show($"Référence supprimée avec succès.\n{refPath}");
+                            MessageBox.Show($"Reference supprimee avec succès.\n{refPath}");
                         }
                         data["refNodes"] = refs;
                     }
@@ -500,7 +500,7 @@ namespace DuckPipe.Core.Manipulator
             }
             updatedNodeData["workfile"] = workfileDict;
 
-            // recopier les autres propriétés du root
+            // recopier les autres proprietes du root
             foreach (var prop in root.EnumerateObject())
             {
                 if (prop.Name == "workfile") continue;
@@ -511,10 +511,12 @@ namespace DuckPipe.Core.Manipulator
             File.WriteAllText(jsonPath, updatedJson);
 
         }
+
         #region TEMP FILE
         public static string GetTempPath(string nodePath)
         {
-            string tempNodelPath = nodePath.Replace(UserConfig.Get().ProdBasePath, UserConfig.Get().userTempFolder);
+            string prodPath = ProductionService.GetProductionRootPath();
+            string tempNodelPath = nodePath.Replace(prodPath, $"{UserConfig.Get().userTempFolder}\\");
 
             return tempNodelPath;
         }
@@ -522,6 +524,7 @@ namespace DuckPipe.Core.Manipulator
         public static void CopyNodeToTemp(string nodePath)
         {
             string tempNodelPath = GetTempPath(nodePath);
+            MessageBox.Show($"Temp Path : {tempNodelPath}");
             string tempDirPath = Path.GetDirectoryName(tempNodelPath)!;
 
             if (Directory.Exists(tempDirPath))
@@ -627,35 +630,35 @@ start """" ""{fileToOpen}""
                     }
                 }
 
+                // FONCTIONNE PAS CAR LA SCENE SE FAIT ECRASER APRES
                 // gestion des references
-                foreach (var refPath in GetAllRefs(nodePath))
-                {
-                    // pour Maya
-                    if (refPath.EndsWith(".ma", StringComparison.OrdinalIgnoreCase))
-                    {
-                        string mayaPath = MayaService.PathIntoMayaFormat(refPath);
-                        MayaService.AddReference(LocalFile, mayaPath);
-                    }
-                    // pour Blender
-                    else if (refPath.EndsWith(".blend", StringComparison.OrdinalIgnoreCase))
-                    {
-                        string blenderPath = BlenderService.PathIntoBlenderFormat(refPath);
-                        BlenderService.AddReference(LocalFile, blenderPath);
-                    }
-                }
+                //foreach (var refPath in GetAllRefs(nodePath))
+                //{
+                //    // pour Maya
+                //    if (refPath.EndsWith(".ma", StringComparison.OrdinalIgnoreCase))
+                //    {
+                //        string mayaPath = MayaService.PathIntoMayaFormat(refPath);
+                //        MayaService.AddReference(LocalFile, mayaPath);
+                //    }
+                //    // pour Blender
+                //    else if (refPath.EndsWith(".blend", StringComparison.OrdinalIgnoreCase))
+                //    {
+                //        string blenderPath = BlenderService.PathIntoBlenderFormat(refPath);
+                //        BlenderService.AddReference(LocalFile, blenderPath);
+                //    }
+                //}
 
                 // lancer le py d'ouverture du node selon le department
-                string batPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_exec.py");
-                if (File.Exists(batPath))
+                string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_exec.py");
+                MessageBox.Show($"Exec Python Path : {pyPath}");
+                if (ctx.Extension == ".ma")
                 {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = batPath,
-                        Arguments = $"\"{LocalFile}\"",
-                        UseShellExecute = true
-                    });
+                    MayaService.ExecuteMayaBatchScript(LocalFile, pyPath);
                 }
-                MessageBox.Show($"WorkFile Executed : {ctx.FileName}", "Succès");
+                else if (ctx.Extension == ".blend")
+                {
+                    BlenderService.ExecuteBlenderBatchScript(LocalFile, pyPath);
+                }
 
             }
             else
@@ -682,14 +685,17 @@ start """" ""{fileToOpen}""
             string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_publish.py");
             if (ctx.Extension == ".ma")
             {
-                MessageBox.Show("Run Publish Script for maya");
                 MayaService.ExecuteMayaBatchScript(publishedFilePath, pyPath);
+            }
+            else if (ctx.Extension == ".blend")
+            {
+                BlenderService.ExecuteBlenderBatchScript(publishedFilePath, pyPath);
             }
 
             AddNote(nodePath, form);
             MarkDownstreamDepartmentsOutdated(nodePath, ctx.Department);
             form.RefreshTab(ctx.NodeRoot);
-            MessageBox.Show($"Node publié : {publishedFileName}", "Succès");
+            MessageBox.Show($"Node publie : {publishedFileName}", "Succès");
         }
 
         public static void VersionNode(string nodePath, AssetManagerForm form)
@@ -715,7 +721,7 @@ start """" ""{fileToOpen}""
 
                 File.Copy(LocalFile, destinationPath);
                 File.Copy(LocalFile, nodePath, true);
-                MessageBox.Show($"Version enregistrée : {versionedFileName}", "Succès");
+                MessageBox.Show($"Version enregistree : {versionedFileName}", "Succès");
 
                 UpdateNodeMetadata(nodePath, newVersion, ctx.Department);
 
@@ -780,7 +786,7 @@ start """" ""{fileToOpen}""
                 }
             }
 
-            // Combine les données dans le dictionnaire final
+            // Combine les donnees dans le dictionnaire final
             var allDepartments = new HashSet<string>(users.Keys
                 .Concat(startDates.Keys)
                 .Concat(dueDates.Keys)
@@ -911,6 +917,8 @@ start """" ""{fileToOpen}""
                     if (task.Value.TryGetProperty("user", out var user)) taskData.User = user.GetString() ?? "";
                     if (task.Value.TryGetProperty("startDate", out var startDate)) taskData.StartDate = startDate.GetString() ?? "";
                     if (task.Value.TryGetProperty("dueDate", out var dueDate)) taskData.DueDate = dueDate.GetString() ?? "";
+                    taskData.NodePath = path;
+                    taskData.Department = dept;
 
                     taskDict[dept] = taskData;
                 }
@@ -957,5 +965,44 @@ start """" ""{fileToOpen}""
         }
         #endregion
 
+
+        #region Edit Node Metadata
+        public static void UpdateTaskDates(string nodePath, string department, string startDate, string dueDate)
+        {
+            string jsonPath = Path.Combine(nodePath, "node.json");
+            if (!File.Exists(jsonPath)) return;
+
+            var json = File.ReadAllText(jsonPath);
+            var nodeData = JsonSerializer.Deserialize<Dictionary<string, object>>(json)
+                           ?? new Dictionary<string, object>();
+
+            if (!nodeData.ContainsKey("Tasks"))
+                nodeData["Tasks"] = new Dictionary<string, Dictionary<string, string>>();
+
+            var tasksDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(
+                nodeData["Tasks"].ToString()
+            ) ?? new Dictionary<string, Dictionary<string, string>>();
+
+            if (!tasksDict.ContainsKey(department))
+                tasksDict[department] = new Dictionary<string, string>
+        {
+            { "status", "" },
+            { "user", "" },
+            { "startDate", startDate },
+            { "dueDate", dueDate }
+        };
+            else
+            {
+                tasksDict[department]["startDate"] = startDate;
+                tasksDict[department]["dueDate"] = dueDate;
+            }
+
+            nodeData["Tasks"] = tasksDict;
+
+            string updatedJson = JsonSerializer.Serialize(nodeData, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(jsonPath, updatedJson);
+        }
+
+        #endregion
     }
 }

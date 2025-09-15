@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Windows.Forms;
 using DuckPipe.Core.Services;
 using DuckPipe.Core.Manipulator;
+using Microsoft.VisualBasic;
 
 namespace DuckPipe.Forms.Builder.Tabs
 {
@@ -271,6 +272,7 @@ namespace DuckPipe.Forms.Builder.Tabs
                         var lblNode = new Label
                         {
                             Text = nodeName,
+                            Tag = nodeEntry,
                             Width = (int)(150 * scale),
                             Height = (int)(15 * scale),
                             Font = new Font("Segoe UI", 8),
@@ -341,23 +343,74 @@ namespace DuckPipe.Forms.Builder.Tabs
                     Height = (int)(10 * scale),
                     BackColor = blockColor,
                     Margin = new Padding(0),
-                    Location = new Point(leftMargin, taskIndex * (int)(14 * scale))
+                    Location = new Point(leftMargin, taskIndex * (int)(14 * scale)),
+                    Tag = new TaskEditContext
+                    {
+                        TaskKey = taskEntry.Key,
+                        TaskData = taskEntry.Value,
+                        ProdPath = prodPath,
+                        StartDate = start,
+                        DueDate = end,
+                        CellSize = cellSize,
+                        StartingDate = startingDate
+                    }
                 };
+
+                var gripIn = new Panel
+                {
+                    Name = "IN",
+                    Tag = block,
+                    Cursor = Cursors.SizeWE,
+                    Width = (int)(2 * scale),
+                    Height = (int)(10 * scale),
+                    BackColor = Color.White,
+                    Margin = new Padding(0),
+                    Location = new Point(leftMargin, taskIndex * (int)(14 * scale)),
+                };
+                gripIn.MouseDown += OnGripMouseDown;
+                gripIn.MouseMove += OnGripMouseMove;
+                gripIn.MouseUp += OnGripMouseUp;
+
+                var gripOut = new Panel
+                {
+                    Name = "OUT",
+                    Tag = block,
+                    Cursor = Cursors.SizeWE,
+                    Width = (int)(3 * scale),
+                    Height = (int)(10 * scale),
+                    BackColor = Color.White,
+                    Margin = new Padding(0),
+                    Location = new Point(leftMargin + blockWidth, taskIndex * (int)(14 * scale) ),
+                };
+                gripOut.MouseDown += OnGripMouseDown;
+                gripOut.MouseMove += OnGripMouseMove;
+                gripOut.MouseUp += OnGripMouseUp;
+
+                var ctx = (TaskEditContext)block.Tag;
+                ctx.GripLeft = gripIn;
+                ctx.GripRight = gripOut;
 
                 var lblTask = new Label
                 {
+                    Name = "TASK",
+                    Tag = block,
                     Text = $"{taskEntry.Key}: {taskEntry.Value.User} ({taskEntry.Value.StartDate} → {taskEntry.Value.DueDate})",
                     ForeColor = Color.Black,
                     TextAlign = ContentAlignment.MiddleLeft,
                     Dock = DockStyle.Fill,
                     Font = new Font("Segoe UI", 6),
                 };
+                lblTask.MouseDown += OnGripMouseDown;
+                lblTask.MouseMove += OnGripMouseMove;
+                lblTask.MouseUp += OnGripMouseUp;
 
                 block.Controls.Add(lblTask);
 
                 var tooltip = new ToolTip();
                 tooltip.SetToolTip(lblTask, lblTask.Text);
 
+                taskLine.Controls.Add(gripIn);
+                taskLine.Controls.Add(gripOut);
                 taskLine.Controls.Add(block);
 
                 taskIndex++;
@@ -365,6 +418,149 @@ namespace DuckPipe.Forms.Builder.Tabs
 
             return taskLine;
         }
+
+        #region Drag Handlers
+        private class TaskEditContext
+        {
+            public string TaskKey { get; set; }
+            public TaskData TaskData { get; set; }
+            public Panel GripLeft { get; set; }
+            public Panel GripRight { get; set; }
+            public string ProdPath { get; set; }
+            public DateTime StartDate { get; set; }
+            public DateTime DueDate { get; set; }
+            public DateTime StartingDate { get; set; }
+            public int CellSize { get; set; }
+
+            public int InitialLeft { get; set; }
+            public int InitialWidth { get; set; }
+            public bool ResizingLeft { get; set; }
+            public bool ResizingRight { get; set; }
+            public int InitialX { get; set; }
+            public int delta { get; set; }
+        }
+
+        private static void OnGripMouseDown(object sender, MouseEventArgs e)
+        {
+            // on check si le sender est le panel ou le label
+            var grip = sender as Control;
+
+            if (grip.Name == "IN" || grip.Name == "OUT")
+            {
+                var block = grip.Tag as Panel;
+                var ctx = block.Tag as TaskEditContext;
+
+                ctx.delta = 0;
+                ctx.InitialX = e.X;
+                ctx.InitialLeft = block.Left;
+                ctx.InitialWidth = block.Width;
+
+                if (grip.Name == "IN")
+                {
+                    ctx.ResizingLeft = true;
+                    ctx.ResizingRight = false;
+                }
+                else
+                {
+                    ctx.ResizingRight = true;
+                    ctx.ResizingLeft = false;
+                }
+            }
+            else
+            {
+                var block = grip.Tag as Panel;
+                var ctx = block.Tag as TaskEditContext;
+
+                ctx.delta = 0;
+                ctx.InitialX = e.X;
+                ctx.InitialLeft = block.Left;
+                ctx.InitialWidth = block.Width;
+            }
+        }
+
+        private static void OnGripMouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+
+            var grip = sender as Control;
+            if (grip.Name == "IN" || grip.Name == "OUT")
+            {
+                var block = grip.Tag as Panel;
+                var ctx = block.Tag as TaskEditContext;
+
+                int delta = e.X - ctx.InitialX;
+
+                if (ctx.ResizingLeft)
+                {
+                    block.Left = ctx.InitialLeft + delta;
+                    block.Width = ctx.InitialWidth - delta;
+                    grip.Left = block.Left;
+                }
+                else if (ctx.ResizingRight)
+                {
+                    block.Width = ctx.InitialWidth + delta;
+                    grip.Left = block.Left + block.Width;
+                }
+            }
+            else
+            {
+                var block = grip.Tag as Panel;
+                var ctx = block.Tag as TaskEditContext;
+
+                int delta = e.X - ctx.InitialX;
+                block.Left = ctx.InitialLeft + delta;
+
+                // repositionne les grips
+                ctx.GripLeft.Left = block.Left;
+                ctx.GripRight.Left = block.Left + block.Width;
+            }
+        }
+
+        private static void OnGripMouseUp(object sender, MouseEventArgs e)
+        {
+            var grip = sender as Control;
+            var block = grip.Tag as Panel;
+            var ctx = block.Tag as TaskEditContext;
+
+            int daysOffset = (int)Math.Round((double)block.Left / ctx.CellSize);
+            int daysChanged = daysOffset - (int)Math.Round((double)ctx.InitialLeft / ctx.CellSize);
+
+            if (grip.Name == "IN" || grip.Name == "OUT")
+            {
+                // on calle le changement sur un jour complet
+                if (ctx.ResizingLeft)
+                {
+                    block.Left = ctx.InitialLeft + daysChanged * ctx.CellSize;
+                    block.Width = ctx.InitialWidth - daysChanged * ctx.CellSize;
+                    grip.Left = block.Left;
+                }
+                else if (ctx.ResizingRight)
+                {
+                    grip.Left = block.Left + block.Width;
+                }
+            }
+            else
+            {
+                block.Left = ctx.InitialLeft + daysChanged * ctx.CellSize;
+
+                // repositionne les grips
+                ctx.GripLeft.Left = block.Left;
+                ctx.GripRight.Left = block.Left + block.Width;
+
+            }
+
+            int durationDays = block.Width / ctx.CellSize;
+            ctx.StartDate = ctx.StartingDate.AddDays(daysOffset);
+            ctx.DueDate = ctx.StartDate.AddDays(durationDays - 1);
+
+            // Mise à jour des données
+            ctx.TaskData.StartDate = ctx.StartDate.ToString("yyyy-MM-dd");
+            ctx.TaskData.DueDate = ctx.DueDate.ToString("yyyy-MM-dd");
+
+            NodeManip.UpdateTaskDates(ctx.TaskData.NodePath, ctx.TaskData.Department, ctx.TaskData.StartDate, ctx.TaskData.DueDate);
+        }
+
+        #endregion
 
     }
 }

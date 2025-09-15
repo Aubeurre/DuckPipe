@@ -30,3 +30,4 @@ Name: "desktopicon"; Description: "Créer un raccourci sur le Bureau"; GroupDescr
 
 [Run]
 Filename: "{app}\DuckPipe.exe"; Description: "Lancer DuckPipe"; Flags: nowait postinstall skipifsilent
+Filename: "{param:restart}";

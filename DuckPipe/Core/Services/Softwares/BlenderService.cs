@@ -23,7 +23,7 @@ namespace DuckPipe.Core.Services.Softwares
             string args = $"-b -noaudio --python-expr \"import bpy; bpy.ops.wm.save_as_mainfile(filepath=r'{filePath}')\"";
 
             RunBlender(blenderPath, args);
-            Console.WriteLine($"Fichier .blend créé : {filePath}");
+            Console.WriteLine($"Fichier .blend cree : {filePath}");
         }
 
         public static void AddReference(string blendFilePath, string assetPath, string dataBlock = "Object")
@@ -59,7 +59,7 @@ namespace DuckPipe.Core.Services.Softwares
             string args = $"-b -noaudio --python-expr \"{pyCommand}\"";
 
             RunBlender(blenderPath, args);
-            Console.WriteLine($"Référence ajoutée dans {blendFilePath} depuis {assetPath}");
+            Console.WriteLine($"Reference ajoutee dans {blendFilePath} depuis {assetPath}");
         }
 
         public static string GetBlenderPath()
@@ -115,8 +115,9 @@ namespace DuckPipe.Core.Services.Softwares
                 p.WaitForExit();
             }
 
-           //  MessageBox.Show($"Blender Batch terminé.\n\n--- STDOUT ---\n{stdout}\n--- STDERR ---\n{stderr}", "Blender Batch");
+           MessageBox.Show($"Blender Batch termine.\n\n--- STDOUT ---\n{stdout}\nArguments:{args}\n--- STDERR ---\n{stderr}", "Blender Batch");
         }
+
         public static string PathIntoBlenderFormat(string path)
         {
             // pas de variable d'env dans blender, on va devoir faire manuellement...

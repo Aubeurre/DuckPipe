@@ -16,42 +16,60 @@ namespace DuckPipe
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-            CheckForUpdates();
+
+            // check async
+            CheckForUpdatesAsync().GetAwaiter().GetResult();
+
             Application.Run(new AssetManagerForm());
         }
 
         public static readonly string CurrentVersion = "1.8.1"; //release
 
-        public static void CheckForUpdates()
+        public static async Task CheckForUpdatesAsync()
         {
             try
             {
                 using HttpClient client = new HttpClient();
 
-                string latestVersion = client.GetStringAsync("https://raw.githubusercontent.com/Aubeurre/DuckPipe/master/version.txt")
-                                             .GetAwaiter().GetResult()
-                                             .Trim();
+                string latestVersion = (await client.GetStringAsync("https://raw.githubusercontent.com/Aubeurre/DuckPipe/master/version.txt"))
+                                       .Trim();
 
-                if (latestVersion != CurrentVersion)
+                if (latestVersion == CurrentVersion)
+                    return;
+
+                DialogResult result = MessageBox.Show(
+                    $"Une nouvelle version ({latestVersion}) est disponible.\nVoulez-vous l’installer maintenant ?",
+                    "Mise à jour disponible",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information);
+
+                if (result != DialogResult.Yes)
+                    return;
+
+                string tempPath = Path.Combine(Path.GetTempPath(), "DuckPipeSetup.exe");
+                string setupUrl = "https://github.com/Aubeurre/DuckPipe/releases/latest/download/DuckPipeSetup.exe";
+
+                using (var response = await client.GetAsync(setupUrl))
                 {
-                    DialogResult result = MessageBox.Show(
-                        $"Une nouvelle version ({latestVersion}) est disponible. Voulez-vous l’ouvrir sur GitHub ?",
-                        "Mise à jour disponible",
-                        MessageBoxButtons.YesNo, MessageBoxIcon.Information);
-
-                    if (result == DialogResult.Yes)
-                    {
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = "https://github.com/Aubeurre/DuckPipe/releases",
-                            UseShellExecute = true
-                        });
-                    }
+                    response.EnsureSuccessStatusCode();
+                    await using var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await response.Content.CopyToAsync(fs);
                 }
+                string exePath = Application.ExecutablePath;
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = tempPath,
+                    Arguments = $"/VERYSILENT /NORESTART /RESTART=\"{exePath}\"",
+                    UseShellExecute = true
+                });
+
+                Application.Exit();
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Erreur de vérification de mise à jour : " + ex.Message);
+                MessageBox.Show("Erreur lors de la vérification des mises à jour : " + ex.Message,
+                                "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

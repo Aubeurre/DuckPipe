@@ -21,8 +21,8 @@ namespace DuckPipe.Core.Services
 
             if (!Directory.Exists(envPath))
             {
-                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n{envPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
+                string fallback = UserConfig.Get().FallBackPath;
+                return fallback;
             }
 
             return envPath;
@@ -69,7 +69,10 @@ namespace DuckPipe.Core.Services
             string rootPath = GetProductionRootPath();
 
             if (!Directory.Exists(rootPath))
+            {
+                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n\n Enter fallback mode, \nPlease create first {UserConfig.Get().FallBackPath} then reopen the tool", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return new List<string>();
+            }
 
             return Directory.GetDirectories(rootPath)
                             .Select(Path.GetFileName)

@@ -100,6 +100,27 @@
     <None Update="Install\DuckPipeInstaller.iss">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Tools\Pythons\GlobalProcs.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\BlenderProcs.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\Characters_Model_publish.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\MayaProcs.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\Characters_Rig_exec.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\type_dept_exec.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\type_dept_publish.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Tools\Pythons\Characters_Rig_publish.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
