@@ -23,7 +23,7 @@ namespace DuckPipe
             Application.Run(new AssetManagerForm());
         }
 
-        public static readonly string CurrentVersion = "1.8.1"; //release
+        public static readonly string CurrentVersion = "1.9.0"; //release
 
         public static async Task CheckForUpdatesAsync()
         {
