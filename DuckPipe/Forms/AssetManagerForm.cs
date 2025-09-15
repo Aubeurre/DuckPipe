@@ -34,6 +34,8 @@ namespace DuckPipe
             ScheduleTabBuilder.InitTimelineTab(pnlShelude, this);
             WorkTabBuilder.ClearPanel(WorkTabBuilder.GetContext("", ""));
             NodeTabBuilder.ClearPanel(NodeTabBuilder.GetContext("", ""));
+
+            this.Text = $"DuckPipe {Program.CurrentVersion}";
         }
 
         private void LoadProductionList()
