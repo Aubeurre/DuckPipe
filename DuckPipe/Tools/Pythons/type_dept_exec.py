@@ -83,7 +83,7 @@ def preexecute():
 
     if IN_MAYA:
         # nouvelle scene
-        cmds.file(new=True, force=True)
+        MayaProcs.reset_scene(f"{PROD_PATH}/Assets/Templates/Type_Dept_template.ma")
             
     elif IN_BLENDER:
         pass

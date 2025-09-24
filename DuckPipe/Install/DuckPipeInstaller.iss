@@ -14,10 +14,10 @@ SolidCompression=yes
 
 [Files]
 ; Inclure tous les fichiers nécessaires de Release
-Source: "D:\A_WORK\DuckPipe\DuckPipe\bin\Release\net8.0-windows\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
+Source: "A:\ProjetsPerso\DuckPipe\DuckPipe\bin\Release\net8.0-windows\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 
 ; Inclure la documentation HTML
-Source: "D:\A_WORK\DuckPipe\DuckPipe\bin\Release\net8.0-windows\Docs\*"; DestDir: "{app}\Docs"; Flags: recursesubdirs createallsubdirs
+Source: "A:\ProjetsPerso\DuckPipe\DuckPipe\bin\Release\net8.0-windows\Docs\*"; DestDir: "{app}\Docs"; Flags: recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\DuckPipe"; Filename: "{app}\DuckPipe.exe"

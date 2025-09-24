@@ -8,6 +8,9 @@ namespace DuckPipe
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
+        /// 
+        public static readonly string CurrentVersion = "1.9.1"; //release
+
         [STAThread]
         static void Main()
         {
@@ -23,7 +26,6 @@ namespace DuckPipe
             Application.Run(new AssetManagerForm());
         }
 
-        public static readonly string CurrentVersion = "1.9.0"; //release
 
         public static async Task CheckForUpdatesAsync()
         {

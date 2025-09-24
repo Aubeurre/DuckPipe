@@ -34,11 +34,12 @@ def clean_publish(listToDelete):
             cmds.delete(item)
 
 
-def reset_scene():
+def reset_scene(path):
     """
-    Reset la scene
+    Reset la scene avec le template
     """
     cmds.file(new=True, force=True)
+    cmds.file(path, i=1)
 
 
 def export_hierarchy_fbx(root_name, filepath):
@@ -92,43 +93,15 @@ def reference_fbx(file_path, parent_grp):
 # ------------------------------------------------------
 # Fonction BLENDER to MAYA
 # ------------------------------------------------------
-def loc_to_group(loc): 
-    """ 
-    Convertir un locator en group maya 
-    """ 
-    # Ceation du groupe 
-    print(loc)
-    grp_name = loc.replace("_GRP", "") 
-    if not cmds.objExists(grp_name): 
-        grp = cmds.group(em=True, name=grp_name) 
-        pos = cmds.xform(loc, q=True, ws=True, t=True) 
-        cmds.xform(grp, ws=True, t=pos) 
-
-    # Parentage des enfants 
-    children = cmds.listRelatives(loc, c=True, f=False) or [] 
-    for child in children: 
-        if not child == cmds.listRelatives(loc, shapes=True)[0]: 
-            print(child) 
-            cmds.parent(child, grp_name) 
-
-    # parentage au parent 
-    
-    parent_list = cmds.listRelatives(loc, p=True, f=False) or []
-    for nodeparent in parent_list: 
-        parent_transform = nodeparent[0]
-        grp_name_parent = nodeparent.replace("_GRP", "") 
-        print("is parent:", nodeparent) 
-        if not cmds.objExists(grp_name_parent): 
-            loc_to_group(nodeparent) 
-        cmds.parent(grp_name, grp_name_parent) 
-
-    # Suppression du locator 
-    cmds.delete(loc)
-
 def confo_from_maya():
-    locList = cmds.ls(exactType="locator", l=False) or []
+    locList = cmds.ls(exactType="locator", l=True) or []
+    all_ref = get_all_ref_items()
     for locShape in locList:
-        loc = cmds.listRelatives(locShape, p=True, f=False)[0]
-        if loc.endswith("_GRP"):
-            loc_to_group(loc)
+        # on ne touche pas au refs 
+        if not locShape in all_ref: 
+            loc = cmds.listRelatives(locShape, p=True, f=True)[0]
+            if loc.endswith("_GRP"):
+                print("->", locShape)
+                cmds.delete(locShape)
     print("Maya Groups done !")
+    

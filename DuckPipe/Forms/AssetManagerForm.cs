@@ -51,7 +51,8 @@ namespace DuckPipe
                 string prodPath = Path.Combine(rootPath, prodName);
                 var prodUsers = ProductionService.LoadProdUsers(prodPath);
                 if (prodUsers.Count > 0 && !prodUsers.Contains(UserName))
-                    continue; // skip this production if user is not authorized
+                    // continue; // skip this production if user is not authorized
+                    cbProdList.Items.Add(prodName); // TEMPORAIREMENT ON AFFICHE TOUTES LES PRODS
                 else
                 {
                     cbProdList.Items.Add(prodName);
@@ -62,7 +63,7 @@ namespace DuckPipe
                 cbProdList.SelectedIndex = 0;
         }
 
-        private string GetSelectedProductionPath()
+        public string GetSelectedProductionPath()
         {
             string rootPath = ProductionService.GetProductionRootPath();
             string selectedProd = cbProdList.SelectedItem?.ToString() ?? string.Empty;
@@ -356,6 +357,7 @@ namespace DuckPipe
         }
         #endregion
 
+
         #region  ASSET PANNEL - CLEANED -
         private void cbbNodeStatus_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -368,6 +370,7 @@ namespace DuckPipe
             NodeTabBuilder.cbbNodeStatus_SelectedIndexChanged(NodeTabBuilder.GetContext(nodePath, selectedProd));
         }
         #endregion
+
 
         #region STATS TAB / TIMELOGS - CLEANED -
         private void btnAddTimelog_Click(object sender, EventArgs e)
@@ -415,7 +418,6 @@ namespace DuckPipe
 
         }
         #endregion
-
 
     }
 }

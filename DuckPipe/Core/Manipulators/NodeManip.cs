@@ -556,7 +556,8 @@ namespace DuckPipe.Core.Manipulator
 
             string batContent = $@"
 @echo off
-set PROD_ROOT={UserConfig.Get().ProdBasePath}
+set PROD_ROOT={form.GetSelectedProductionPath()}
+set STUDIO_TOOLS={Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(ProductionService.GetProductionRootPath())), "SHARED_TOOLS")}
 start """" ""{fileToOpen}""
 ";
 

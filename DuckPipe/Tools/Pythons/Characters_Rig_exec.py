@@ -85,7 +85,7 @@ def preexecute():
 
     if IN_MAYA:
         # nouvelle scene
-        cmds.file(new=True, force=True)
+        MayaProcs.reset_scene(f"{PROD_PATH}/Assets/Templates/Characters_Rig_template.ma")
                                 
     elif IN_BLENDER:
         pass
@@ -100,7 +100,7 @@ def execute():
 
     if IN_MAYA:
         # créer le group REF si nécessaire
-        ref_grp_name = "REF"
+        ref_grp_name = "__REF__"
         if not cmds.objExists(ref_grp_name):
             ref_grp_name = cmds.group(n=ref_grp_name, empty=True)
 

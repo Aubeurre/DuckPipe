@@ -124,7 +124,7 @@ file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
 asset_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
 dlv_path = os.path.join(asset_path, "dlv")
-asset_name = file_root.replace(DEPT_SUFFIX, "")
+asset_name = file_root.replace(MODELSUFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 
 def main():        

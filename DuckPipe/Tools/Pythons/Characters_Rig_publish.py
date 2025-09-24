@@ -1,5 +1,19 @@
 """
 Publish pour MAYA (le rig se fera toujours dans maya avec DuckPipe)
+
+0-
+lance le script de publish rig custom
+1-
+Delete trash, remove references, 
+2-
+ajouter les shaders, sauvegarder le rig OK
+3-
+ajouter le facial si il existe, faire les connections, sauvegarder l'assemble OK
+4- 
+on split tous les costumes
+5-
+on ajoute une ref vers le split casual dans une scene vide, sauvegarder le Actor OK
+
 """
 import os
 import sys
@@ -51,8 +65,18 @@ def prepublish():
     """
     print(" -> Pre-publish")
         
-    if IN_MAYA:
-        pass
+    if IN_MAYA:  
+        # run custom script if exists
+        rig_scene_folder = os.path.dirname(EXECUTED_FILE)
+        custom_script_path = os.path.join(rig_scene_folder, "customScripts.py")
+        print("custom_script_path:", custom_script_path)
+
+        if rig_scene_folder not in sys.path:
+            sys.path.append(rig_scene_folder)
+
+        if os.path.exists(custom_script_path):
+            import customScripts
+            customScripts.execute()
 
 
 def publish():
@@ -63,13 +87,13 @@ def publish():
     
     if IN_MAYA:
         MayaProcs.import_ref()
-        MayaProcs.clean_publish(['TO_DELETE', 'RIGTRASH', 'TRASH', '__UTILS__', '__REF__'])
+        MayaProcs.clean_publish(['__TRASH__', '__UTILS__', '__REF__'])
         addShading()
 
         cmds.file(save=True, type="mayaAscii")
 
 
-def postpublish():
+def postpublish(dlv_path, asset_name):
     """
     Tout ce qui se passe ici se fait apres tout le reste
     """
@@ -83,6 +107,16 @@ def postpublish():
         addFacialToAssemble(EXECUTED_FILE, facial_file_path)
 
         cmds.file(save=True, type="mayaAscii")
+
+        # on split tous les costumes
+        costumes_list = ["casual"]
+        for costumes in costumes_list:
+            newFileName = f"{asset_name}_{costumes}{RIGSUFFIX}"
+            newFilePath = os.path.join(dlv_path, newFileName).replace("\\", "/")
+            print(f"Creation assemble: {newFilePath}")
+            cmds.file(rename=newFilePath)
+            cmds.file(save=True, type="mayaAscii")
+            
 
         
 # ------------------------------------------------------
@@ -121,7 +155,6 @@ def addFacialToAssemble(published_file, facial_file_path):
                       mergeNamespacesOnClash=False,
                       namespace=":", options="v=0")
             # TODO: connections
-            cmds.file(save=True, type="mayaAscii")
         else:
             print("Pas de facial trouve.")
 
@@ -131,13 +164,13 @@ file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
 asset_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
 dlv_path = os.path.join(asset_path, "dlv")
-asset_name = file_root.replace(DEPT_SUFFIX, "")
+asset_name = file_root.replace(RIGSUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 
 def main():        
-    preexecute()
-    execute()
-    postexecute()
+    prepublish()
+    publish()
+    postpublish(dlv_path, asset_name)
 
 if __name__ == "__main__":
     main()

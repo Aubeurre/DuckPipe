@@ -73,7 +73,6 @@ namespace DuckPipe.Core.Services
                 MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n\n Enter fallback mode, \nPlease create first {UserConfig.Get().FallBackPath} then reopen the tool", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return new List<string>();
             }
-
             return Directory.GetDirectories(rootPath)
                             .Select(Path.GetFileName)
                             .ToList();
