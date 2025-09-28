@@ -12,20 +12,21 @@ namespace DuckPipe.Core.Services
     {
         public static string GetUserName()
         {
-            return UserConfig.Get().User;
+            return UserConfig.GetUserName();
         }
 
         public static string GetProductionRootPath()
         {
-            string envPath = UserConfig.Get().ProdBasePath;
-
-            if (!Directory.Exists(envPath))
+            // if connected, use server path, else use local path
+            if (Directory.Exists(UserConfig.GetServerBasePath()))
             {
-                string fallback = UserConfig.Get().FallBackPath;
-                return fallback;
+                return UserConfig.GetServerBasePath();
+            }
+            else
+            {
+                return UserConfig.GetLocalBasePath();
             }
 
-            return envPath;
         }
 
         public static Dictionary<string, string> LoadStatusIcons(string prodPath)
@@ -70,7 +71,7 @@ namespace DuckPipe.Core.Services
 
             if (!Directory.Exists(rootPath))
             {
-                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n\n Enter fallback mode, \nPlease create first {UserConfig.Get().FallBackPath} then reopen the tool", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n\n Enter fallback mode, \nPlease create first {UserConfig.GetLocalBasePath()} then reopen the tool", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return new List<string>();
             }
             return Directory.GetDirectories(rootPath)

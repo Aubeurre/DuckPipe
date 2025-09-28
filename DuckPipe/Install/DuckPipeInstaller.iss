@@ -1,6 +1,6 @@
 [Setup]
 AppName=DuckPipe
-AppVersion=1.2.1
+AppVersion=1.9.1
 AppPublisher=Alexandre Wojtkow
 DefaultDirName={pf}\DuckPipe
 AppPublisherURL=https://github.com/Aubeurre/DuckPipe

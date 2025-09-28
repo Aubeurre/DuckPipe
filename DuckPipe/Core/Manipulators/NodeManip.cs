@@ -516,7 +516,7 @@ namespace DuckPipe.Core.Manipulator
         public static string GetTempPath(string nodePath)
         {
             string prodPath = ProductionService.GetProductionRootPath();
-            string tempNodelPath = nodePath.Replace(prodPath, $"{UserConfig.Get().userTempFolder}\\");
+            string tempNodelPath = nodePath.Replace(prodPath, $"{UserConfig.GetLocalBasePath()}\\");
 
             return tempNodelPath;
         }

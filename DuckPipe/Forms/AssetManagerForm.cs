@@ -13,6 +13,7 @@ using DuckPipe.Forms.Builder.Shared;
 using DuckPipe.Forms.Builder.Tabs;
 using DuckPipe.Core.Config;
 using DuckPipe.Core.Builders;
+using DuckPipe.Core.Manipulators;
 
 namespace DuckPipe
 {
@@ -141,11 +142,15 @@ namespace DuckPipe
 
         private void checkFoldersStructureToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string rootPath = ProductionService.GetProductionRootPath();
             string ProdName = cbProdList.SelectedItem?.ToString();
+            ProdFilesManip.EnsureServerProductionFiles(ProdName);
+        }
 
-            var productionConfig = new ProductionStructureBuilder { name = ProdName };
-            productionConfig.Check(ProdName, rootPath);
+
+        private void ensureLocalStructureToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string ProdName = cbProdList.SelectedItem?.ToString();
+            ProdFilesManip.EnsureLocalProductionFiles(ProdName);
         }
         #endregion
 
@@ -419,5 +424,9 @@ namespace DuckPipe
         }
         #endregion
 
+        private void AssetManagerForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

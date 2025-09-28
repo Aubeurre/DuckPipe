@@ -88,7 +88,7 @@ namespace DuckPipe.Core
         }
 
 
-        private void CreateDefaultTemplateScene(string prodPath)
+        public void CreateDefaultTemplateScene(string prodPath)
         {
             // Implementation for creating a default template scene can be added here.
 
@@ -109,7 +109,7 @@ namespace DuckPipe.Core
                 BlenderService.CreateBasicBlendFile(templateScenePath);
         }
 
-        private void CreateDefaultFolders(string prodPath)
+        public void CreateDefaultFolders(string prodPath)
         {
             string[] folders =
             {
@@ -138,7 +138,7 @@ namespace DuckPipe.Core
                 Directory.CreateDirectory(Path.Combine(prodPath, folder));
         }
 
-        private void CopyTools(string prodPath)
+        public void CopyTools(string prodPath)
         {
             string sourceToolPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
             string targetToolPath = Path.Combine(prodPath, "Dev");
@@ -222,13 +222,6 @@ namespace DuckPipe.Core
                 File.WriteAllText(configPath, JsonSerializer.Serialize(config, options));
         }
 
-        public void Check(string prodName, string prodPath)
-        {
-            string fullPath = Path.Combine(prodPath, prodName);
-            CreateDefaultFolders(fullPath);
-            CopyTools(fullPath);
-            CreateDefaultTemplateScene(fullPath);
-        }
     }
 
     public class DepartmentStructure
