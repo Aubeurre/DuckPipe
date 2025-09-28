@@ -74,17 +74,23 @@ namespace DuckPipe.Core.Services.Softwares
             return blenderPath;
         }
 
-        public static void ExecuteBlenderBatchScript(string blendPath, string pyPath)
+        public static void ExecuteBlenderBatchScript(string blendPath, string pyPath, string serverPath)
         {
             string blenderPath = GetBlenderPath();
 
-            if (!File.Exists(blenderPath) || !File.Exists(pyPath))
+            if (!File.Exists(blenderPath) )
             {
-                MessageBox.Show("blender.exe ou script Python introuvable !");
+                MessageBox.Show("blender.exe introuvable !");
                 return;
             }
 
-            string args = $"-b \"{blendPath}\" -P \"{pyPath}\"";
+            if (!File.Exists(pyPath))
+            {
+                MessageBox.Show("script Python introuvable !\n", pyPath);
+                return;
+            }
+
+            string args = $"-b \"{blendPath}\" -P \"{pyPath}\" -- \"{serverPath}\"";
 
             RunBlender(blenderPath, args);
         }

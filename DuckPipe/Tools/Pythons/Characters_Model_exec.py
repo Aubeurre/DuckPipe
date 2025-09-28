@@ -9,9 +9,9 @@ current_dir = os.path.dirname(__file__)
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-REFNODS = ["{node_dlv_path}{node_name}"]
-DEPT_SUFFIX = "_dept"
-TEMPLATE_FILE = "{Type}_{Dept}_template"
+REFNODS = ["{node_dlv_path}{node_name}"] # y en a pas pour le modeling
+DEPT_SUFFIX = "_model"
+TEMPLATE_FILE = "Characters_Model_template"
 
 if "--" in sys.argv:
     idx = sys.argv.index("--")
@@ -117,7 +117,7 @@ def execute():
             
 
     elif IN_BLENDER:
-        # créer la collection REF si nécessaire
+        # créer la collection REF si necessaire
         ref_col_name = "REF"
         if ref_col_name not in bpy.data.collections:
             ref_collection = bpy.data.collections.new(ref_col_name)
@@ -128,7 +128,7 @@ def execute():
         # importer les FBX
         for node_template in REFNODS:
             fbx_path = node_template.replace("{node_dlv_path}", studio_dlv_path).replace("{node_name}", asset_name)
-            BlenderProcs.reference_fbx(ref_collection, ref_col_name)
+            # BlenderProcs.reference_fbx(ref_collection, ref_col_name) y en a pas au model
 
 
 def postexecute():

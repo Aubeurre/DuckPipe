@@ -13,6 +13,14 @@ REFNODS = ["{node_dlv_path}/{node_name}_body.fbx",
            "{node_dlv_path}/{node_name}_model_helpers.fbx",
            "{node_dlv_path}/{node_name}_groom.fbx"
            ]
+TEMPLATE_FILE = "Characters_Rig_template"
+
+if "--" in sys.argv:
+    idx = sys.argv.index("--")
+    extra_args = sys.argv[idx+1:]
+    if extra_args:
+        server_file_path = extra_args[0]
+        print("Fichier reçu :", server_file_path)
 
 # ------------------------------------------------------
 # Detection environnement
@@ -85,7 +93,7 @@ def preexecute():
 
     if IN_MAYA:
         # nouvelle scene
-        MayaProcs.reset_scene(f"{PROD_PATH}/Assets/Templates/Characters_Rig_template.ma")
+        MayaProcs.reset_scene(f"{PROD_PATH}/Assets/Templates/{TEMPLATE_FILE}.ma")
                                 
     elif IN_BLENDER:
         pass
@@ -136,6 +144,11 @@ asset_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
+
+# server
+if server_file_path:
+    all_asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(server_file_path)))))
+    template_path = os.path.join(all_asset_root_path, "Template")
 
 def main():        
     preexecute()

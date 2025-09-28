@@ -50,7 +50,7 @@ namespace DuckPipe.Core.Services.Softwares
             return mayaPath;
         }
 
-        public static void ExecuteMayaBatchScript(string scenePath, string pyPath)
+        public static void ExecuteMayaBatchScript(string scenePath, string pyPath, string serverPath)
         {
             string pyPathEsc = pyPath.Replace("\\", "/");
             string publishedEsc = scenePath.Replace("\\", "/");

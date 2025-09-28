@@ -590,7 +590,6 @@ start """" ""{fileToOpen}""
             if (LockNodeFileManager.IsLockedByUser(nodePath))
             {
                 var ctx = ExtractNodeContext(nodePath);
-
                 string LocalFile = GetTempPath(nodePath);
 
                 // on regarde si il existe un template
@@ -598,11 +597,11 @@ start """" ""{fileToOpen}""
 
                 if (ctx.Department == "Anim" || ctx.Department == "Light" || ctx.Department == "CfxShot" || ctx.Department == "Layout" && nodePath.Contains("Shots"))
                 {
-                    TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Shots", "Templates");
+                    TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Shots", "Template");
                 }
                 else if (ctx.Department == "Rig" || ctx.Department == "Surf" || ctx.Department == "Cfx" || ctx.Department == "Groom" || ctx.Department == "Facial" || ctx.Department == "Model" && nodePath.Contains("Assets"))
                 {
-                    TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Assets", "Templates");
+                    TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Assets", "Template");
                 }
 
                 if (!string.IsNullOrEmpty(TmplPath))
@@ -654,11 +653,11 @@ start """" ""{fileToOpen}""
                 MessageBox.Show($"Exec Python Path : {pyPath}");
                 if (ctx.Extension == ".ma")
                 {
-                    MayaService.ExecuteMayaBatchScript(LocalFile, pyPath);
+                    MayaService.ExecuteMayaBatchScript(LocalFile, pyPath, nodePath);
                 }
                 else if (ctx.Extension == ".blend")
                 {
-                    BlenderService.ExecuteBlenderBatchScript(LocalFile, pyPath);
+                    BlenderService.ExecuteBlenderBatchScript(LocalFile, pyPath, nodePath);
                 }
 
             }
@@ -686,11 +685,11 @@ start """" ""{fileToOpen}""
             string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_publish.py");
             if (ctx.Extension == ".ma")
             {
-                MayaService.ExecuteMayaBatchScript(publishedFilePath, pyPath);
+                MayaService.ExecuteMayaBatchScript(publishedFilePath, pyPath, nodePath);
             }
             else if (ctx.Extension == ".blend")
             {
-                BlenderService.ExecuteBlenderBatchScript(publishedFilePath, pyPath);
+                BlenderService.ExecuteBlenderBatchScript(publishedFilePath, pyPath, nodePath);
             }
 
             AddNote(nodePath, form);

@@ -4,6 +4,36 @@ import os
     
 coll_to_empty = {}
 
+
+def reference_fbx(file_path, parent_grp_name="REF"):
+    """
+    Importe un FBX et le parent à parent_grp_name (collection ou objet vide)
+    """
+    if not os.path.exists(file_path):
+        print(f"Fichier manquant : {file_path}")
+        return
+
+    # créer ou récupérer la collection cible
+    if parent_grp_name in bpy.data.collections:
+        parent_grp = bpy.data.collections[parent_grp_name]
+    else:
+        parent_grp = bpy.data.collections.new(parent_grp_name)
+        bpy.context.scene.collection.children.link(parent_grp)
+
+    # importer le FBX
+    bpy.ops.import_scene.fbx(filepath=file_path)
+    imported_objects = bpy.context.selected_objects
+
+    for obj in imported_objects:
+        # unlink de toutes les collections existantes
+        for col in obj.users_collection:
+            col.objects.unlink(obj)
+        # link dans la collection cible
+        parent_grp.objects.link(obj)
+
+    print(f"Import FBX : {file_path} → {parent_grp_name}")
+
+
 def clean_publish(listToDelete):
     """
     Supprime les objets de la liste s ils existent
@@ -55,6 +85,14 @@ def export_hierarchy_by_name(empty_name, filepath):
     )
 
     print(f" Export FBX Done : {filepath}")
+
+
+def reset_scene(path):
+    """
+    Reset la scène avec le template Blender
+    """
+    bpy.ops.wm.read_homefile(use_empty=True)
+    bpy.ops.wm.open_mainfile(filepath=path)
 
 
 # ------------------------------------------------------
