@@ -9,7 +9,7 @@ namespace DuckPipe
         ///  The main entry point for the application.
         /// </summary>
         /// 
-        public static readonly string CurrentVersion = "1.9.1"; //fix
+        public static readonly string CurrentVersion = "1.9.2"; //fix
 
         [STAThread]
         static void Main()
