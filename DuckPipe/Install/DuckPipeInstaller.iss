@@ -11,6 +11,8 @@ DefaultGroupName=DuckPipe
 OutputBaseFilename=DuckPipeSetup
 Compression=lzma
 SolidCompression=yes
+CloseApplications=yes
+RestartApplications=yes
 
 [Files]
 ; Inclure tous les fichiers nécessaires de Release
@@ -29,5 +31,4 @@ Name: "{userdesktop}\DuckPipe"; Filename: "{app}\DuckPipe.exe"; Tasks: desktopic
 Name: "desktopicon"; Description: "Créer un raccourci sur le Bureau"; GroupDescription: "Raccourcis"
 
 [Run]
-Filename: "{app}\DuckPipe.exe"; Description: "Lancer DuckPipe"; Flags: nowait postinstall skipifsilent
-Filename: "{param:restart}";
+Filename: "{app}\DuckPipe.exe";

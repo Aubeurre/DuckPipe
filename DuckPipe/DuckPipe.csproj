@@ -88,6 +88,9 @@
     <None Update="Icons\OMIT.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Icons\READY.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Icons\RTK.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

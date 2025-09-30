@@ -203,6 +203,7 @@ namespace DuckPipe.Core
                 status = new Dictionary<string, string>
         {
             { "not_started", "icons/NEW.png" },
+            { "ready_to_go", "icons/NEW.png" },
             { "outDated", "icons/OLD.png" },
             { "upToDate", "icons/APP.png" },
             { "wip", "icons/WIP.png" },

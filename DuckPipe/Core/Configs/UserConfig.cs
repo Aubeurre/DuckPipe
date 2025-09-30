@@ -11,74 +11,26 @@ namespace DuckPipe.Core.Config
     {
         public string User { get; set; } = Environment.UserName;
         public string ServerBasePath { get; set; } = @"I:\PROD\";
-        public string LocalBasePath { get; set; } = @"D:\ICHIGO\";  //Path.Combine(Path.GetTempPath(), "DuckPipe");
-        public string MayaLocation { get; set; } = @"C:\Program Files\Autodesk\Maya2023\";
-        public string BlenderLocation { get; set; } = @"C:\Program Files\Blender Foundation\Blender 4.4\blender.exe";
+        public string LocalBasePath { get; set; } = @"D:\ICHIGO\PROD\";  //Path.Combine(Path.GetTempPath(), "DuckPipe");
+        public string MayaLocation { get; set; } = @"C:\Program Files\Autodesk\Maya2025\";
+        public string BlenderLocation { get; set; } = @"C:\Program Files\Blender Foundation\Blender 4.5\blender.exe";
+        public string PhotoshopLocation { get; set; } = @"None";
+        public string Nuke { get; set; } = @"None";
+        public string painter { get; set; } = @"None";
 
         private static UserConfig? _instance;
-
-        public static string GetDefaultConfigPath()
-        {
-            string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            return Path.Combine(userFolder, ".duckpipe", "user_config.json");
-        }
-
-        public static string GetLocalBasePath()
-        {
-            string localPath = "";
-            string configPath = GetDefaultConfigPath();
-
-            if (File.Exists(configPath) == true)
-            {
-                using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
-                if (configDoc.RootElement.TryGetProperty("LocalBasePath", out JsonElement localPathElement))
-                {
-                    localPath = localPathElement.GetString() ?? "";
-                }
-            }
-            return localPath;
-        }
-
-        public static string GetServerBasePath()
-        {
-            string ServerPath = "";
-            string configPath = GetDefaultConfigPath();
-
-            if (File.Exists(configPath) == true)
-            {
-                using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
-                if (configDoc.RootElement.TryGetProperty("ServerBasePath", out JsonElement serverlPathElement))
-                {
-                    ServerPath = serverlPathElement.GetString() ?? "";
-                }
-            }
-            return ServerPath;
-        }
-
-        public static string GetUserName()
-        {
-            string userName = "";
-            string configPath = GetDefaultConfigPath();
-
-            if (File.Exists(configPath) == true)
-            {
-                using var configDoc = JsonDocument.Parse(File.ReadAllText(configPath));
-                if (configDoc.RootElement.TryGetProperty("User", out JsonElement userNameElement))
-                {
-                    userName = userNameElement.GetString() ?? "";
-                }
-            }
-            return userName;
-        }
+        private static DateTime _lastWriteTime;
 
         public static void LoadOrCreate()
         {
             string path = GetDefaultConfigPath();
+
             if (!File.Exists(path))
             {
                 var config = new UserConfig();
                 config.Save();
                 _instance = config;
+                _lastWriteTime = File.GetLastWriteTime(path);
             }
             else
             {
@@ -86,6 +38,7 @@ namespace DuckPipe.Core.Config
                 {
                     var json = File.ReadAllText(path);
                     _instance = JsonSerializer.Deserialize<UserConfig>(json) ?? new UserConfig();
+                    _lastWriteTime = File.GetLastWriteTime(path);
                 }
                 catch (Exception ex)
                 {
@@ -95,6 +48,48 @@ namespace DuckPipe.Core.Config
             }
         }
 
+        public static void Reload()
+        {
+            LoadOrCreate();
+        }
+
+        public static UserConfig Instance
+        {
+            get
+            {
+                string path = GetDefaultConfigPath();
+                var currentWriteTime = File.GetLastWriteTime(path);
+                if (currentWriteTime != _lastWriteTime)
+                {
+                    LoadOrCreate();
+                }
+                return _instance!;
+            }
+        }
+
+        public static string GetDefaultConfigPath()
+        {
+            string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(userFolder, ".duckpipe", "user_config.json");
+        }
+
+        public static string GetLocalBasePath()
+        {
+
+            return UserConfig.Instance.LocalBasePath;
+        }
+
+        public static string GetServerBasePath()
+        {
+
+            return UserConfig.Instance.ServerBasePath;
+        }
+
+        public static string GetUserName()
+        {
+
+            return UserConfig.Instance.User;
+        }
 
         public void Save()
         {
@@ -108,6 +103,7 @@ namespace DuckPipe.Core.Config
             });
 
             File.WriteAllText(path, json);
+            _lastWriteTime = File.GetLastWriteTime(path); // 🔥 Ajout
         }
 
         public static void OpenConfigFile()

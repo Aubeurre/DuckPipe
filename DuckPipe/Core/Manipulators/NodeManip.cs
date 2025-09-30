@@ -8,6 +8,7 @@ using DuckPipe.Core.Utils;
 using System.Text.Json.Nodes;
 using DuckPipe.Forms;
 using DuckPipe.Core.Services.Softwares;
+using DuckPipe.Core.Manipulators;
 
 namespace DuckPipe.Core.Manipulator
 {
@@ -523,6 +524,11 @@ namespace DuckPipe.Core.Manipulator
 
         public static void CopyNodeToTemp(string nodePath)
         {
+            // on check si les fichiers sont a jour
+            var ctx = ExtractNodeContext(nodePath);
+            ProdFilesManip.EnsureLocalProductionFiles(ctx.ProdName);
+
+            // grabb
             string tempNodelPath = GetTempPath(nodePath);
             MessageBox.Show($"Temp Path : {tempNodelPath}");
             string tempDirPath = Path.GetDirectoryName(tempNodelPath)!;

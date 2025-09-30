@@ -45,7 +45,7 @@ namespace DuckPipe.Core.Manipulators
                 string localFilePath = eachFile.Replace(UserConfig.GetServerBasePath(), UserConfig.GetLocalBasePath());
                 if (!File.Exists(localFilePath))
                 {
-                    copyProductionFilesToLocal(localFilePath);
+                    copyProductionFilesToLocal(eachFile);
                     ChangedFileListe.Add(localFilePath);
                 }
                 else

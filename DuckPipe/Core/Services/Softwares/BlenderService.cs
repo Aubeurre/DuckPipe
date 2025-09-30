@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DuckPipe.Core.Config;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -68,8 +69,7 @@ namespace DuckPipe.Core.Services.Softwares
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string userconfigpath = Path.Combine(userFolder, ".duckpipe", "user_config.json");
 
-            using var configDoc = JsonDocument.Parse(File.ReadAllText(userconfigpath));
-            string blenderPath = configDoc.RootElement.GetProperty("BlenderLocation").GetString() ?? @"C:\Program Files\Blender Foundation\Blender 4.4\blender.exe";
+            string blenderPath = UserConfig.Instance.BlenderLocation ?? @"C:\Program Files\Blender Foundation\Blender 4.4\blender.exe";
 
             return blenderPath;
         }

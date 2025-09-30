@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DuckPipe.Core.Config;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -44,8 +45,7 @@ namespace DuckPipe.Core.Services.Softwares
 
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string userconfigpath = Path.Combine(userFolder, ".duckpipe", "user_config.json");
-            using var configDoc = JsonDocument.Parse(File.ReadAllText(userconfigpath));
-            string mayaPath = configDoc.RootElement.GetProperty("MayaLocation").GetString() ?? @"C:\Program Files\Autodesk\Maya2023\";
+            string mayaPath = UserConfig.Instance.MayaLocation ?? @"C:\Program Files\Autodesk\Maya2023\";
 
             return mayaPath;
         }

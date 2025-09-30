@@ -169,5 +169,16 @@ namespace DuckPipe.Core.Services
             
             return "";
         }
+
+        public static bool CheckIfOnServer(string prodPath)
+        {
+            string serverPath = UserConfig.GetServerBasePath();
+            MessageBox.Show(prodPath);
+            MessageBox.Show(serverPath);
+            if (prodPath.Contains(serverPath))
+                return true;
+            else
+                return false;
+        }
     }
 }

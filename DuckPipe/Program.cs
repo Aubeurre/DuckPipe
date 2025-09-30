@@ -9,7 +9,7 @@ namespace DuckPipe
         ///  The main entry point for the application.
         /// </summary>
         /// 
-        public static readonly string CurrentVersion = "1.9.2"; //fix
+        public static readonly string CurrentVersion = "1.9.3"; //fix
 
         [STAThread]
         static void Main()
@@ -36,7 +36,9 @@ namespace DuckPipe
                 string latestVersion = (await client.GetStringAsync("https://raw.githubusercontent.com/Aubeurre/DuckPipe/master/version.txt"))
                                        .Trim();
 
-                if (latestVersion == CurrentVersion)
+                int CurrentVersionInt = int.Parse(CurrentVersion.Split('.')[0]) * 10000 + int.Parse(CurrentVersion.Split('.')[1]) * 100 + int.Parse(CurrentVersion.Split('.')[2]);
+                int latestVersionInt = int.Parse(latestVersion.Split('.')[0]) * 10000 + int.Parse(latestVersion.Split('.')[1]) * 100 + int.Parse(latestVersion.Split('.')[2]);
+                if (latestVersionInt <= CurrentVersionInt)
                     return;
 
                 DialogResult result = MessageBox.Show(

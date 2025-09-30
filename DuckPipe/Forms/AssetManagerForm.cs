@@ -36,7 +36,7 @@ namespace DuckPipe
             WorkTabBuilder.ClearPanel(WorkTabBuilder.GetContext("", ""));
             NodeTabBuilder.ClearPanel(NodeTabBuilder.GetContext("", ""));
 
-            this.Text = $"DuckPipe {Program.CurrentVersion}";
+            this.Text = $"DuckPipe v{Program.CurrentVersion} . Running on {ProductionService.GetProductionRootPath()}";
         }
 
         private void LoadProductionList()
@@ -255,12 +255,21 @@ namespace DuckPipe
             {
                 string rootPath = ProductionService.GetProductionRootPath();
                 LoadTreeViewFromFolder(rootPath, selectedProd);
+                // ProdFilesManip.EnsureLocalProductionFiles(selectedProd); pas foufou car si usersettings mal defini ca fout le bronx
             }
         }
 
         private void btCreateAsset_Click(object sender, EventArgs e)
         {
             // Ouvre le formulaire de création d'asset
+
+            string prodPath = GetSelectedProductionPath();
+            if (!ProductionService.CheckIfOnServer(prodPath))
+            {
+                MessageBox.Show("This action an only be done on Server connection");
+                return;
+            }
+
             using (var form = new CreateAssetPopup(this))
             {
                 if (form.ShowDialog() != DialogResult.OK)
@@ -272,7 +281,6 @@ namespace DuckPipe
 
                 string selectedProd = cbProdList.SelectedItem?.ToString();
                 string rootPath = ProductionService.GetProductionRootPath();
-                string prodPath = Path.Combine(rootPath, selectedProd);
 
 
                 NodeService.CreateAsset(prodPath, newItemName, newItemType, Description);
@@ -285,6 +293,14 @@ namespace DuckPipe
         private void btCreateSeq_Click(object sender, EventArgs e)
         {
             // Ouvre le formulaire de création de séquence
+
+            string prodPath = GetSelectedProductionPath();
+            if (!ProductionService.CheckIfOnServer(prodPath))
+            {
+                MessageBox.Show("This action an only be done on Server connection");
+                return;
+            }
+
             using (var form = new CreateSequencePopup(this))
             {
                 if (form.ShowDialog() != DialogResult.OK)
@@ -293,7 +309,6 @@ namespace DuckPipe
                 string Description = form.Description.Trim();
                 string selectedProd = cbProdList.SelectedItem?.ToString();
                 string rootPath = ProductionService.GetProductionRootPath();
-                string prodPath = Path.Combine(rootPath, selectedProd);
                 NodeService.CreateSequence(prodPath, newSeqName, Description);
 
                 foreach (var shot in form.GetShots())
@@ -310,6 +325,14 @@ namespace DuckPipe
         private void btCreateShot_Click(object sender, EventArgs e)
         {
             // Ouvre le formulaire de création de séquence
+
+            string prodPath = GetSelectedProductionPath();
+            if (!ProductionService.CheckIfOnServer(prodPath))
+            {
+                MessageBox.Show("This action an only be done on Server connection");
+                return;
+            }
+
             using (var form = new CreateShotPopup(this))
             {
                 if (form.ShowDialog() != DialogResult.OK)
@@ -321,7 +344,6 @@ namespace DuckPipe
                 string rangeOut = form.RangeOut.Trim();
                 string selectedProd = cbProdList.SelectedItem?.ToString();
                 string rootPath = ProductionService.GetProductionRootPath();
-                string prodPath = Path.Combine(rootPath, selectedProd);
                 NodeService.CreateShot(prodPath, seqName, newShotName, Description, rangeIn, rangeOut);
                 // Recharger  TreeView
                 LoadTreeViewFromFolder(rootPath, selectedProd);
@@ -332,6 +354,14 @@ namespace DuckPipe
         private void btnCreateProduction_Click(object sender, EventArgs e)
         {
             // Ouvre le formulaire de création de production
+
+            string prodPath = GetSelectedProductionPath();
+            if (!ProductionService.CheckIfOnServer(prodPath))
+            {
+                MessageBox.Show("This action an only be done on Server connection");
+                return;
+            }
+
             using (var form = new CreateProductionPopup())
             {
                 if (form.ShowDialog() == DialogResult.OK)
@@ -381,6 +411,11 @@ namespace DuckPipe
         private void btnAddTimelog_Click(object sender, EventArgs e)
         {
             string prodPath = GetSelectedProductionPath();
+            if (!ProductionService.CheckIfOnServer(prodPath))
+            {
+                MessageBox.Show("This action an only be done on Server connection");
+                return;
+            }
 
             var nodesDict = GetAllNodesInProduction(prodPath);
             var allNodes = nodesDict.SelectMany(typeEntry => typeEntry.Value.Select(nodeEntry => $"{typeEntry.Key}/{nodeEntry.Key}")).ToList(); //CRADE DE FOU
