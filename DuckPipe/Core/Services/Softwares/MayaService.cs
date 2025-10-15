@@ -86,8 +86,7 @@ namespace DuckPipe.Core.Services.Softwares
                     p.BeginErrorReadLine();
                     p.WaitForExit();
                 }
-
-                MessageBox.Show($"Maya Batch termine.\n\n--- STDOUT ---\n{stdout}\n--- STDERR ---\n{stderr}", "Maya Batch");
+                ShowLog(stdout.ToString(), stderr.ToString());
 
             }
             else
@@ -96,6 +95,28 @@ namespace DuckPipe.Core.Services.Softwares
             }
 
         }
+
+
+        public static void ShowLog(string stdout, string stderr)
+        {
+            Form logForm = new Form
+            {
+                Text = "Maya Batch - Log",
+                Width = 800,
+                Height = 600
+            };
+            TextBox tb = new TextBox
+            {
+                Multiline = true,
+                ScrollBars = ScrollBars.Both,
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                Text = $"--- STDOUT ---\r\n{stdout}\r\n--- STDERR ---\r\n{stderr}"
+            };
+            logForm.Controls.Add(tb);
+            logForm.ShowDialog();
+        }
+
 
         public static string PathIntoMayaFormat(string path)
         {

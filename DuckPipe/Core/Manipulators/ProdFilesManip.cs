@@ -18,24 +18,15 @@ namespace DuckPipe.Core.Manipulators
             if (ChangedFileListe.Count == 0)
                 MessageBox.Show("Local Production is Up to date !");
             else;
-                MessageBox.Show("Updated files:\n" + string.Join("\n", ChangedFileListe));
+            MessageBox.Show("Updated files:\n" + string.Join("\n", ChangedFileListe));
 
         }
 
-
-        public static void EnsureLocalProductionFiles(string prodName)
+        public static List<string> runOnFolder(string folderPath, List<string> ChangedFileListe)
         {
-            List<string> ChangedFileListe = new List<string>();
 
-            // files to check (hardcoded for now)
-            string serverPath = UserConfig.GetServerBasePath();
             List<string> FileListe = new List<string>();
-            // all file from Dev
-            if (!Directory.Exists(Path.Combine(serverPath, prodName, "Dev")))
-            {
-                return;
-            }
-            foreach (string File in Directory.GetFiles(Path.Combine(serverPath, prodName, "Dev"), "*", SearchOption.AllDirectories))
+            foreach (string File in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
             {
                 FileListe.Add(File);
             }
@@ -57,6 +48,31 @@ namespace DuckPipe.Core.Manipulators
                     }
                 }
             }
+            return ChangedFileListe;
+        }
+
+        public static void EnsureLocalProductionFiles(string prodName)
+        {
+            List<string> ChangedFileListe = new List<string>();
+
+            // files to check (hardcoded for now)
+            string serverPath = UserConfig.GetServerBasePath();
+
+            // all file from Dev
+            string devPath = Path.Combine(serverPath, prodName, "Dev");
+            if (Directory.Exists(devPath))
+                ChangedFileListe = runOnFolder(devPath, ChangedFileListe);
+
+            // all file from Assets Template
+            string assetTemplatePath = Path.Combine(serverPath, prodName, "Assets", "Template");
+            if (Directory.Exists(devPath))
+                ChangedFileListe = runOnFolder(assetTemplatePath, ChangedFileListe);
+
+            // all file from Shots Template
+            string shotsTemplatePath = Path.Combine(serverPath, prodName, "Shots", "Template");
+            if (Directory.Exists(devPath))
+                ChangedFileListe = runOnFolder(shotsTemplatePath, ChangedFileListe);
+
             ReturnChanges(ChangedFileListe);
 
         }

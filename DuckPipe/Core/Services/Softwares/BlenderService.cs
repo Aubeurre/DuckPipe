@@ -16,7 +16,9 @@ namespace DuckPipe.Core.Services.Softwares
 
             if (!File.Exists(blenderPath))
             {
-                MessageBox.Show("Blender introuvable !");
+                string stubPath = Path.ChangeExtension(filePath, ".stub.blend");
+                File.WriteAllText(stubPath, "// Placeholder pour .blend");
+                Console.WriteLine($"Blender introuvable, stub créé : {stubPath}");
                 return;
             }
 
@@ -121,7 +123,8 @@ namespace DuckPipe.Core.Services.Softwares
                 p.WaitForExit();
             }
 
-           MessageBox.Show($"Blender Batch termine.\n\n--- STDOUT ---\n{stdout}\nArguments:{args}\n--- STDERR ---\n{stderr}", "Blender Batch");
+            MessageBox.Show($"Blender Batch termine.\n--- STDOUT ---\n{stdout}", "Blender Batch");
+            MessageBox.Show($"Blender Batch termine.\n--- STDERR ---\n{stderr}", "Blender Batch");
         }
 
         public static string PathIntoBlenderFormat(string path)

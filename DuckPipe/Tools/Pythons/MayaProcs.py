@@ -39,10 +39,12 @@ def reset_scene(path):
     Reset la scene avec le template
     """
     cmds.file(new=True, force=True)
-    cmds.file(path, i=1)
+    path = path.replace("\\", "/")
+    if os.path.exists(path):
+        cmds.file(path, i=1)
 
 
-def export_hierarchy_fbx(root_name, filepath):
+def export_hierarchy_by_name(root_name, filepath):
     """
     Exporte FBX
     """
@@ -62,32 +64,62 @@ def export_hierarchy_fbx(root_name, filepath):
         os.makedirs(dirpath)
 
     # Export FBX (via plugin FBX)
-    try:
-        import maya.mel as mel
-        mel.eval('FBXResetExport;')  # reset settings
-        mel.eval('FBXExportBakeComplexAnimation -v false;')
-        mel.eval('FBXExportInputConnections -v false;')
-        mel.eval(f'FBXExport -f "{filepath}" -s;')
-    except Exception as e:
-        cmds.error(f" Erreur export FBX : {e}")
-        return
+    import maya.mel as mel
+    filepath = filepath.replace("\\", "/")
 
-    print(f" Export FBX Done : {filepath}")
-    
+    folder = os.path.dirname(filepath)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
+    if not cmds.pluginInfo("fbxmaya", q=True, loaded=True):
+        cmds.loadPlugin("fbxmaya")
+
+    objs = cmds.ls(selection=True)
+    if not objs:
+        pass
+
+    cmds.select(objs, r=True)
+
+    mel.eval('FBXResetExport;')
+    mel.eval('FBXExportBakeComplexAnimation -v false;')
+    mel.eval('FBXExportInputConnections -v false;')
+    mel.eval('FBXExportFileVersion -v FBX202000;')
+
+    # Export FBX
+    mel.eval(f'FBXExport -f "{filepath}" -s;')
+    print(f" FBX exporte : {filepath}")
+
+
+# NE FONCTIONNE PAS EN BATCH MAIS OUI DANS LE GUI
 def reference_fbx(file_path, parent_grp):
-    """reference un FBX et le parent a parent_grp"""
+    """Reference un FBX et le parent a parent_grp"""
     if os.path.exists(file_path):
-        ref_node = cmds.file(file_path, r=True, type="FBX", namespace=":")
-        ref_nodes = cmds.referenceQuery(ref_node, nodes=True, dagPath=True) or []
-        root_nodes = [n for n in ref_nodes if not cmds.listRelatives(n, parent=True)]
-        if root_nodes:
-            cmds.parent(root_nodes, parent_grp)
-        print(f"Import FBX : {file_path}")
+        file_path = file_path.replace("\\", "/")
+
+        # plugin FBX
+        if not cmds.pluginInfo("fbxmaya", q=True, loaded=True):
+            try:
+                cmds.loadPlugin("fbxmaya")
+            except Exception as e:
+                cmds.error(f"Impossible de charger fbxmaya : {e}")
+
+        try:
+            print(f"Import FBX : {file_path}")
+            ref_node = cmds.file(file_path, r=True, type="FBX", ignoreVersion=True, options="v=0;", namespace="fbxRef")
+            ref_nodes = cmds.referenceQuery(ref_node, nodes=True, dagPath=True) or []
+            root_nodes = [n for n in ref_nodes if not cmds.listRelatives(n, parent=True)]
+            if root_nodes:
+               cmds.parent(root_nodes, parent_grp)
+        except Exception as e:
+            cmds.error(f"Erreur reference FBX : {e}")
+
     else:
-        #  (fichier manquant)
-        cmds.file(file_path, r=True, type="FBX", namespace=":", deferReference=True)
-        print(f"Fichier manquant : {file_path}")
+        try:
+            cmds.file(file_path, r=True, type="FBX", namespace=":", ignoreVersion=True, options="v=0;", deferReference=True)
+            print(f"[WARN] Fichier manquant (reference differee) : {file_path}")
+        except Exception as e:
+            cmds.error(f"Erreur reference FBX manquant : {e}")
+
         
 
 # ------------------------------------------------------

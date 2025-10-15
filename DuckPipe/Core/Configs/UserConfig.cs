@@ -109,6 +109,7 @@ namespace DuckPipe.Core.Config
         public static void OpenConfigFile()
         {
             string path = GetDefaultConfigPath();
+            MessageBox.Show(path);
             if (!File.Exists(path))
             {
                 var config = new UserConfig();

@@ -530,14 +530,15 @@ namespace DuckPipe.Core.Manipulator
 
             // grabb
             string tempNodelPath = GetTempPath(nodePath);
-            MessageBox.Show($"Temp Path : {tempNodelPath}");
             string tempDirPath = Path.GetDirectoryName(tempNodelPath)!;
-
-            if (Directory.Exists(tempDirPath))
-                Directory.Delete(tempDirPath, true);
+            string nodejsonPath = Path.Combine(ctx.NodeRoot, "node.json");
+            string tempNodejsonPath = GetTempPath(nodejsonPath);
 
             Directory.CreateDirectory(tempDirPath);
             File.Copy(nodePath, tempNodelPath, true);
+            File.Copy(nodejsonPath, tempNodejsonPath, true);
+
+            MessageBox.Show($"Fichier copié en local :\n{tempNodelPath}", "Succès");
         }
 
         public static void DeleteTemp(string nodePath)
@@ -615,12 +616,7 @@ start """" ""{fileToOpen}""
                     string templateName = $"{ctx.NodeType}_{ctx.Department}_template{ctx.Extension}";
                     string templateFile = Path.Combine(TmplPath, $"{templateName}");
 
-                    // remplacer la scene courante par le template si il existe
-                    if (File.Exists(templateFile))
-                    {
-                        File.Copy(templateFile, LocalFile, overwrite: true);
-                    }
-                    else
+                    if (!File.Exists(templateFile))
                     {
                         // si pas de template on cree un fichier de base
                         if (ctx.Extension == ".ma")
@@ -636,37 +632,37 @@ start """" ""{fileToOpen}""
                     }
                 }
 
-                // FONCTIONNE PAS CAR LA SCENE SE FAIT ECRASER APRES
-                // gestion des references
-                //foreach (var refPath in GetAllRefs(nodePath))
-                //{
-                //    // pour Maya
-                //    if (refPath.EndsWith(".ma", StringComparison.OrdinalIgnoreCase))
-                //    {
-                //        string mayaPath = MayaService.PathIntoMayaFormat(refPath);
-                //        MayaService.AddReference(LocalFile, mayaPath);
-                //    }
-                //    // pour Blender
-                //    else if (refPath.EndsWith(".blend", StringComparison.OrdinalIgnoreCase))
-                //    {
-                //        string blenderPath = BlenderService.PathIntoBlenderFormat(refPath);
-                //        BlenderService.AddReference(LocalFile, blenderPath);
-                //    }
-                //}
-
                 // lancer le py d'ouverture du node selon le department
                 string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_exec.py");
                 MessageBox.Show($"Exec Python Path : {pyPath}");
                 if (ctx.Extension == ".ma")
                 {
                     MayaService.ExecuteMayaBatchScript(LocalFile, pyPath, nodePath);
+                    // gestion des references
+                    foreach (var refPath in GetAllRefs(nodePath))
+                    {
+                        if (refPath.EndsWith(".ma", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string mayaPath = MayaService.PathIntoMayaFormat(refPath);
+                            MayaService.AddReference(LocalFile, mayaPath);
+                        }
+                    }
                 }
                 else if (ctx.Extension == ".blend")
                 {
                     BlenderService.ExecuteBlenderBatchScript(LocalFile, pyPath, nodePath);
-                }
+                    // gestion des references
+                    foreach (var refPath in GetAllRefs(nodePath))
+                    {
+                        if (refPath.EndsWith(".blend", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string blenderPath = BlenderService.PathIntoBlenderFormat(refPath);
+                            BlenderService.AddReference(LocalFile, blenderPath);
+                        }
+                    }
+                    }
 
-            }
+                }
             else
             {
                 MessageBox.Show($"Please Grab Node First");

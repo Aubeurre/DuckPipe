@@ -71,7 +71,6 @@ namespace DuckPipe
             flowLayoutPanel1 = new FlowLayoutPanel();
             btnTab2 = new Button();
             btnTab1 = new Button();
-            tableLayoutPanel2 = new TableLayoutPanel();
             btnTab3 = new Button();
             btnTab4 = new Button();
             tabCtrlMain = new CustomTabControl();
@@ -588,6 +587,7 @@ namespace DuckPipe
             tablpanTabBtn.Name = "tablpanTabBtn";
             tablpanTabBtn.RowCount = 1;
             tablpanTabBtn.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tablpanTabBtn.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
             tablpanTabBtn.Size = new Size(753, 43);
             tablpanTabBtn.TabIndex = 0;
             // 
@@ -596,13 +596,12 @@ namespace DuckPipe
             flowLayoutPanel1.Anchor = AnchorStyles.None;
             flowLayoutPanel1.Controls.Add(btnTab2);
             flowLayoutPanel1.Controls.Add(btnTab1);
-            flowLayoutPanel1.Controls.Add(tableLayoutPanel2);
             flowLayoutPanel1.Controls.Add(btnTab3);
             flowLayoutPanel1.Controls.Add(btnTab4);
-            flowLayoutPanel1.Location = new Point(180, 8);
+            flowLayoutPanel1.Location = new Point(37, 8);
             flowLayoutPanel1.Margin = new Padding(8);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(392, 27);
+            flowLayoutPanel1.Size = new Size(678, 27);
             flowLayoutPanel1.TabIndex = 0;
             // 
             // btnTab2
@@ -614,7 +613,7 @@ namespace DuckPipe
             btnTab2.Location = new Point(3, 3);
             btnTab2.Name = "btnTab2";
             btnTab2.Size = new Size(75, 23);
-            btnTab2.TabIndex = 1;
+            btnTab2.TabIndex = 5;
             btnTab2.Text = "Node";
             btnTab2.UseVisualStyleBackColor = false;
             btnTab2.Click += btnTab2_Click;
@@ -628,21 +627,10 @@ namespace DuckPipe
             btnTab1.Location = new Point(84, 3);
             btnTab1.Name = "btnTab1";
             btnTab1.Size = new Size(75, 23);
-            btnTab1.TabIndex = 0;
+            btnTab1.TabIndex = 4;
             btnTab1.Text = "Workfiles";
             btnTab1.UseVisualStyleBackColor = false;
             btnTab1.Click += btnTab1_Click;
-            // 
-            // tableLayoutPanel2
-            // 
-            tableLayoutPanel2.ColumnCount = 1;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Location = new Point(165, 3);
-            tableLayoutPanel2.Name = "tableLayoutPanel2";
-            tableLayoutPanel2.RowCount = 1;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Size = new Size(62, 23);
-            tableLayoutPanel2.TabIndex = 4;
             // 
             // btnTab3
             // 
@@ -650,10 +638,10 @@ namespace DuckPipe
             btnTab3.FlatAppearance.BorderColor = Color.FromArgb(64, 64, 64);
             btnTab3.FlatStyle = FlatStyle.Flat;
             btnTab3.ForeColor = Color.White;
-            btnTab3.Location = new Point(233, 3);
+            btnTab3.Location = new Point(165, 3);
             btnTab3.Name = "btnTab3";
             btnTab3.Size = new Size(75, 23);
-            btnTab3.TabIndex = 2;
+            btnTab3.TabIndex = 6;
             btnTab3.Text = "Schedule";
             btnTab3.UseVisualStyleBackColor = false;
             btnTab3.Click += btnTab3_Click;
@@ -664,10 +652,10 @@ namespace DuckPipe
             btnTab4.FlatAppearance.BorderColor = Color.FromArgb(64, 64, 64);
             btnTab4.FlatStyle = FlatStyle.Flat;
             btnTab4.ForeColor = Color.White;
-            btnTab4.Location = new Point(314, 3);
+            btnTab4.Location = new Point(246, 3);
             btnTab4.Name = "btnTab4";
             btnTab4.Size = new Size(75, 23);
-            btnTab4.TabIndex = 3;
+            btnTab4.TabIndex = 7;
             btnTab4.Text = "Stats";
             btnTab4.UseVisualStyleBackColor = false;
             btnTab4.Click += btnTab4_Click;
@@ -965,7 +953,7 @@ namespace DuckPipe
             // 
             splitStatMain.Panel2.Controls.Add(tableLayoutPanel6);
             splitStatMain.Size = new Size(738, 447);
-            splitStatMain.SplitterDistance = 101;
+            splitStatMain.SplitterDistance = 100;
             splitStatMain.TabIndex = 0;
             // 
             // tableLayoutPanel7
@@ -980,7 +968,7 @@ namespace DuckPipe
             tableLayoutPanel7.RowCount = 2;
             tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
             tableLayoutPanel7.RowStyles.Add(new RowStyle());
-            tableLayoutPanel7.Size = new Size(738, 101);
+            tableLayoutPanel7.Size = new Size(738, 100);
             tableLayoutPanel7.TabIndex = 1;
             // 
             // tblpnlTimeLogs
@@ -1126,7 +1114,7 @@ namespace DuckPipe
             tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F));
             tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
             tableLayoutPanel6.RowStyles.Add(new RowStyle());
-            tableLayoutPanel6.Size = new Size(738, 342);
+            tableLayoutPanel6.Size = new Size(738, 343);
             tableLayoutPanel6.TabIndex = 1;
             // 
             // flpAllDeptTimeLogsGraphs
@@ -1138,7 +1126,7 @@ namespace DuckPipe
             flpAllDeptTimeLogsGraphs.FlowDirection = FlowDirection.TopDown;
             flpAllDeptTimeLogsGraphs.Location = new Point(3, 73);
             flpAllDeptTimeLogsGraphs.Name = "flpAllDeptTimeLogsGraphs";
-            flpAllDeptTimeLogsGraphs.Size = new Size(732, 266);
+            flpAllDeptTimeLogsGraphs.Size = new Size(732, 267);
             flpAllDeptTimeLogsGraphs.TabIndex = 11;
             // 
             // tableLayoutPanel4
@@ -1344,8 +1332,6 @@ namespace DuckPipe
         private CustomTabControl tabCtrlMain;
         private TabPage tabPWork;
         private TabPage tabPNode;
-        private Button btnTab1;
-        private Button btnTab2;
         private TableLayoutPanel tablpanTabBtn;
         private FlowLayoutPanel flowLayoutPanel1;
         private TabPage tabPShelude;
@@ -1356,12 +1342,9 @@ namespace DuckPipe
         private Label lbDescription2;
         private Button button1;
         private FlowLayoutPanel flpNodeTask;
-        private Button btnTab3;
         private Panel pnlShelude;
-        private Button btnTab4;
         private TabPage tabPStats;
         private SplitContainer splitStatMain;
-        private TableLayoutPanel tableLayoutPanel2;
         private TableLayoutPanel tableLayoutPanel3;
         private Button btnAddTimelog;
         private Panel panel3;
@@ -1395,5 +1378,9 @@ namespace DuckPipe
         private Button btnEditNode;
         private FlowLayoutPanel flowLayoutPanel4;
         private ToolStripMenuItem ensureLocalStructureToolStripMenuItem;
+        private Button btnTab2;
+        private Button btnTab1;
+        private Button btnTab3;
+        private Button btnTab4;
     }
 }
