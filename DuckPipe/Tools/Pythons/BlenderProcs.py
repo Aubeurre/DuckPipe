@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 import bpy
 import os
-    
-coll_to_empty = {}
-
+from pathlib import Path
 
 def reference_fbx(file_path, parent_grp_name="REF"):
     """
-    Importe un FBX et le parent à parent_grp_name (collection ou objet vide)
+    Importe un FBX et le parent a parent_grp_name (collection ou objet vide)
     """
     if not os.path.exists(file_path):
         print(f"Fichier manquant : {file_path}")
         return
 
-    # créer ou récupérer la collection cible
+    # crEer ou rEcupErer la collection cible
     if parent_grp_name in bpy.data.collections:
         parent_grp = bpy.data.collections[parent_grp_name]
     else:
@@ -31,7 +29,7 @@ def reference_fbx(file_path, parent_grp_name="REF"):
         # link dans la collection cible
         parent_grp.objects.link(obj)
 
-    print(f"Import FBX : {file_path} → {parent_grp_name}")
+    print(f"Import FBX : {file_path} - {parent_grp_name}")
 
 
 def clean_publish(listToDelete):
@@ -49,47 +47,76 @@ def clean_publish(listToDelete):
     print("clean_publish Done")
 
 
-def export_hierarchy_by_name(empty_name, filepath):
+
+def export_hierarchy_by_name(empty_names, filepath):
     """
-    Exporte en FBX un Empty et tous ses descendants.
+    Exporte plusieurs empties et toute leur hierarchie en un FBX propre pour Maya.
+    - Supprime les shaders/materials de l export
+    - Ajuste l echelle (metres centimetres)
     """
-    # Get
-    obj = bpy.data.objects.get(empty_name)
-    if not obj:
-        print(f"Aucun objet trouve avec le nom : {empty_name}")
-        return
-    
-    if obj.type != 'EMPTY':
-        print(f"L'objet '{empty_name}' n est pas un Empty")
+    if not empty_names:
+        print("[ERREUR] Aucun nom d'empty fourni.")
         return
 
+    filepath = Path(filepath)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.object.select_all(action='DESELECT')
 
-    # Selection 
-    def select_hierarchy(o):
-        o.select_set(True)
-        for child in o.children:
+    def select_hierarchy(obj):
+        """Selectionne recursivement un objet et ses enfants."""
+        obj.select_set(True)
+        for child in obj.children:
             select_hierarchy(child)
 
-    select_hierarchy(obj)
-    bpy.context.view_layer.objects.active = obj
+    found = False
+    for name in empty_names:
+        obj = bpy.data.objects.get(name)
+        if obj is None:
+            print(f"[AVERTISSEMENT] Aucun objet trouve : '{name}'")
+            continue
+        if obj.type != 'EMPTY':
+            print(f"[AVERTISSEMENT] L'objet '{name}' n'est pas un Empty (type: {obj.type})")
+            continue
 
-    # Export FBX
+        select_hierarchy(obj)
+        if not found:
+            bpy.context.view_layer.objects.active = obj
+            found = True
+
+    if not found:
+        print("[ERREUR] Aucun empty valide trouve. Export annule.")
+        return
+
+    # Supprimer  les materiaux
+    stored_materials = {}
+    for obj in bpy.context.selected_objects:
+        if hasattr(obj.data, "materials"):
+            stored_materials[obj.name] = list(obj.data.materials)
+            obj.data.materials.clear()
+
+    # Export FBX 
     bpy.ops.export_scene.fbx(
-        filepath=filepath,
+        filepath=str(filepath),
         use_selection=True,
-        apply_unit_scale=True,
+        object_types={'EMPTY', 'MESH', 'ARMATURE'},
+        use_custom_props=False,
         bake_space_transform=False,
-        object_types={'EMPTY', 'MESH', 'ARMATURE'},  # ajoute d'autres types si besoin
-        apply_scale_options='FBX_SCALE_UNITS'
+        apply_unit_scale=True,
+        apply_scale_options='FBX_SCALE_UNITS',
+        global_scale=1,
+        add_leaf_bones=False,
+        use_armature_deform_only=True,
+        embed_textures=False,
+        path_mode='AUTO',
     )
 
-    print(f" Export FBX Done : {filepath}")
+
+    print(f"[OK] Export FBX termine pour Maya : {filepath}")
 
 
 def reset_scene(path):
     """
-    Reset la scène avec le template Blender
+    Reset la scene avec le template Blender
     """
     bpy.ops.wm.read_homefile(use_empty=True)
     bpy.ops.wm.open_mainfile(filepath=path)
@@ -99,10 +126,12 @@ def reset_scene(path):
 # Fonction BLENDER to MAYA
 # ------------------------------------------------------
 
+
 def collection_to_empty(coll, parent_empty=None):
     """
     Cree un Empty pour representer la collection
     """
+    coll_to_empty = {}
     empty_name = coll.name + "_GRP"
 
     # check empty

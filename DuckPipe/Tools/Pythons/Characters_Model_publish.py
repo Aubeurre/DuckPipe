@@ -20,7 +20,7 @@ if "--" in sys.argv:
     extra_args = sys.argv[idx + 1:]
     if extra_args:
         server_file_path = extra_args[0]
-        print("Fichier reçu :", server_file_path)
+        print("Fichier recu :", server_file_path)
 
 # ------------------------------------------------------
 # Detection environnement
@@ -69,7 +69,7 @@ except ImportError:
     pass    
 
 # ------------------------------------------------------
-# Chemins et variables dérivées
+# Chemins et variables derivees
 # ------------------------------------------------------
 file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
@@ -80,12 +80,22 @@ asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 
 print("--------------------------------")
-for item in [
-EXECUTED_FILE, SCRIPT_FILE, PROD_PATH, LOCAL_PATH,
-asset_path, asset_root_path, dlv_path, asset_name,
-studio_dlv_path
-]:
-    print(item)
+debug_vars = {
+    "EXECUTED_FILE": EXECUTED_FILE,
+    "SCRIPT_FILE": SCRIPT_FILE,
+    "PROD_PATH": PROD_PATH,
+    "LOCAL_PATH": LOCAL_PATH,
+    "asset_path": asset_path,
+    "asset_root_path": asset_root_path,
+    "dlv_path": dlv_path,
+    "asset_name": asset_name,
+    "studio_dlv_path": studio_dlv_path,
+}
+
+print("\n----- DEBUG -----")
+for name, value in debug_vars.items():
+    print(f"{name:<18} = {value}")
+print("-----------------\n")
 
     
 # ------------------------------------------------------
@@ -112,19 +122,18 @@ def publish():
     print("publish")
         
     export_list = [
-        ['BODY_GRP',     f'{dlv_path}/{asset_name}_body.fbx'],
-        ['CFX_GRP', f'{dlv_path}/{asset_name}_cfx.fbx'],
-        ['HELPERS_GRP',  f'{dlv_path}/{asset_name}_model_helpers.fbx']
+        [['BODY_GRP'], f'{dlv_path}/{asset_name}_body.fbx'],
+        [['CFX_GRP'], f'{dlv_path}/{asset_name}_cfx.fbx'],
+        [['HELPERS_GRP'], f'{dlv_path}/{asset_name}_model_helpers.fbx'],
+        [['BODY_GRP','CFX_GRP'], f'{dlv_path}/{asset_name}_surf.fbx'],
     ]
 
     if IN_MAYA:
         for grp, path in export_list:
-            print(path)
             MayaProcs.export_hierarchy_by_name(grp, path)
     elif IN_BLENDER:
         BlenderProcs.confo_from_blender()
         for grp, path in export_list:
-            print(path)
             BlenderProcs.export_hierarchy_by_name(grp, path)
 
 

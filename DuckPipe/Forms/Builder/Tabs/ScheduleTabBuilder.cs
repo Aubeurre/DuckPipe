@@ -1,12 +1,13 @@
-﻿using System;
+﻿using DuckPipe.Core.Manipulator;
+using DuckPipe.Core.Services;
+using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Forms;
-using DuckPipe.Core.Services;
-using DuckPipe.Core.Manipulator;
-using Microsoft.VisualBasic;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace DuckPipe.Forms.Builder.Tabs
 {
@@ -66,18 +67,22 @@ namespace DuckPipe.Forms.Builder.Tabs
             string configJsonPath = ProductionService.getConfigJsonPath(ctx.ProdPath);
             using var doc = JsonDocument.Parse(File.ReadAllText(configJsonPath));
 
-            DateTime startingDate = DateTime.Parse(doc.RootElement.GetProperty("created").GetString());
+            DateTime UNUSEDstartingDate = DateTime.Parse(doc.RootElement.GetProperty("created").GetString());
+            DateTime today = DateTime.Today;
+            DateTime weekAgo = today.AddDays(-14);
             DateTime endDate = DateTime.Parse(doc.RootElement.GetProperty("deliveryDay").GetString());
 
-            int totalDays = (int)(endDate - startingDate).TotalDays;
-            int todayOffset = (int)(DateTime.Today - startingDate).TotalDays;
+            DateTime calendarStartingDate = weekAgo;
+
+            int totalDays = (int)(endDate - calendarStartingDate).TotalDays;
+            int todayOffset = (int)(DateTime.Today - calendarStartingDate).TotalDays;
 
             var mainTable = CreateMainTable(totalDays, ctx);
-            var timelineHeader = CreateTimelineHeader(startingDate, totalDays);
+            var timelineHeader = CreateTimelineHeader(calendarStartingDate, totalDays);
 
             mainTable.Controls.Add(timelineHeader, 1, 0);
 
-            AddNodeRows(ctx.ProdPath, mainTable, allNodes, startingDate, todayOffset, timelineHeader.Width);
+            AddNodeRows(ctx.ProdPath, mainTable, allNodes, calendarStartingDate, todayOffset, timelineHeader.Width);
 
             var scrollWrapper = new Panel
             {
@@ -135,11 +140,14 @@ namespace DuckPipe.Forms.Builder.Tabs
 
             var allNodes = NodeManip.GetAllNodesInProduction(ctx.ProdPath);
             DateTime startingDate = DateTime.Parse(doc.RootElement.GetProperty("created").GetString());
-            int todayOffset = (int)(DateTime.Today - startingDate).TotalDays;
+            DateTime today = DateTime.Today;
+            DateTime weekAgo = today.AddDays(-14);
+            DateTime calendarStartingDate = weekAgo;
+            int todayOffset = (int)(DateTime.Today - calendarStartingDate).TotalDays;
 
             int timelineWidth = mainTable.GetControlFromPosition(1, 0).Width;
 
-            AddNodeRows(ctx.ProdPath, mainTable, allNodes, startingDate, todayOffset, timelineWidth);
+            AddNodeRows(ctx.ProdPath, mainTable, allNodes, calendarStartingDate, todayOffset, timelineWidth);
         }
 
         private static void ClearTableLayout(TableLayoutPanel tableLayout)

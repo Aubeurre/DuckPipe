@@ -51,7 +51,6 @@ namespace DuckPipe
             nodeSettingsToolStripMenuItem = new ToolStripMenuItem();
             prodSettingsToolStripMenuItem = new ToolStripMenuItem();
             toolsToolStripMenuItem = new ToolStripMenuItem();
-            checkFoldersStructureToolStripMenuItem = new ToolStripMenuItem();
             ensureLocalStructureToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripMenuItem();
             plNodeTaskInfo = new Panel();
@@ -61,7 +60,6 @@ namespace DuckPipe
             pnlPipelineStatus = new Panel();
             flpPipelineStatus = new FlowLayoutPanel();
             pnlDeptBtn = new Panel();
-            tableLayoutPanel1 = new TableLayoutPanel();
             flpDeptButton = new FlowLayoutPanel();
             pnlTopRight = new Panel();
             flpNodeDescription = new FlowLayoutPanel();
@@ -120,7 +118,6 @@ namespace DuckPipe
             plNodeTaskInfo.SuspendLayout();
             pnlPipelineStatus.SuspendLayout();
             pnlDeptBtn.SuspendLayout();
-            tableLayoutPanel1.SuspendLayout();
             pnlTopRight.SuspendLayout();
             flpNodeDescription.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
@@ -379,27 +376,18 @@ namespace DuckPipe
             // 
             // toolsToolStripMenuItem
             // 
-            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { checkFoldersStructureToolStripMenuItem, ensureLocalStructureToolStripMenuItem });
+            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { ensureLocalStructureToolStripMenuItem });
             toolsToolStripMenuItem.ForeColor = Color.White;
             toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             toolsToolStripMenuItem.Size = new Size(47, 20);
             toolsToolStripMenuItem.Text = "Tools";
-            // 
-            // checkFoldersStructureToolStripMenuItem
-            // 
-            checkFoldersStructureToolStripMenuItem.BackColor = Color.FromArgb(64, 64, 64);
-            checkFoldersStructureToolStripMenuItem.ForeColor = Color.White;
-            checkFoldersStructureToolStripMenuItem.Name = "checkFoldersStructureToolStripMenuItem";
-            checkFoldersStructureToolStripMenuItem.Size = new Size(245, 22);
-            checkFoldersStructureToolStripMenuItem.Text = "Ensure Prod Structure (Dev only)";
-            checkFoldersStructureToolStripMenuItem.Click += checkFoldersStructureToolStripMenuItem_Click;
             // 
             // ensureLocalStructureToolStripMenuItem
             // 
             ensureLocalStructureToolStripMenuItem.BackColor = Color.FromArgb(64, 64, 64);
             ensureLocalStructureToolStripMenuItem.ForeColor = Color.White;
             ensureLocalStructureToolStripMenuItem.Name = "ensureLocalStructureToolStripMenuItem";
-            ensureLocalStructureToolStripMenuItem.Size = new Size(245, 22);
+            ensureLocalStructureToolStripMenuItem.Size = new Size(191, 22);
             ensureLocalStructureToolStripMenuItem.Text = "Ensure Local Structure";
             ensureLocalStructureToolStripMenuItem.Click += ensureLocalStructureToolStripMenuItem_Click;
             // 
@@ -485,35 +473,18 @@ namespace DuckPipe
             // 
             // pnlDeptBtn
             // 
-            pnlDeptBtn.Controls.Add(tableLayoutPanel1);
+            pnlDeptBtn.Controls.Add(flpDeptButton);
             pnlDeptBtn.Dock = DockStyle.Fill;
             pnlDeptBtn.Location = new Point(0, 0);
             pnlDeptBtn.Name = "pnlDeptBtn";
             pnlDeptBtn.Size = new Size(150, 46);
             pnlDeptBtn.TabIndex = 4;
             // 
-            // tableLayoutPanel1
-            // 
-            tableLayoutPanel1.BackColor = Color.FromArgb(30, 30, 30);
-            tableLayoutPanel1.BackgroundImageLayout = ImageLayout.Center;
-            tableLayoutPanel1.ColumnCount = 3;
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle());
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.Controls.Add(flpDeptButton, 1, 0);
-            tableLayoutPanel1.Dock = DockStyle.Fill;
-            tableLayoutPanel1.Location = new Point(0, 0);
-            tableLayoutPanel1.Margin = new Padding(0);
-            tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 1;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new Size(150, 46);
-            tableLayoutPanel1.TabIndex = 6;
-            // 
             // flpDeptButton
             // 
             flpDeptButton.BackColor = Color.FromArgb(30, 30, 30);
-            flpDeptButton.Location = new Point(-206, 10);
+            flpDeptButton.Location = new Point(0, 0);
+            flpDeptButton.Dock = DockStyle.Fill;
             flpDeptButton.Margin = new Padding(3, 10, 3, 3);
             flpDeptButton.Name = "flpDeptButton";
             flpDeptButton.Padding = new Padding(10, 0, 0, 0);
@@ -576,11 +547,10 @@ namespace DuckPipe
             // 
             tablpanTabBtn.BackColor = Color.FromArgb(30, 30, 30);
             tablpanTabBtn.BackgroundImageLayout = ImageLayout.Center;
-            tablpanTabBtn.ColumnCount = 3;
+            tablpanTabBtn.ColumnCount = 2;
             tablpanTabBtn.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tablpanTabBtn.ColumnStyles.Add(new ColumnStyle());
-            tablpanTabBtn.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tablpanTabBtn.Controls.Add(flowLayoutPanel1, 1, 0);
+            tablpanTabBtn.Controls.Add(flowLayoutPanel1, 0, 0);
             tablpanTabBtn.Dock = DockStyle.Top;
             tablpanTabBtn.Location = new Point(0, 0);
             tablpanTabBtn.Margin = new Padding(0);
@@ -598,11 +568,11 @@ namespace DuckPipe
             flowLayoutPanel1.Controls.Add(btnTab1);
             flowLayoutPanel1.Controls.Add(btnTab3);
             flowLayoutPanel1.Controls.Add(btnTab4);
-            flowLayoutPanel1.Location = new Point(37, 8);
+            flowLayoutPanel1.Location = new Point(213, 8);
             flowLayoutPanel1.Margin = new Padding(8);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(678, 27);
-            flowLayoutPanel1.TabIndex = 0;
+            flowLayoutPanel1.Size = new Size(326, 27);
+            flowLayoutPanel1.TabIndex = 1;
             // 
             // btnTab2
             // 
@@ -1253,7 +1223,6 @@ namespace DuckPipe
             plNodeTaskInfo.ResumeLayout(false);
             pnlPipelineStatus.ResumeLayout(false);
             pnlDeptBtn.ResumeLayout(false);
-            tableLayoutPanel1.ResumeLayout(false);
             pnlTopRight.ResumeLayout(false);
             pnlTopRight.PerformLayout();
             flpNodeDescription.ResumeLayout(false);
@@ -1326,14 +1295,11 @@ namespace DuckPipe
         private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem viewInExplorerToolStripMenuItem;
         private ToolStripMenuItem toolsToolStripMenuItem;
-        private ToolStripMenuItem checkFoldersStructureToolStripMenuItem;
         private Label lbDescription;
         private FlowLayoutPanel flpNodeDescription;
         private CustomTabControl tabCtrlMain;
         private TabPage tabPWork;
         private TabPage tabPNode;
-        private TableLayoutPanel tablpanTabBtn;
-        private FlowLayoutPanel flowLayoutPanel1;
         private TabPage tabPShelude;
         private Panel panel2;
         private Label lblNodeType2;
@@ -1371,13 +1337,14 @@ namespace DuckPipe
         private TableLayoutPanel tableLayoutPanel8;
         private FlowLayoutPanel flpPipelineStatus;
         internal SplitContainer splitContWorkPanel;
-        private TableLayoutPanel tableLayoutPanel1;
         private FlowLayoutPanel flpDeptButton;
         private TableLayoutPanel tableLayoutPanel9;
         private FlowLayoutPanel flowLayoutPanel3;
         private Button btnEditNode;
         private FlowLayoutPanel flowLayoutPanel4;
         private ToolStripMenuItem ensureLocalStructureToolStripMenuItem;
+        private TableLayoutPanel tablpanTabBtn;
+        private FlowLayoutPanel flowLayoutPanel1;
         private Button btnTab2;
         private Button btnTab1;
         private Button btnTab3;

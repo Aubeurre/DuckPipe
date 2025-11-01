@@ -6,6 +6,7 @@ def import_ref():
     """
     Importe toutes les references et supprime les namespaces
     """
+
     for ref in cmds.ls(type='reference'):
         if ref == 'sharedReferenceNode':
             pass
@@ -23,6 +24,29 @@ def import_ref():
         for namespace in all_namespaces:
             if cmds.namespace(exists=namespace) is True:
                 cmds.namespace(removeNamespace=namespace, mergeNamespaceWithRoot=True)
+
+def sanitize_ma(path):
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    with open(path, "w", encoding="utf-8") as f:
+        for line in lines:
+            if ".oclr" not in line:
+                f.write(line)
+
+def remove_ref():
+    """
+    remove al ref in scene
+    """
+    for ref in cmds.ls(type='reference'):
+        if ref == 'sharedReferenceNode':
+            pass
+        else:
+            try:
+                rFile = cmds.referenceQuery(ref, f=True)
+                cmds.file(rFile, rr=True)
+            except:
+                pass
 
 
 def clean_publish(listToDelete):
@@ -43,43 +67,48 @@ def reset_scene(path):
     if os.path.exists(path):
         cmds.file(path, i=1)
 
+def export_hierarchy_by_name(root_names, filepath):
+    """
+    Exporte en un seul fichier FBX plusieurs racines (EMPTY, GROUP, JOINT, MESH, etc.) 
+    ainsi que toutes leurs hierarchies (descendants inclus).
+    Compatible pipeline  minimal, propre et fiable.
+    """
+    # Selection vide
+    cmds.select(clear=True)
 
-def export_hierarchy_by_name(root_name, filepath):
-    """
-    Exporte FBX
-    """
-    if not cmds.objExists(root_name):
-        cmds.error(f" Objet '{root_name}' introuvable")
+    to_export = []
+
+    for root in root_names:
+        if not cmds.objExists(root):
+            print(f"Objet '{root}' introuvable  ignore")
+            continue
+
+        # Ajouter racine
+        to_export.append(root)
+
+        # Ajouter tous les descendants
+        descendants = cmds.listRelatives(root, allDescendents=True, fullPath=True) or []
+        to_export.extend(descendants)
+
+    if not to_export:
+        cmds.error(" Aucun objet valide trouve  export annule.")
         return
-    
-    # get all hierarchy
-    descendants = cmds.listRelatives(root_name, allDescendents=True, fullPath=True) or []
-    to_export = [root_name] + descendants
 
-    cmds.select(to_export, replace=True)
+    # Selection globale
+    cmds.select(list(set(to_export)), replace=True)  # set() pour eviter les doublons
 
-    # Folder
-    dirpath = os.path.dirname(filepath)
-    if not os.path.exists(dirpath):
-        os.makedirs(dirpath)
-
-    # Export FBX (via plugin FBX)
-    import maya.mel as mel
-    filepath = filepath.replace("\\", "/")
-
-    folder = os.path.dirname(filepath)
+    # Creer dossier destination si besoin
+    folder = os.path.dirname(filepath.replace("\\", "/"))
     if not os.path.exists(folder):
         os.makedirs(folder)
 
+    # Charger plugin FBX si necessaire
     if not cmds.pluginInfo("fbxmaya", q=True, loaded=True):
         cmds.loadPlugin("fbxmaya")
 
-    objs = cmds.ls(selection=True)
-    if not objs:
-        pass
+    import maya.mel as mel
 
-    cmds.select(objs, r=True)
-
+    # Reset + options export FBX pipeline-friendly
     mel.eval('FBXResetExport;')
     mel.eval('FBXExportBakeComplexAnimation -v false;')
     mel.eval('FBXExportInputConnections -v false;')
@@ -87,13 +116,19 @@ def export_hierarchy_by_name(root_name, filepath):
 
     # Export FBX
     mel.eval(f'FBXExport -f "{filepath}" -s;')
-    print(f" FBX exporte : {filepath}")
+
+    print(f"FBX exporte avec : {root_names} → {filepath}")
+
 
 
 # NE FONCTIONNE PAS EN BATCH MAIS OUI DANS LE GUI
 def reference_fbx(file_path, parent_grp):
     """Reference un FBX et le parent a parent_grp"""
     if os.path.exists(file_path):
+
+        if not cmds.objExists(parent_grp):
+            cmds.group(em=1, n=parent_grp)
+
         file_path = file_path.replace("\\", "/")
 
         # plugin FBX
@@ -105,7 +140,7 @@ def reference_fbx(file_path, parent_grp):
 
         try:
             print(f"Import FBX : {file_path}")
-            ref_node = cmds.file(file_path, r=True, type="FBX", ignoreVersion=True, options="v=0;", namespace="fbxRef")
+            ref_node = cmds.file(file_path, r=True, type="FBX", ignoreVersion=True, options="v=0;", namespace=":")
             ref_nodes = cmds.referenceQuery(ref_node, nodes=True, dagPath=True) or []
             root_nodes = [n for n in ref_nodes if not cmds.listRelatives(n, parent=True)]
             if root_nodes:

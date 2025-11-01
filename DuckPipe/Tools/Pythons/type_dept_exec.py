@@ -6,6 +6,13 @@ import os
 import sys
 
 # ------------------------------------------------------
+# Ajout du répertoire courant au path
+# ------------------------------------------------------
+current_dir = os.path.dirname(__file__)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
+# ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
 REFNODS = ["{node_dlv_path}{node_name}"]
@@ -31,11 +38,6 @@ IN_MAYA = False
 
 try:
     import bpy
-
-    current_dir = os.path.dirname(__file__)
-    if current_dir not in sys.path:
-        sys.path.append(current_dir)
-
     import BlenderProcs
     import GlobalProcs
 
@@ -50,19 +52,17 @@ except ImportError:
 
 try:
     import maya.cmds as cmds
+    import MayaProcs
+    import GlobalProcs
 
+    IN_MAYA = True
     python_file = sys.argv[1]
-
+    SCRIPT_FILE = python_file
     current_dir = os.path.dirname(python_file)
     if current_dir not in sys.path:
         sys.path.append(current_dir)
 
-    import MayaProcs
-    import GlobalProcs
-    
-    IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
-    SCRIPT_FILE = python_file
     PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
     LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
 

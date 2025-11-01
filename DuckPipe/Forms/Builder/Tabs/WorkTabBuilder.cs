@@ -128,6 +128,10 @@ namespace DuckPipe.Forms.Builder.Tabs
                 BackColor = Color.FromArgb(60, 60, 60),
                 BorderStyle = BorderStyle.None,
             };
+            // un peu de magie pour les scrollbar vertical
+            int vertScrollWidth = SystemInformation.VerticalScrollBarWidth;
+            listView.Padding = new Padding(0, 0, vertScrollWidth, 0);
+
             listView.HeaderStyle = ColumnHeaderStyle.None;
 
             listView.Columns.Add("Fichier", (int)((panelWidth - 180 * scale)));
@@ -155,13 +159,15 @@ namespace DuckPipe.Forms.Builder.Tabs
             listContainer.Controls.Add(listView);
             departmentPanel.Controls.Add(listContainer);
 
-            FillDepartementPanel(listView, jsonPath, deptName, statusImageList, statusIcons, selectedProd, rootPath);
+            FillDepartementPanel(listView, listContainer, departmentPanel, jsonPath, deptName, statusImageList, statusIcons, selectedProd, rootPath);
 
             return departmentPanel;
         }
 
         public static void FillDepartementPanel(
             ListView listView,
+            Panel listContainer,
+            RoundedPanel departmentPanel,
             string nodeJsonPath,
             string department,
             ImageList statusImageList,
@@ -169,6 +175,8 @@ namespace DuckPipe.Forms.Builder.Tabs
             string selectedProd,
             string rootPath)
         {
+            float scale = GetScaleFactor();
+
             listView.Items.Clear();
 
             // node.json
@@ -212,6 +220,14 @@ namespace DuckPipe.Forms.Builder.Tabs
                     item.Tag = file;
                     listView.Items.Add(item);
                 }
+
+                // Ajuste dynamiquement la hauteur du ListView en fonction du nombre d'items
+                int nbItems = listView.Items.Count;
+                int rawHeight =(int)((listView.Font.Height + 5) * scale);
+
+                listView.Height = nbItems * rawHeight;
+                listContainer.Height = (int)(20 * scale) + (nbItems * rawHeight);
+                departmentPanel.Height = (int)(50 * scale) + (nbItems * rawHeight);
             }
         }
 

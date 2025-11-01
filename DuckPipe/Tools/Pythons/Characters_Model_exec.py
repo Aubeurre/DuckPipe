@@ -6,6 +6,19 @@ import os
 import sys
 
 # ------------------------------------------------------
+# Ajout du repertoire courant au path
+# ------------------------------------------------------
+if "__file__" not in globals():
+    try:
+        __file__ = sys.argv[1]
+    except Exception:
+        __file__ = bpy.data.filepath
+
+current_dir = os.path.dirname(__file__)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
+# ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
 REFNODS = ["{node_dlv_path}{node_name}"] # y en a pas pour le modeling
@@ -21,7 +34,7 @@ if "--" in sys.argv:
     extra_args = sys.argv[idx + 1:]
     if extra_args:
         server_file_path = extra_args[0]
-        print("Fichier reçu :", server_file_path)
+        print("Fichier recu :", server_file_path)
 
 # ------------------------------------------------------
 # Detection environnement
@@ -31,11 +44,6 @@ IN_MAYA = False
 
 try:
     import bpy
-
-    current_dir = os.path.dirname(__file__)
-    if current_dir not in sys.path:
-        sys.path.append(current_dir)
-
     import BlenderProcs
     import GlobalProcs
 
@@ -50,19 +58,17 @@ except ImportError:
 
 try:
     import maya.cmds as cmds
+    import MayaProcs
+    import GlobalProcs
 
+    IN_MAYA = True
     python_file = sys.argv[1]
-
+    SCRIPT_FILE = python_file
     current_dir = os.path.dirname(python_file)
     if current_dir not in sys.path:
         sys.path.append(current_dir)
 
-    import MayaProcs
-    import GlobalProcs
-    
-    IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
-    SCRIPT_FILE = python_file
     PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
     LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
 
@@ -70,24 +76,38 @@ except ImportError:
     pass    
 
 # ------------------------------------------------------
-# Chemins et variables dérivées
+# Chemins et variables derivees
 # ------------------------------------------------------
 file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
 asset_path = os.path.dirname(os.path.dirname(EXECUTED_FILE))
 asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
+root_asset_path = os.path.dirname(os.path.dirname(asset_root_path))
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
-template_path = os.path.join(asset_root_path, "Template")
+local_template_path = os.path.join(asset_root_path, "Template")
+template_path = os.path.join(root_asset_path, "Template").replace(LOCAL_PATH, PROD_PATH)
 
 print("--------------------------------")
-for item in [
-EXECUTED_FILE, SCRIPT_FILE, PROD_PATH, LOCAL_PATH,
-asset_path, asset_root_path, dlv_path, asset_name,
-studio_dlv_path, template_path
-]:
-    print(item)
+debug_vars = {
+    "EXECUTED_FILE": EXECUTED_FILE,
+    "SCRIPT_FILE": SCRIPT_FILE,
+    "PROD_PATH": PROD_PATH,
+    "LOCAL_PATH": LOCAL_PATH,
+    "root_asset_path": root_asset_path,
+    "asset_path": asset_path,
+    "asset_root_path": asset_root_path,
+    "dlv_path": dlv_path,
+    "asset_name": asset_name,
+    "studio_dlv_path": studio_dlv_path,
+    "template_path": template_path,
+}
+
+print("\n----- DEBUG -----")
+for name, value in debug_vars.items():
+    print(f"{name:<18} = {value}")
+print("-----------------\n")
     
     
 # ------------------------------------------------------
@@ -100,6 +120,7 @@ def preexecute():
     print(" -> Pre-execute")
 
     if IN_MAYA:
+        MayaProcs.sanitize_ma(f"{template_path}/{TEMPLATE_FILE}.ma")
         MayaProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.ma")
     elif IN_BLENDER:      
         BlenderProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.blend")

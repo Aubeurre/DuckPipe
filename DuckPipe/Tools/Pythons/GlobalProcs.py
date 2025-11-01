@@ -1,6 +1,7 @@
 import os
 import sys
     
+
 def get_prodpath_from_pythonpath(py_path):
     """
     Retourne le chemin prod a partir du chemin python

@@ -6,6 +6,13 @@ import os
 import sys
 
 # ------------------------------------------------------
+# Ajout du rï¿½pertoire courant au path
+# ------------------------------------------------------
+current_dir = os.path.dirname(__file__)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
+# ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
 TRASHLIST = ['TRASH']
@@ -20,7 +27,7 @@ if "--" in sys.argv:
     extra_args = sys.argv[idx + 1:]
     if extra_args:
         server_file_path = extra_args[0]
-        print("Fichier reçu :", server_file_path)
+        print("Fichier reï¿½u :", server_file_path)
 
 # ------------------------------------------------------
 # Detection environnement
@@ -30,11 +37,6 @@ IN_MAYA = False
 
 try:
     import bpy
-
-    current_dir = os.path.dirname(__file__)
-    if current_dir not in sys.path:
-        sys.path.append(current_dir)
-
     import BlenderProcs
     import GlobalProcs
 
@@ -49,19 +51,17 @@ except ImportError:
 
 try:
     import maya.cmds as cmds
+    import MayaProcs
+    import GlobalProcs
 
+    IN_MAYA = True
     python_file = sys.argv[1]
-
+    SCRIPT_FILE = python_file
     current_dir = os.path.dirname(python_file)
     if current_dir not in sys.path:
         sys.path.append(current_dir)
 
-    import MayaProcs
-    import GlobalProcs
-    
-    IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
-    SCRIPT_FILE = python_file
     PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
     LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
 
@@ -69,7 +69,7 @@ except ImportError:
     pass    
 
 # ------------------------------------------------------
-# Chemins et variables dérivées
+# Chemins et variables dï¿½rivï¿½es
 # ------------------------------------------------------
 file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
