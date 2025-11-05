@@ -14,9 +14,10 @@ namespace DuckPipe.Core.Config
         public string LocalBasePath { get; set; } = @"D:\ICHIGO\PROD\";  //Path.Combine(Path.GetTempPath(), "DuckPipe");
         public string MayaLocation { get; set; } = @"C:\Program Files\Autodesk\Maya2025\";
         public string BlenderLocation { get; set; } = @"C:\Program Files\Blender Foundation\Blender 4.5\blender.exe";
+        public string HoudiniLocation { get; set; } = @"None";
         public string PhotoshopLocation { get; set; } = @"None";
-        public string Nuke { get; set; } = @"None";
-        public string painter { get; set; } = @"None";
+        public string NukeLocation { get; set; } = @"None";
+        public string PainterLocation { get; set; } = @"None";
 
         private static UserConfig? _instance;
         private static DateTime _lastWriteTime;

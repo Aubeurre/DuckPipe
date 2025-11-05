@@ -117,6 +117,11 @@ namespace DuckPipe.Core.Builders
                     {
                         BlenderService.CreateBasicBlendFile(filePath);
                     }
+                    else if (filePath.EndsWith(".hip", StringComparison.OrdinalIgnoreCase) ||
+                             filePath.EndsWith(".hipnc", StringComparison.OrdinalIgnoreCase))
+                    {
+                        HoudiniService.CreateBasicHoudiniFile(filePath);
+                    }
                     else
                     {
                         File.Create(filePath).Dispose();
@@ -499,16 +504,16 @@ namespace DuckPipe.Core.Builders
             string templatesDir;
             if (structure.Name == "Characters" || structure.Name == "Props" || structure.Name == "Environments")
             {
-                templatesDir = Path.Combine(prodPath, "Assets", "Templates");
+                templatesDir = Path.Combine(prodPath, "Assets", "Template");
             }
             else
             {
-                templatesDir = Path.Combine(prodPath, "Shots", "Templates");
+                templatesDir = Path.Combine(prodPath, "Shots", "Template");
             }
 
             if (!Directory.Exists(templatesDir))
             {
-                MessageBox.Show($"Dossier de templates manquant dans :\n{templatesDir}");
+                MessageBox.Show($"Dossier de template manquant dans :\n{templatesDir}");
                 return;
             }
 

@@ -97,6 +97,8 @@ namespace DuckPipe.Forms.Builder.Tabs
 
         private static TableLayoutPanel CreateMainTable(int totalDays, TimelineContext ctx)
         {
+            float scale = GetScaleFactor();
+
             var mainTable = new TableLayoutPanel
             {
                 ColumnCount = 2,
@@ -106,8 +108,8 @@ namespace DuckPipe.Forms.Builder.Tabs
                 BackColor = Color.FromArgb(40, 40, 40),
                 Padding = new Padding(0)
             };
-            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100));
-            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, totalDays * 15));
+            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140 * scale));
+            mainTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, (totalDays * 15) * scale));
 
             var cbFilter = new IconComboBox
             {

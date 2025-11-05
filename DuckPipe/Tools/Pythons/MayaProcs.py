@@ -115,9 +115,10 @@ def export_hierarchy_by_name(root_names, filepath):
     mel.eval('FBXExportFileVersion -v FBX202000;')
 
     # Export FBX
+    print(filepath)
     mel.eval(f'FBXExport -f "{filepath}" -s;')
 
-    print(f"FBX exporte avec : {root_names} → {filepath}")
+    print(f"FBX exporte avec : {root_names} - {filepath}")
 
 
 

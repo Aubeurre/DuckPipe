@@ -629,7 +629,27 @@ start """" ""{fileToOpen}""
                             BlenderService.CreateBasicBlendFile(templateFile);
                             MessageBox.Show($"No template found for {templateName}.\nA basic scene has been created.", "Info");
                         }
+                        else if (ctx.Extension == ".hip" || ctx.Extension == ".hipnc")
+                        {
+                            HoudiniService.CreateBasicHoudiniFile(templateFile);
+                            MessageBox.Show($"No template found for {templateName}.\nA basic Houdini scene has been created.", "Info");
+                        }
                     }
+                }
+
+                //  verix du stub avant exec ---
+                string stubPath = Path.ChangeExtension(LocalFile, $".stub{ctx.Extension}");
+                MessageBox.Show(stubPath);
+                if (File.Exists(stubPath))
+                {
+                    MessageBox.Show($"Stub detected. Rebuilding base scene for {ctx.Department}...", "DuckPipe");
+
+                    if (ctx.Extension == ".ma")
+                        MayaService.CreateBasicMaFile(LocalFile, $"{ctx.NodeType}_{ctx.Department}");
+                    else if (ctx.Extension == ".blend")
+                        BlenderService.CreateBasicBlendFile(LocalFile);
+                    else if (ctx.Extension == ".hip" || ctx.Extension == ".hipnc")
+                        HoudiniService.CreateBasicHoudiniFile(LocalFile);
                 }
 
                 // lancer le py d'ouverture du node selon le department
@@ -660,9 +680,23 @@ start """" ""{fileToOpen}""
                             BlenderService.AddReference(LocalFile, blenderPath);
                         }
                     }
-                    }
-
                 }
+                else if (ctx.Extension == ".hip" || ctx.Extension == ".hipnc")
+                {
+                    HoudiniService.ExecuteHoudiniBatchScript(LocalFile, pyPath, nodePath);
+
+                    // gestion des références Houdini
+                    foreach (var refPath in GetAllRefs(nodePath))
+                    {
+                        if (refPath.EndsWith(".hip", StringComparison.OrdinalIgnoreCase) ||
+                            refPath.EndsWith(".hipnc", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string houdiniPath = HoudiniService.PathIntoHoudiniFormat(refPath);
+                        }
+                    }
+                }
+
+            }
             else
             {
                 MessageBox.Show($"Please Grab Node First");
@@ -692,6 +726,10 @@ start """" ""{fileToOpen}""
             else if (ctx.Extension == ".blend")
             {
                 BlenderService.ExecuteBlenderBatchScript(publishedFilePath, pyPath, nodePath);
+            }
+            else if (ctx.Extension == ".hipnc" || ctx.Extension == ".hip")
+            {
+                HoudiniService.ExecuteHoudiniBatchScript(publishedFilePath, pyPath, nodePath);
             }
 
             AddNote(nodePath, form);
