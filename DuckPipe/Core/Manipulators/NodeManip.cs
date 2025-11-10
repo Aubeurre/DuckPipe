@@ -537,6 +537,7 @@ namespace DuckPipe.Core.Manipulator
             Directory.CreateDirectory(tempDirPath);
             File.Copy(nodePath, tempNodelPath, true);
             File.Copy(nodejsonPath, tempNodejsonPath, true);
+            // TODO: copier aussi les dependances.
 
             MessageBox.Show($"Fichier copié en local :\n{tempNodelPath}", "Succès");
         }
@@ -546,8 +547,8 @@ namespace DuckPipe.Core.Manipulator
             string tempNodelPath = GetTempPath(nodePath);
             string tempDirPath = Path.GetDirectoryName(tempNodelPath)!;
 
-            if (Directory.Exists(tempDirPath))
-                Directory.Delete(tempDirPath, true);
+            // if (Directory.Exists(tempDirPath))
+            //    Directory.Delete(tempDirPath, true);
         }
         #endregion
 
@@ -890,9 +891,15 @@ start """" ""{fileToOpen}""
             var shotPaths = new List<string>();
             string sequencesRoot = Path.Combine(prodPath, "Shots", "Sequences");
 
+            if (!Directory.Exists(sequencesRoot))
+                return shotPaths; // aucune séquence trouvée
+
             foreach (string seqDir in Directory.GetDirectories(sequencesRoot))
             {
                 string shotRoot = Path.Combine(seqDir, "Shots");
+                if (!Directory.Exists(shotRoot))
+                    continue; // pas de shots dans cette séquence
+
                 foreach (string shotDir in Directory.GetDirectories(shotRoot))
                 {
                     string nodeJsonPath = Path.Combine(shotDir, "Node.json");
