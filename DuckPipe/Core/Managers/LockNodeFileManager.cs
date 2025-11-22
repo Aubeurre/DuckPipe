@@ -29,7 +29,7 @@ namespace DuckPipe.Core.Manager
 
             string[] nodeParts = nodePath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
             form.RefreshTab(nodeParts[0]);
-            NodeManip.CopyNodeToTemp(nodePath); // ERREUR EN FALLBACK
+            NodeManip.GrabbNode(nodePath); // ERREUR EN FALLBACK
             return;
         }
 
@@ -41,7 +41,7 @@ namespace DuckPipe.Core.Manager
             string lockFile = Path.Combine(workFolderPath, $"{fileName}{FileExt}.lock");
             if (File.Exists(lockFile))
                 File.Delete(lockFile);
-            NodeManip.DeleteTemp(nodePath);
+            NodeManip.UngrabbNode(nodePath);
 
             string[] nodeParts = nodePath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
             form.RefreshTab(nodeParts[0]);

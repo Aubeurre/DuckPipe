@@ -1,185 +1,192 @@
-﻿using DuckPipe.Core.Config;
+﻿using DuckPipe.Core.Builders;
+using DuckPipe.Core.Config;
+using DuckPipe.Core.Manipulator;
 using DuckPipe.Core.Services;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace DuckPipe.Core.Manipulators
 {
     public class ProdFilesManip
     {
-        #region LOCAL METHODS
-        internal static void ReturnChanges(List<string> ChangedFileListe)
-        {
-            if (ChangedFileListe.Count == 0)
-                MessageBox.Show("Local Production is Up to date !");
-            else;
-            MessageBox.Show("Updated files:\n" + string.Join("\n", ChangedFileListe));
+        #region PATH HELPERS
 
+        // Calcule le chemin local ou serveur correspondant, en gérant "PROD"
+        public static string MapPath(string sourcePath, bool toLocal)
+        {
+            string serverBase = UserConfig.GetServerBasePath().Replace("\\", "/");
+            string localBase = UserConfig.GetLocalBasePath().Replace("\\", "/");
+            string path = sourcePath.Replace("\\", "/");
+
+            if (toLocal)
+            {
+                if (!path.StartsWith(serverBase, StringComparison.OrdinalIgnoreCase))
+                {
+                    serverBase = serverBase.Replace("/PROD", "", StringComparison.OrdinalIgnoreCase);
+                    localBase = localBase.Replace("/PROD", "", StringComparison.OrdinalIgnoreCase);
+                }
+                path = path.Replace(serverBase, localBase);
+            }
+            else
+            {
+                if (!path.StartsWith(localBase, StringComparison.OrdinalIgnoreCase))
+                {
+                    localBase = localBase.Replace("/PROD", "", StringComparison.OrdinalIgnoreCase);
+                    serverBase = serverBase.Replace("/PROD", "", StringComparison.OrdinalIgnoreCase);
+                }
+                path = path.Replace(localBase, serverBase);
+            }
+
+            return Path.GetFullPath(path).Replace("\\\\", "\\").Replace("//", "/");
         }
 
-        public static List<string> runOnFolder(string folderPath, List<string> ChangedFileListe)
+        #endregion
+
+        #region FILE COMPARISON
+
+        private static bool FilesDiffer(string file1, string file2)
         {
-
-            List<string> FileListe = new List<string>();
-            foreach (string File in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
-            {
-                FileListe.Add(File);
-            }
-
-            foreach (string eachFile in FileListe)
-            {
-                string localFilePath = eachFile.Replace(UserConfig.GetServerBasePath(), UserConfig.GetLocalBasePath());
-
-                if (!localFilePath.Contains("\\PROD", StringComparison.OrdinalIgnoreCase))
-                {
-                    localFilePath = eachFile.Replace(
-                        UserConfig.GetServerBasePath().Replace("\\PROD", "", StringComparison.OrdinalIgnoreCase),
-                        UserConfig.GetLocalBasePath().Replace("\\PROD", "", StringComparison.OrdinalIgnoreCase)
-                    );
-
-                }
-                if (!File.Exists(localFilePath))
-                {
-                    copyProductionFilesToLocal(eachFile);
-                    ChangedFileListe.Add(localFilePath);
-                }
-                else
-                {
-                    if (checkDifferencesBetweenFiles(eachFile))
-                    {
-                        copyProductionFilesToLocal(eachFile);
-                        ChangedFileListe.Add(localFilePath);
-                    }
-                }
-            }
-            return ChangedFileListe;
-        }
-
-        public static void EnsureLocalProductionFiles(string prodName)
-        {
-            List<string> ChangedFileListe = new List<string>();
-
-            string serverPath = UserConfig.GetServerBasePath();
-
-            // === 1. Dev files ===
-            string devPath = Path.Combine(serverPath, prodName, "Dev");
-            if (Directory.Exists(devPath))
-                ChangedFileListe = runOnFolder(devPath, ChangedFileListe);
-
-            // === 2. Asset Template ===
-            string assetTemplatePath = Path.Combine(serverPath, prodName, "Assets", "Template");
-            if (Directory.Exists(assetTemplatePath))
-                ChangedFileListe = runOnFolder(assetTemplatePath, ChangedFileListe);
-
-            // === 3. Shots Template ===
-            string shotsTemplatePath = Path.Combine(serverPath, prodName, "Shots", "Template");
-            if (Directory.Exists(shotsTemplatePath))
-                ChangedFileListe = runOnFolder(shotsTemplatePath, ChangedFileListe);
-
-            // === 4. Shared Tools ===
-            string StudioLibPath = Path.Combine(serverPath.Replace("\\PROD", ""), "SHARED_TOOLS");
-            if (Directory.Exists(StudioLibPath))
-                ChangedFileListe = runOnFolder(StudioLibPath, ChangedFileListe);
-
-            ReturnChanges(ChangedFileListe);
-        }
-
-
-        internal static void copyProductionFilesToLocal(string serverFilePath)
-        {
-            try
-            {
-                string localFilePath = serverFilePath.Replace(UserConfig.GetServerBasePath(), UserConfig.GetLocalBasePath());
-                if (!localFilePath.Contains("\\PROD", StringComparison.OrdinalIgnoreCase))
-                {
-                    localFilePath = serverFilePath.Replace(
-                        UserConfig.GetServerBasePath().Replace("\\PROD", "", StringComparison.OrdinalIgnoreCase),
-                        UserConfig.GetLocalBasePath().Replace("\\PROD", "", StringComparison.OrdinalIgnoreCase)
-                    );
-
-                }
-                Directory.CreateDirectory(Path.GetDirectoryName(localFilePath)!);
-                File.Copy(serverFilePath, localFilePath, true);
-                Console.WriteLine($"copie : {serverFilePath} -> {localFilePath}");
-            }
-            catch (IOException ex)
-            {
-                // Fichier verrouillé par un autre process
-                Console.WriteLine($"[WARN] Impossible de copier : {serverFilePath} ({ex.Message})");
-            }
-        }
-
-
-        internal static bool checkDifferencesBetweenFiles(string serverFilePath)
-        {
-            string localFilePath = serverFilePath.Replace(UserConfig.GetServerBasePath(), UserConfig.GetLocalBasePath());
-            if (!localFilePath.Contains("\\PROD", StringComparison.OrdinalIgnoreCase))
-            {
-                localFilePath = serverFilePath.Replace(
-                    UserConfig.GetServerBasePath().Replace("\\PROD", "", StringComparison.OrdinalIgnoreCase),
-                    UserConfig.GetLocalBasePath().Replace("\\PROD", "", StringComparison.OrdinalIgnoreCase)
-                );
-
-            }
-
-            // Si un des fichiers n'existe pas → considéré différent
-            if (!File.Exists(serverFilePath) || !File.Exists(localFilePath))
+            if (!File.Exists(file1) || !File.Exists(file2))
                 return true;
 
             try
             {
-                // Ouvre les fichiers en lecture, avec partage autorisé
-                using (FileStream fs1 = new FileStream(localFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (FileStream fs2 = new FileStream(serverFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream fs1 = new FileStream(file1, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream fs2 = new FileStream(file2, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    // Compare taille d'abord
                     if (fs1.Length != fs2.Length)
                         return true;
 
-                    int byte1, byte2;
+                    int b1, b2;
                     do
                     {
-                        byte1 = fs1.ReadByte();
-                        byte2 = fs2.ReadByte();
-                    }
-                    while (byte1 == byte2 && byte1 != -1);
+                        b1 = fs1.ReadByte();
+                        b2 = fs2.ReadByte();
+                    } while (b1 == b2 && b1 != -1);
 
-                    return (byte1 != byte2);
+                    return b1 != b2;
                 }
             }
-            catch (IOException ex)
+            catch
             {
-                Console.WriteLine($"[WARN] Fichier verrouillé ou inaccessible : {serverFilePath} ({ex.Message})");
-                // On le considère différent pour forcer une recopie plus tard
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ERROR] Erreur inattendue sur {serverFilePath} ({ex.Message})");
-                return true;
+                return true; // si erreur ou verrouillage, considérer différent
             }
         }
 
         #endregion
 
-        #region SERVER METHODS
+        #region COPY METHODS
+
+        private static void CopyFileSafe(string sourceFile, string destFile)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
+                File.Copy(sourceFile, destFile, true);
+                Console.WriteLine($"[COPY] {sourceFile} -> {destFile}");
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"[WARN] Impossible de copier : {sourceFile} -> {destFile} ({ex.Message})");
+            }
+        }
+
+        #endregion
+
+        #region FOLDER SYNC
+
+        public static List<string> SyncFolder(string folderPath, List<string> changedFiles, bool toLocal)
+        {
+            foreach (string eachFile in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
+            {
+                string targetFile = MapPath(eachFile, toLocal);
+
+                if (!File.Exists(targetFile) || FilesDiffer(eachFile, targetFile))
+                {
+                    CopyFileSafe(eachFile, targetFile);
+                    changedFiles.Add(targetFile);
+                }
+            }
+
+            return changedFiles;
+        }
+
+        #endregion
+
+        #region PUBLIC METHODS
+
+        // Serveur -> Local
+        public static void EnsureLocalProductionFiles(string prodName)
+        {
+            List<string> changedFiles = new List<string>();
+            string serverPath = UserConfig.GetServerBasePath();
+
+            // 1. Dev
+            string devPath = Path.Combine(serverPath, prodName, "Dev");
+            if (Directory.Exists(devPath))
+                changedFiles = SyncFolder(devPath, changedFiles, toLocal: true);
+
+            // 2. Assets Template
+            string assetsPath = Path.Combine(serverPath, prodName, "Assets", "Template");
+            if (Directory.Exists(assetsPath))
+                changedFiles = SyncFolder(assetsPath, changedFiles, toLocal: true);
+
+            // 3. Shots Template
+            string shotsPath = Path.Combine(serverPath, prodName, "Shots", "Template");
+            if (Directory.Exists(shotsPath))
+                changedFiles = SyncFolder(shotsPath, changedFiles, toLocal: true);
+
+            // 4. Shared Tools StudioLib
+            string sharedToolsPath = Path.Combine(serverPath.Replace("\\PROD", ""), "SHARED_TOOLS", "StudioLib");
+            if (Directory.Exists(sharedToolsPath))
+                changedFiles = SyncFolder(sharedToolsPath, changedFiles, toLocal: true);
+
+            //5. for each grabbed in prod, dependencies
+            var prodGrabbed = NodeService.GetAllGrabbedInProd(prodName, UserConfig.GetUserName());
+            foreach (var grabbed in prodGrabbed)
+            {
+                // on veut le root du node et pas le workfolder
+                string nodeRoot = NodeManip.ExtractNodeContext(grabbed).NodeRoot;
+
+                foreach (var refPath in NodeManip.GetAllRefs(nodeRoot))
+                {
+                    if (Directory.Exists(refPath))
+                        changedFiles = ProdFilesManip.SyncFolder(refPath, changedFiles, toLocal: true);
+                }
+            }
+
+            ReturnChanges(changedFiles);
+        }
+
+        // Local -> Serveur
         public static void EnsureServerProductionFiles(string prodName)
         {
-            string serverPath = UserConfig.GetServerBasePath();
-            string fullPath = Path.Combine(serverPath, prodName);
-            // only create if not exist already
-            // from duckpipe to prod
-            // not updating existing, to avoid overwriting prod customs
-            var productionConfig = new ProductionStructureBuilder { name = prodName };
-            productionConfig.CreateDefaultFolders(fullPath);
-            productionConfig.CopyTools(fullPath);
-            productionConfig.CreateDefaultTemplateScene(fullPath);
+            List<string> changedFiles = new List<string>();
+            string localPath = UserConfig.GetLocalBasePath();
+
+            // 4. Shared Tools StudioLib
+            string sharedToolsPath = Path.Combine(localPath.Replace("\\PROD", ""), "SHARED_TOOLS", "StudioLib");
+            if (Directory.Exists(sharedToolsPath))
+                changedFiles = SyncFolder(sharedToolsPath, changedFiles, toLocal: false);
+
+            ReturnChanges(changedFiles);
         }
+
+        #endregion
+
+        #region UTILITY
+
+        internal static void ReturnChanges(List<string> changedFiles)
+        {
+            if (changedFiles.Count == 0)
+                MessageBox.Show("Aucun fichier mis à jour !");
+            else
+                MessageBox.Show("Fichiers mis à jour :\n" + string.Join("\n", changedFiles));
+        }
+
         #endregion
     }
 }

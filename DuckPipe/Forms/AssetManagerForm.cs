@@ -1,19 +1,20 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using DuckPipe.Core;
-using DuckPipe.Forms;
-using static DuckPipe.Core.Manipulator.NodeManip;
-// using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using WinFormsListView = System.Windows.Forms.ListView;
+﻿using DuckPipe.Core;
+using DuckPipe.Core.Builders;
+using DuckPipe.Core.Config;
+using DuckPipe.Core.Manipulator;
+using DuckPipe.Core.Manipulators;
 // using static System.Runtime.InteropServices.JavaScript.JSType;
 using DuckPipe.Core.Services;
 using DuckPipe.Core.Utils;
+using DuckPipe.Forms;
 using DuckPipe.Forms.Builder.NodeTab;
 using DuckPipe.Forms.Builder.Shared;
 using DuckPipe.Forms.Builder.Tabs;
-using DuckPipe.Core.Config;
-using DuckPipe.Core.Builders;
-using DuckPipe.Core.Manipulators;
+using System.ComponentModel;
+using System.Diagnostics;
+using static DuckPipe.Core.Manipulator.NodeManip;
+// using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using WinFormsListView = System.Windows.Forms.ListView;
 
 namespace DuckPipe
 {
@@ -464,5 +465,12 @@ namespace DuckPipe
 
         }
 
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (cbbNodeStatus.Tag == null)
+                return;
+            string nodePath = cbbNodeStatus.Tag.ToString();
+            NodeManip.AddRef(nodePath, this);
+        }
     }
 }

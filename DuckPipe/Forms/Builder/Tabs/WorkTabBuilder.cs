@@ -379,7 +379,7 @@ namespace DuckPipe.Forms.Builder.Tabs
                 lockedByUser = File.ReadAllText(lockFile);
                 if (lockedByUser == ProductionService.GetUserName())
                 {
-                    Button ExecBtn = CreateActionButton("Exec", NodeManip.ExecNode, form, nodePath); //if user is grabbed
+                    Button ExecBtn = CreateActionButton("Init", NodeManip.InitNode, form, nodePath); //if user is grabbed
                     flpDeptButton.Controls.Add(ExecBtn);
                     Button incrementBtn = CreateActionButton("Increment", NodeManip.VersionNode, form, nodePath); //if user is grabbed
                     flpDeptButton.Controls.Add(incrementBtn);
@@ -391,8 +391,6 @@ namespace DuckPipe.Forms.Builder.Tabs
             Button addBtn = CreateActionButton("Add Note", NodeManip.AddNote, form, nodePath);
             flpDeptButton.Controls.Add(addBtn);
 
-            Button editRefNode = CreateActionButton("Edit Ref Node", NodeManip.AddRef, form, nodePath);
-            flpDeptButton.Controls.Add(editRefNode);
 
             float ratio = 0.85f;
             form.splitContWorkPanel.SplitterDistance = (int)(form.splitContWorkPanel.Height * ratio);

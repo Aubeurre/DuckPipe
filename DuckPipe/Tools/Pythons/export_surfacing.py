@@ -2,25 +2,18 @@
 """
 Cross-DCC surfacing exporter (Maya & Blender)
 
-Usage:
-    In Blender: import this script and call export_surfacing("C:/path/surfacing.json")
-    In Maya:    same: exec/open the script and call export_surfacing("C:/path/surfacing.json")
-
 What it does:
 - Finds materials whose name ends with "_MAT"
-- For each material, collects full node graph (all upstream nodes), all readable attributes (where possible),
-  and all connections (source node.attr -> target node.attr)
+- For each material, collects full node graph (all upstream nodes)
 - Lists all meshes/transforms assigned to that material (full DAG paths)
 - Dumps a JSON with enough data to reconstruct the shader graph and assignations.
 
-Limitations / Notes:
-- Some attributes are not queryable (native or array attrs) -> they will be skipped with a warning.
-- For image textures, file paths are recorded when available.
 """
 
 import json
 import os
 import sys
+import mathutils
 from collections import deque
 
 # detect environment
@@ -40,7 +33,7 @@ except Exception:
 
 
 # ----------------------------
-# Generic helpers
+# Four tout 
 # ----------------------------
 def write_json(data, out_path):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -50,7 +43,7 @@ def write_json(data, out_path):
 
 
 # ----------------------------
-# Maya collectors
+# Maya
 # ----------------------------
 if IN_MAYA:
     def maya_list_materials():
@@ -178,87 +171,120 @@ if IN_MAYA:
 
 
 # ----------------------------
-# Blender collectors
+# Blender
 # ----------------------------
 if IN_BLENDER:
+    def safe_to_python(value):
+        if value is None:
+            return None
+        if isinstance(value, (int, float, str, bool)):
+            return value
+        if isinstance(value, (list, tuple, set)):
+            return [safe_to_python(v) for v in value]
+        if isinstance(value, mathutils.Vector):
+            return list(value)
+        if isinstance(value, mathutils.Color):
+            return list(value)
+        if isinstance(value, mathutils.Euler):
+            return list(value)
+        if isinstance(value, mathutils.Matrix):
+            return [list(row) for row in value]
+        try:
+            return float(value)
+        except Exception:
+            return str(value)
+
+
     def blender_list_materials():
-        mats = [m for m in bpy.data.materials if m.name.endswith("_MAT")]
-        return mats
+        """List all Blender materials ending with _MAT"""
+        return [m for m in bpy.data.materials if m.name.endswith("_MAT")]
+    
 
     def blender_get_assigned_meshes(mat):
+        """Return all meshes that use this material."""
         meshes = []
         for obj in bpy.data.objects:
-            # consider mesh objects only
             if obj.type == 'MESH':
                 for slot in obj.material_slots:
-                    if slot.material is not None and slot.material.name == mat.name:
+                    if slot.material and slot.material.name == mat.name:
                         meshes.append(obj.name)
                         break
-        # unique
         return sorted(list(dict.fromkeys(meshes)))
 
+
     def blender_collect_graph(mat):
-        """
-        Collect nodes and links from material.node_tree.
-        Store node type, properties (location, label), and for ImageTexture nodes store image file path.
-        """
-        nodes = {}
-        links = []
+        """Collect node data and links from material.node_tree"""
         if not mat.use_nodes or not mat.node_tree:
-            # no nodes -> just a basic material, record simple properties
-            props = {}
-            props["use_nodes"] = False
-            # collect simple Blender material properties as fallback
+            props = {"use_nodes": False}
             for p in ("diffuse_color", "specular_intensity", "metallic", "roughness"):
                 if hasattr(mat, p):
                     try:
-                        props[p] = list(getattr(mat, p))
+                        props[p] = safe_to_python(getattr(mat, p))
                     except Exception:
                         pass
             return {"nodes": {}, "links": [], "material_props": props}
 
         tree = mat.node_tree
+        nodes = {}
+        links = []
+
         for node in tree.nodes:
-            ndata = {"type": node.bl_idname, "label": getattr(node, "label", node.name), "location": list(node.location[:])}
-            # gather commonly useful properties and attempted property fetch
-            # for ImageTexture nodes, extract file path
+            ndata = {
+                "type": node.bl_idname,
+                "name": node.name,
+                "label": getattr(node, "label", ""),
+                "location": safe_to_python(node.location[:]),
+                "width": getattr(node, "width", None),
+                "height": getattr(node, "height", None)
+            }
+
+            # Special node handling
             if node.bl_idname == "ShaderNodeTexImage":
                 img = getattr(node, "image", None)
                 if img:
                     ndata["image"] = getattr(img, "filepath", None)
-            # Generic: get attributes from node that are not sockets
-            # We'll capture default values for inputs where possible
+            elif node.bl_idname == "ShaderNodeGroup":
+                ndata["group_name"] = node.node_tree.name
+            elif node.bl_idname == "ShaderNodeScript":
+                ndata["script_path"] = getattr(node, "filepath", "")
+
+            # Collect inputs (default values of unlinked sockets)
             inputs = {}
             for inp in node.inputs:
                 if not inp.is_linked:
-                    # try to get default value(s)
                     try:
-                        val = inp.default_value
-                        # convert to simple python types
-                        if hasattr(val, "__iter__"):
-                            inputs[inp.name] = list(val)
-                        else:
-                            inputs[inp.name] = val
-                    except Exception:
-                        pass
+                        val = getattr(inp, "default_value", None)
+                        if val is not None:
+                            inputs[inp.name] = safe_to_python(val)
+                    except Exception as e:
+                        inputs[inp.name] = f"<unreadable: {type(e).__name__}>"
             ndata["inputs"] = inputs
+
             nodes[node.name] = ndata
 
-        # links
+        # Collect links
         for link in tree.links:
-            from_node = link.from_node.name
-            from_socket = link.from_socket.name
-            to_node = link.to_node.name
-            to_socket = link.to_socket.name
-            links.append({"src_node": from_node, "src_socket": from_socket, "dst_node": to_node, "dst_socket": to_socket})
+            try:
+                links.append({
+                    "src_node": link.from_node.name,
+                    "src_socket": link.from_socket.name,
+                    "dst_node": link.to_node.name,
+                    "dst_socket": link.to_socket.name
+                })
+            except Exception:
+                pass  # ignore broken links
 
         return {"nodes": nodes, "links": links}
 
+
     def blender_build_shader_entry(mat):
-        entry = {"name": mat.name, "engine": "blender", "graph": None, "assignments": []}
-        entry["assignments"] = blender_get_assigned_meshes(mat)
-        entry["graph"] = blender_collect_graph(mat)
-        return entry
+        """Build the full shader entry for export."""
+        return {
+            "name": mat.name,
+            "engine": "blender",
+            "graph": blender_collect_graph(mat),
+            "assignments": blender_get_assigned_meshes(mat)
+        }
 
 
 # ----------------------------

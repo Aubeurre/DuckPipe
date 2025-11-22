@@ -54,7 +54,6 @@ try:
 
     import BlenderProcs
     import GlobalProcs
-    import import_surfacing
 
     IN_BLENDER = True
     EXECUTED_FILE = bpy.data.filepath
@@ -76,6 +75,7 @@ try:
 
     import MayaProcs
     import GlobalProcs
+    import Maya_surfacing_import_vp
     
     IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
@@ -146,16 +146,12 @@ def publish():
     print(" -> publish")
     
     if IN_MAYA:
-        # clean la scene
         MayaProcs.remove_ref()
         MayaProcs.clean_publish(['__TRASH__', '__UTILS__', '__REF__'])
         cmds.group("__RIG__", "MODEL_OK", n=asset_name)
+        print("[SURFACING]")
+        Maya_surfacing_import_vp.import_surf(os.path.join(dlv_path, "surfacing_export.json"))
 
-        # injecte le surfacing (meme si a l anim on veut pas utiliser ce shading.....)
-        surfacing_export_json = os.path.join(dlv_path, "surfacing_export.json")
-        import_surfacing.import_surfacing(surfacing_export_json)
-
-        # save la scene
         full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
         cmds.file(rename=full_scene_path)
         cmds.file(save=True, type="mayaAscii", prompt=False)
@@ -167,14 +163,11 @@ def postpublish():
     """
     print(" -> Post-publish")
     
-
     if IN_MAYA:
-        # createRigLayout() # fonctionne pas encore avec le batch car change de scene.....
-
-        # on ajoute le facial
+        # createRigLayout()
+        print("[FACIAL]")
         addFacialToAssemble()
 
-        # save la scene
         cmds.file(save=True, type="mayaAscii")
 
         # on fait ca plus tard donc je com le tout
@@ -224,6 +217,18 @@ def addFacialToAssemble():
     """
     Importation du facial et connection
     """
+            
+    def get_original_shape(mesh):
+        # Trouve les shapes associees
+        shapes = cmds.listRelatives(mesh, shapes=True, fullPath=True) or []
+        # Recupere l historique complete du mesh
+        history = cmds.listHistory(shapes[0]) or []
+        all_shapes = [h for h in history if cmds.nodeType(h) == "mesh"]
+        for shape in all_shapes:
+            connection = cmds.listConnections(f"{shape}.inMesh")
+            if connection == None:
+                return shape  # fallback
+            
     facial_file_name = file_name.replace(DEPT_SUFFIX, FACIALSUFFIX)
     facial_file_path = EXECUTED_FILE.replace(file_name, facial_file_name)
 
@@ -234,10 +239,76 @@ def addFacialToAssemble():
                       ignoreVersion=True, ra=True,
                       mergeNamespacesOnClash=False,
                       namespace=":", options="v=0")
-            # TODO: connections
+                
+            # rangement
+            if cmds.objExists("facial_def_jnt_grp"):
+                cmds.parent("facial_def_jnt_grp", "DFJNT_GRP")
+            if cmds.objExists("facial_geo_grp"):
+                cmds.parent("facial_geo_grp", "ADDITIV_RIG")
+            if cmds.objExists("facial_grp"):
+                cmds.parent("facial_grp", "__RIG__")
+            if cmds.objExists("Facial_ctl_set"):
+                cmds.sets("Facial_ctl_set", e=1, fe="ctl_set")
+                
+            # connection des ctl HARD NAMING
+            if cmds.objExists("center_HeadUp_ctl"):
+                cmds.parentConstraint("center_HeadUp_ctl", "zone_01", mo=1)
+                cmds.scaleConstraint("center_HeadUp_ctl", "zone_01", mo=1)
+            if cmds.objExists("center_Skull_0_ctl"):
+                cmds.parentConstraint("center_Skull_0_ctl", "zone_02", mo=1)
+                cmds.scaleConstraint("center_Skull_0_ctl", "zone_02", mo=1)
+            if cmds.objExists("center_Skull_1_ctl"):
+                cmds.parentConstraint("center_Skull_1_ctl", "zone_03", mo=1)
+                cmds.scaleConstraint("center_Skull_1_ctl", "zone_03", mo=1)
+            if cmds.objExists("center_Skull_2_ctl"):
+                cmds.parentConstraint("center_Skull_2_ctl", "zone_04", mo=1)
+                cmds.scaleConstraint("center_Skull_2_ctl", "zone_04", mo=1)
+            if cmds.objExists("center_Skull_3_ctl"):
+                cmds.parentConstraint("center_Skull_3_ctl", "zone_05", mo=1)
+                cmds.scaleConstraint("center_Skull_3_ctl", "zone_05", mo=1)
+            if cmds.objExists("center_nose_2_fk_ctl"):
+                cmds.parentConstraint("center_nose_2_fk_ctl", "c_nose_ctl_grp", mo=1)
+                cmds.scaleConstraint("center_nose_2_fk_ctl", "c_nose_ctl_grp", mo=1)
+            if cmds.objExists("center_eye_left_loc_grp"):
+                cmds.pointConstraint("l_eyepocket_ctl", "center_eye_left_loc_grp", mo=1)
+                cmds.scaleConstraint("l_eyepocket_ctl", "center_eye_left_loc_grp", mo=1)
+            if cmds.objExists("center_eye_right_loc_grp"):
+                cmds.pointConstraint("r_eyepocket_ctl", "center_eye_right_loc_grp", mo=1)
+                cmds.scaleConstraint("r_eyepocket_ctl", "center_eye_right_loc_grp", mo=1)
+
+
+            # connection des shapes
+            def replace_shape(aShape, bShape):    
+                # --- Reconnecter les outMesh ---
+                outMesh_conns = cmds.listConnections(aShape + ".outMesh", plugs=True, destination=True) or []
+                for conn in outMesh_conns:
+                    cmds.disconnectAttr(aShape + ".outMesh", conn)
+                    cmds.connectAttr(bShape + ".outMesh", conn)
+                
+                # --- Reconnecter les worldMesh[0] ---
+                worldMesh_conns = cmds.listConnections(aShape + ".worldMesh[0]", plugs=True, destination=True) or []
+                for conn in worldMesh_conns:
+                    cmds.disconnectAttr(aShape + ".worldMesh[0]", conn)
+                    cmds.connectAttr(bShape + ".worldMesh[0]", conn)
+
+            meshes = cmds.listRelatives("facial_geo_grp", allDescendents=True, type='mesh', fullPath=True) or []
+            transforms = list(set(cmds.listRelatives(meshes, parent=True, fullPath=True))) if meshes else []
+
+            for msh in transforms:
+                dest = msh.replace("FACIAL_","").split("|")[-1]
+                dest_orig = get_original_shape(dest)
+                msh_shapes = cmds.listRelatives(msh, shapes=True, noIntermediate=True, fullPath=True) or []
+                
+                replace_shape(dest_orig, msh_shapes[-1])
+                print("RECONNECT:", dest_orig, msh_shapes[-1])
+
+            # DEBUG pout les stickys faut prendre l orig au niv.....
+            cmds.connectAttr(f"{get_original_shape("body")}.outMesh", "center_lips_lvl1_surf_pWrap.drivers[0].driverBindGeometry", f=1)
+            cmds.connectAttr(f"{get_original_shape("body")}.outMesh", "center_eyebrow_lvl1_surf_pWrap.drivers[0].driverBindGeometry", f=1)
+
+
         else:
             print("Pas de facial trouve.")
-
 
 # ------------------------------------------------------
 # Main

@@ -1,14 +1,16 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using DuckPipe.Core.Services;
-using DuckPipe.Core.Manager;
+﻿using DuckPipe.Core.Builders;
 using DuckPipe.Core.Config;
-using DuckPipe.Core.Utils;
-using System.Text.Json.Nodes;
-using DuckPipe.Forms;
-using DuckPipe.Core.Services.Softwares;
+using DuckPipe.Core.Manager;
 using DuckPipe.Core.Manipulators;
+using DuckPipe.Core.Services;
+using DuckPipe.Core.Services.Softwares;
+using DuckPipe.Core.Utils;
+using DuckPipe.Forms;
+using System.Diagnostics;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace DuckPipe.Core.Manipulator
 {
@@ -30,8 +32,11 @@ namespace DuckPipe.Core.Manipulator
             public string ProdName { get; set; }
         }
 
-        private static NodeContext ExtractNodeContext(string nodePath)
+        public static NodeContext ExtractNodeContext(string nodePath)
         {
+            // Normalisation slashes
+            nodePath = nodePath?.Replace('/', '\\') ?? "";
+
             var ctx = new NodeContext
             {
                 FileName = Path.GetFileNameWithoutExtension(nodePath),
@@ -42,14 +47,16 @@ namespace DuckPipe.Core.Manipulator
             };
 
             string[] nodeParts = nodePath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
+
             ctx.NodeRoot = nodeParts[0];
-            ctx.RelativeWorkPath = nodeParts[1];
+            ctx.RelativeWorkPath = (nodeParts.Length > 1) ? nodeParts[1] : "";
 
             string relativeToRoot = nodePath.Replace(ctx.RootPath, "").TrimStart('\\');
-            string[] segments = relativeToRoot.Split('\\');
-            ctx.ProdName = segments.Length > 2 ? segments[0] : "Unknown";
-            ctx.NodeType = segments.Length > 2 ? segments[2] : "Unknown";
-            ctx.Department = segments.Length > 5 ? segments[5] : "Unknown";
+            string[] segments = relativeToRoot.Split('\\', StringSplitOptions.RemoveEmptyEntries);
+
+            ctx.ProdName = (segments.Length >= 1) ? segments[0] : "Unknown";
+            ctx.NodeType = (segments.Length >= 3) ? segments[2] : "Unknown";
+            ctx.Department = (segments.Length >= 6) ? segments[5] : "Unknown";
 
             return ctx;
         }
@@ -352,7 +359,6 @@ namespace DuckPipe.Core.Manipulator
             return commits;
         }
         #endregion
-
         public static List<string> GetAllRefs(string nodePath)
         {
             var ctx = ExtractNodeContext(nodePath);
@@ -361,113 +367,129 @@ namespace DuckPipe.Core.Manipulator
             var jsonNode = JsonHelper.ParseJson(jsonPath);
 
             List<string> allRefs = new List<string>();
-            if (jsonNode?["workfile"] is JsonObject workfiles)
+
+            if (jsonNode?["nodeInfos"] is JsonObject nodeInfos)
             {
-                foreach (var wf in workfiles)
+                if (nodeInfos["refAssets"] is JsonArray refs)
                 {
-                    string fileName = wf.Key;
-                    JsonObject wfData = wf.Value!.AsObject();
-
-                    string dept = wfData["department"]?.GetValue<string>() ?? "";
-                    if (dept.ToLower() == ctx.Department.ToLower())
+                    foreach (var r in refs)
                     {
-
-                        if (wfData["refNodes"] is JsonArray refs)
+                        string refPath = r?.GetValue<string>() ?? "";
+                        if (!string.IsNullOrEmpty(refPath))
                         {
-                            foreach (var r in refs)
-                            {
-                                string refPath = r?.GetValue<string>() ?? "";
-                                if (!string.IsNullOrEmpty(refPath))
-                                {
-                                    refPath = ReplaceEnvVariables(refPath);
-                                    allRefs.Add(refPath);
-                                }
-                            }
+                            // Remplacer les variables d'environnement si besoin
+                            refPath = ReplaceEnvVariables(refPath);
+                            allRefs.Add(refPath);
                         }
                     }
                 }
             }
+
             return allRefs;
         }
+
 
         public static void AddRef(string nodePath, AssetManagerForm form)
         {
             var ctx = ExtractNodeContext(nodePath);
             string prodPath = Path.Combine(ctx.RootPath, ctx.ProdName);
 
+            // Récupère tous les nodes disponibles dans la prod
             var nodesDict = GetAllNodesInProduction(prodPath);
-            var allNodes = nodesDict.SelectMany(typeEntry => typeEntry.Value.Select(nodeEntry => $"{typeEntry.Key}/{nodeEntry.Key}")).ToList(); //CRADE DE FOU
+            var allNodes = nodesDict
+                .SelectMany(typeEntry => typeEntry.Value.Select(nodeEntry => $"{typeEntry.Key}/{nodeEntry.Key}"))
+                .ToList();
 
             using (var popup = new AddreferencesPopup(allNodes, nodePath))
             {
-                if (popup.ShowDialog() == DialogResult.OK)
+                if (popup.ShowDialog() != DialogResult.OK)
+                    return;
+
+                string nodeName = popup.NodeName;       // ex "Props/Chair"
+                string[] parts = nodeName.Split('/');
+                string assetType = parts[0];
+                string assetName = parts[1];
+
+                string PublishPath = Path.Combine(prodPath, "Assets", nodeName, "dlv");
+                string refAsset = SetEnvVariables(PublishPath).Replace("\\", "/");
+
+                MessageBox.Show($"Reference ajoutee avec succès.\n{refAsset}");
+
+                // --- JSON ---
+                string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
+                var json = File.ReadAllText(jsonPath);
+                var options = new JsonSerializerOptions { WriteIndented = true };
+
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                var updatedNodeData = new Dictionary<string, object>();
+
+                // Copier workfile tel quel
+                updatedNodeData["workfile"] = JsonSerializer.Deserialize<object>(
+                    root.GetProperty("workfile").GetRawText()
+                );
+
+                // --- nodeInfos ---
+                Dictionary<string, object> nodeInfos;
+
+                if (root.TryGetProperty("nodeInfos", out var nodeInfosElement))
                 {
-                    string NodeName = popup.NodeName;
-                    string Department = popup.Department;
-                    string PublishPath = NodeService.GetPublishPath(ctx.ProdName, NodeName.Split("/")[0], NodeName.Split("/")[1], Department, ctx.Extension);
-                    string EnvVarPath = SetEnvVariables(PublishPath);
-                    MessageBox.Show($"Reference ajoutee avec succès.\n{EnvVarPath}");
-
-                    // on ajoute la ref dans le json du node au departement demande
-                    string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
-
-                    var json = File.ReadAllText(jsonPath);
-                    var options = new JsonSerializerOptions { WriteIndented = true };
-
-                    using var doc = JsonDocument.Parse(json);
-                    var root = doc.RootElement;
-
-                    var updatedNodeData = new Dictionary<string, object>();
-
-                    var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
-                        root.GetProperty("workfile").GetRawText()
-                    );
-
-                    var keys = workfileDict.Keys.ToList();
-                    foreach (var kvp in workfileDict)
-                    {
-                        var data = kvp.Value;
-                        if (data["workFile"]?.ToString().Equals(Path.GetFileName(nodePath), StringComparison.OrdinalIgnoreCase) == true)
-                        {
-                            if (data.ContainsKey("refNodes"))
-                            {
-                                var refs = JsonSerializer.Deserialize<List<string>>(data["refNodes"].ToString()) ?? new List<string>();
-                                if (!refs.Contains(EnvVarPath))
-                                    refs.Add(EnvVarPath);
-
-                                data["refNodes"] = refs;
-                            }
-                            else
-                            {
-                                data["refNodes"] = new List<string> { EnvVarPath };
-                            }
-                        }
-                    }
-                    updatedNodeData["workfile"] = workfileDict;
-
-                    // recopier les autres proprietes du root
-                    foreach (var prop in root.EnumerateObject())
-                    {
-                        if (prop.Name == "workfile") continue;
-                        updatedNodeData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
-                    }
-
-                    string updatedJson = JsonSerializer.Serialize(updatedNodeData, options);
-                    File.WriteAllText(jsonPath, updatedJson);
-
+                    nodeInfos = JsonSerializer.Deserialize<Dictionary<string, object>>(nodeInfosElement.GetRawText())!;
                 }
+                else
+                {
+                    nodeInfos = new Dictionary<string, object>();
+                }
+
+                // Ajouter ou créer refAssets
+                List<string> refList;
+                if (nodeInfos.ContainsKey("refAssets"))
+                {
+                    refList = JsonSerializer.Deserialize<List<string>>(nodeInfos["refAssets"].ToString()) ?? new List<string>();
+                }
+                else
+                {
+                    refList = new List<string>();
+                }
+
+                if (!refList.Contains(refAsset))
+                    refList.Add(refAsset);
+
+                nodeInfos["refAssets"] = refList;
+                updatedNodeData["nodeInfos"] = nodeInfos;
+
+                // Copier les autres propriétés
+                foreach (var prop in root.EnumerateObject())
+                {
+                    if (prop.Name is "workfile" or "nodeInfos")
+                        continue;
+
+                    updatedNodeData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
+                }
+
+                // Écriture finale
+                string updatedJson = JsonSerializer.Serialize(updatedNodeData, options);
+                File.WriteAllText(jsonPath, updatedJson);
             }
         }
 
-        public static void RemoveRef(string path, string nodePath)
+        public static void RemoveRef(string itemText, string nodePath)
         {
-            string refPath = path.Split('(')[1].TrimEnd(')');
+            // Extrait le chemin complet depuis la liste
+            string refPath;
+            int parenIndex = itemText.IndexOf('(');
+            if (parenIndex >= 0)
+                refPath = itemText.Substring(parenIndex + 1).TrimEnd(')');
+            else
+                refPath = itemText; // fallback si pas de parenthèses
+
+            // Résoudre variables d'environnement
             refPath = SetEnvVariables(refPath).Replace("\\\\", "\\");
-            // on runover le json pour virer la ref.
+            refPath = SetEnvVariables(refPath).Replace("\\/", "/");
+
             var ctx = ExtractNodeContext(nodePath);
-
             string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
-
             var json = File.ReadAllText(jsonPath);
             var options = new JsonSerializerOptions { WriteIndented = true };
 
@@ -476,42 +498,50 @@ namespace DuckPipe.Core.Manipulator
 
             var updatedNodeData = new Dictionary<string, object>();
 
-            var workfileDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(
+            // Copier workfile tel quel
+            updatedNodeData["workfile"] = JsonSerializer.Deserialize<object>(
                 root.GetProperty("workfile").GetRawText()
             );
 
-            var keys = workfileDict.Keys.ToList();
-            foreach (var kvp in workfileDict)
+            // --- nodeInfos ---
+            Dictionary<string, object> nodeInfos;
+            if (root.TryGetProperty("nodeInfos", out var nodeInfosElement))
             {
-                var data = kvp.Value;
-                if (data["workFile"]?.ToString().Equals(Path.GetFileName(nodePath), StringComparison.OrdinalIgnoreCase) == true)
-                {
-                    // on vire la ref
-                    if (data.ContainsKey("refNodes"))
-                    {
-                        var refs = JsonSerializer.Deserialize<List<string>>(data["refNodes"].ToString()) ?? new List<string>();
-                        if (refs.Contains(refPath))
-                        {
-                            refs.Remove(refPath);
-                            MessageBox.Show($"Reference supprimee avec succès.\n{refPath}");
-                        }
-                        data["refNodes"] = refs;
-                    }
-                }
+                nodeInfos = JsonSerializer.Deserialize<Dictionary<string, object>>(nodeInfosElement.GetRawText())!;
             }
-            updatedNodeData["workfile"] = workfileDict;
+            else
+            {
+                nodeInfos = new Dictionary<string, object>();
+            }
 
-            // recopier les autres proprietes du root
+            // Supprimer refAssets si présent
+            if (nodeInfos.ContainsKey("refAssets"))
+            {
+                var refList = JsonSerializer.Deserialize<List<string>>(nodeInfos["refAssets"].ToString()) ?? new List<string>();
+                if (refList.Contains(refPath))
+                {
+                    refList.Remove(refPath);
+                    MessageBox.Show($"Référence supprimée avec succès.\n{refPath}");
+                }
+                nodeInfos["refAssets"] = refList;
+            }
+
+            updatedNodeData["nodeInfos"] = nodeInfos;
+
+            // Copier les autres propriétés
             foreach (var prop in root.EnumerateObject())
             {
-                if (prop.Name == "workfile") continue;
+                if (prop.Name is "workfile" or "nodeInfos")
+                    continue;
+
                 updatedNodeData[prop.Name] = JsonSerializer.Deserialize<object>(prop.Value.GetRawText());
             }
 
+            // Écriture finale
             string updatedJson = JsonSerializer.Serialize(updatedNodeData, options);
             File.WriteAllText(jsonPath, updatedJson);
-
         }
+
 
         #region TEMP FILE
         public static string GetTempPath(string nodePath)
@@ -522,7 +552,7 @@ namespace DuckPipe.Core.Manipulator
             return tempNodelPath;
         }
 
-        public static void CopyNodeToTemp(string nodePath)
+        public static void GrabbNode(string nodePath)
         {
             // on check si les fichiers sont a jour
             var ctx = ExtractNodeContext(nodePath);
@@ -537,12 +567,22 @@ namespace DuckPipe.Core.Manipulator
             Directory.CreateDirectory(tempDirPath);
             File.Copy(nodePath, tempNodelPath, true);
             File.Copy(nodejsonPath, tempNodejsonPath, true);
-            // TODO: copier aussi les dependances.
 
-            MessageBox.Show($"Fichier copié en local :\n{tempNodelPath}", "Succès");
+
+            List<string> changedFiles = new List<string>();
+            foreach (var refPath in GetAllRefs(nodePath))
+            {
+                if (Directory.Exists(refPath))
+                changedFiles = ProdFilesManip.SyncFolder(refPath, changedFiles, toLocal: true);
+            }
+
+            ProdFilesManip.ReturnChanges(changedFiles);
+
+
+        MessageBox.Show($"Fichier copié en local :\n{tempNodelPath}", "Succès");
         }
 
-        public static void DeleteTemp(string nodePath)
+        public static void UngrabbNode(string nodePath)
         {
             string tempNodelPath = GetTempPath(nodePath);
             string tempDirPath = Path.GetDirectoryName(tempNodelPath)!;
@@ -593,7 +633,7 @@ start """" ""{fileToOpen}""
             });
         }
 
-        public static void ExecNode(string nodePath, AssetManagerForm form)
+        public static void InitNode(string nodePath, AssetManagerForm form)
         {
             if (LockNodeFileManager.IsLockedByUser(nodePath))
             {
@@ -640,7 +680,6 @@ start """" ""{fileToOpen}""
 
                 //  verix du stub avant exec ---
                 string stubPath = Path.ChangeExtension(LocalFile, $".stub{ctx.Extension}");
-                MessageBox.Show(stubPath);
                 if (File.Exists(stubPath))
                 {
                     MessageBox.Show($"Stub detected. Rebuilding base scene for {ctx.Department}...", "DuckPipe");
@@ -655,7 +694,6 @@ start """" ""{fileToOpen}""
 
                 // lancer le py d'ouverture du node selon le department
                 string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_exec.py");
-                MessageBox.Show($"Exec Python Path : {pyPath}");
                 if (ctx.Extension == ".ma")
                 {
                     MayaService.ExecuteMayaBatchScript(LocalFile, pyPath, nodePath);

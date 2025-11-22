@@ -39,9 +39,12 @@ namespace DuckPipe.Forms
         }
         private void FillRefList(string nodePath)
         {
+            listRefAdded.Items.Clear();
+
             foreach (var refPath in NodeManip.GetAllRefs(nodePath))
             {
-                listRefAdded.Items.Add(Path.GetFileName(refPath) + " (" + refPath + ")");
+                string assetName = Path.GetFileName(Path.GetDirectoryName(refPath) ?? "");
+                listRefAdded.Items.Add($"{assetName}: ({refPath})");
             }
         }
 
@@ -56,6 +59,11 @@ namespace DuckPipe.Forms
         private void removeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             NodeManip.RemoveRef(listRefAdded.SelectedItem.ToString(), hostName);
+        }
+
+        private void listRefAdded_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

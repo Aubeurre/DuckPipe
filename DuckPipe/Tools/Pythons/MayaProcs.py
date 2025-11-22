@@ -115,7 +115,9 @@ def export_hierarchy_by_name(root_names, filepath):
     mel.eval('FBXExportFileVersion -v FBX202000;')
 
     # Export FBX
+    filepath = filepath.replace("\\", "/")
     print(filepath)
+    print(root_names)
     mel.eval(f'FBXExport -f "{filepath}" -s;')
 
     print(f"FBX exporte avec : {root_names} - {filepath}")
@@ -156,7 +158,6 @@ def reference_fbx(file_path, parent_grp):
         except Exception as e:
             cmds.error(f"Erreur reference FBX manquant : {e}")
 
-        
 
 # ------------------------------------------------------
 # Fonction BLENDER to MAYA

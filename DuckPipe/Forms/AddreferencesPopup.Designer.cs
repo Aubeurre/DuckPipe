@@ -81,18 +81,19 @@
             cbDepartment.Size = new Size(154, 23);
             cbDepartment.TabIndex = 14;
             cbDepartment.Tag = "";
+            cbDepartment.Visible = false;
             // 
             // cmsRemove
             // 
             cmsRemove.Items.AddRange(new ToolStripItem[] { removeToolStripMenuItem });
             cmsRemove.Name = "cmsRemove";
-            cmsRemove.Size = new Size(181, 48);
+            cmsRemove.Size = new Size(118, 26);
             cmsRemove.Opening += cmsRemove_Opening;
             // 
             // removeToolStripMenuItem
             // 
             removeToolStripMenuItem.Name = "removeToolStripMenuItem";
-            removeToolStripMenuItem.Size = new Size(180, 22);
+            removeToolStripMenuItem.Size = new Size(117, 22);
             removeToolStripMenuItem.Text = "Remove";
             removeToolStripMenuItem.Click += removeToolStripMenuItem_Click;
             // 
@@ -107,6 +108,7 @@
             listRefAdded.Name = "listRefAdded";
             listRefAdded.Size = new Size(371, 139);
             listRefAdded.TabIndex = 17;
+            listRefAdded.SelectedIndexChanged += listRefAdded_SelectedIndexChanged;
             // 
             // AddreferencesPopup
             // 

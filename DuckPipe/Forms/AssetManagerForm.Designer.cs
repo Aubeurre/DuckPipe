@@ -55,15 +55,17 @@ namespace DuckPipe
             toolStripMenuItem1 = new ToolStripMenuItem();
             plNodeTaskInfo = new Panel();
             flpNodeInspect = new FlowLayoutPanel();
-            lblNodeType = new Label();
-            lblNodeName = new Label();
             pnlPipelineStatus = new Panel();
             flpPipelineStatus = new FlowLayoutPanel();
             pnlDeptBtn = new Panel();
             flpDeptButton = new FlowLayoutPanel();
             pnlTopRight = new Panel();
-            flpNodeDescription = new FlowLayoutPanel();
+            tableLayoutPanel1 = new TableLayoutPanel();
+            button4 = new Button();
+            tableLayoutPanel2 = new TableLayoutPanel();
+            lblNodeType = new Label();
             lbDescription = new Label();
+            lblNodeName = new Label();
             splitMain = new SplitContainer();
             tablpanTabBtn = new TableLayoutPanel();
             flowLayoutPanel1 = new FlowLayoutPanel();
@@ -119,7 +121,8 @@ namespace DuckPipe
             pnlPipelineStatus.SuspendLayout();
             pnlDeptBtn.SuspendLayout();
             pnlTopRight.SuspendLayout();
-            flpNodeDescription.SuspendLayout();
+            tableLayoutPanel1.SuspendLayout();
+            tableLayoutPanel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
             splitMain.Panel1.SuspendLayout();
             splitMain.Panel2.SuspendLayout();
@@ -422,33 +425,6 @@ namespace DuckPipe
             flpNodeInspect.TabIndex = 3;
             flpNodeInspect.WrapContents = false;
             // 
-            // lblNodeType
-            // 
-            lblNodeType.AutoSize = true;
-            lblNodeType.BackColor = Color.Transparent;
-            lblNodeType.Font = new Font("Nirmala UI", 12F, FontStyle.Bold | FontStyle.Italic);
-            lblNodeType.ForeColor = Color.Silver;
-            lblNodeType.Location = new Point(16, 44);
-            lblNodeType.Margin = new Padding(0);
-            lblNodeType.Name = "lblNodeType";
-            lblNodeType.Size = new Size(101, 21);
-            lblNodeType.TabIndex = 2;
-            lblNodeType.Text = "placeholder";
-            // 
-            // lblNodeName
-            // 
-            lblNodeName.AutoSize = true;
-            lblNodeName.BackColor = Color.Transparent;
-            lblNodeName.Font = new Font("Nirmala UI", 20F, FontStyle.Bold);
-            lblNodeName.ForeColor = Color.White;
-            lblNodeName.Location = new Point(0, 0);
-            lblNodeName.Margin = new Padding(0);
-            lblNodeName.Name = "lblNodeName";
-            lblNodeName.Size = new Size(222, 37);
-            lblNodeName.TabIndex = 1;
-            lblNodeName.Text = "PLACEHOLDER |";
-            lblNodeName.TextAlign = ContentAlignment.BottomLeft;
-            // 
             // pnlPipelineStatus
             // 
             pnlPipelineStatus.BackColor = Color.FromArgb(40, 40, 40);
@@ -483,34 +459,86 @@ namespace DuckPipe
             // flpDeptButton
             // 
             flpDeptButton.BackColor = Color.FromArgb(30, 30, 30);
-            flpDeptButton.Location = new Point(0, 0);
             flpDeptButton.Dock = DockStyle.Fill;
+            flpDeptButton.Location = new Point(0, 0);
             flpDeptButton.Margin = new Padding(3, 10, 3, 3);
             flpDeptButton.Name = "flpDeptButton";
             flpDeptButton.Padding = new Padding(10, 0, 0, 0);
-            flpDeptButton.Size = new Size(563, 33);
+            flpDeptButton.Size = new Size(150, 46);
             flpDeptButton.TabIndex = 1;
             // 
             // pnlTopRight
             // 
             pnlTopRight.BackColor = Color.FromArgb(65, 65, 65);
-            pnlTopRight.Controls.Add(lblNodeType);
-            pnlTopRight.Controls.Add(flpNodeDescription);
+            pnlTopRight.Controls.Add(tableLayoutPanel1);
             pnlTopRight.Dock = DockStyle.Top;
             pnlTopRight.Location = new Point(3, 3);
             pnlTopRight.Name = "pnlTopRight";
             pnlTopRight.Size = new Size(732, 74);
             pnlTopRight.TabIndex = 5;
             // 
-            // flpNodeDescription
+            // tableLayoutPanel1
             // 
-            flpNodeDescription.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            flpNodeDescription.Controls.Add(lblNodeName);
-            flpNodeDescription.Controls.Add(lbDescription);
-            flpNodeDescription.Location = new Point(7, 3);
-            flpNodeDescription.Name = "flpNodeDescription";
-            flpNodeDescription.Size = new Size(722, 68);
-            flpNodeDescription.TabIndex = 5;
+            tableLayoutPanel1.ColumnCount = 2;
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel1.Controls.Add(button4, 1, 0);
+            tableLayoutPanel1.Controls.Add(tableLayoutPanel2, 0, 0);
+            tableLayoutPanel1.Dock = DockStyle.Fill;
+            tableLayoutPanel1.Location = new Point(0, 0);
+            tableLayoutPanel1.Name = "tableLayoutPanel1";
+            tableLayoutPanel1.RowCount = 1;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle());
+            tableLayoutPanel1.Size = new Size(732, 74);
+            tableLayoutPanel1.TabIndex = 0;
+            // 
+            // button4
+            // 
+            button4.BackColor = Color.FromArgb(80, 80, 80);
+            button4.Dock = DockStyle.Right;
+            button4.FlatAppearance.BorderSize = 0;
+            button4.FlatStyle = FlatStyle.Flat;
+            button4.ForeColor = Color.White;
+            button4.Location = new Point(633, 3);
+            button4.Name = "button4";
+            button4.Size = new Size(96, 68);
+            button4.TabIndex = 13;
+            button4.Text = "Dependences";
+            button4.UseVisualStyleBackColor = false;
+            button4.Click += button4_Click;
+            // 
+            // tableLayoutPanel2
+            // 
+            tableLayoutPanel2.AutoSize = true;
+            tableLayoutPanel2.ColumnCount = 3;
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel2.Controls.Add(lblNodeType, 0, 1);
+            tableLayoutPanel2.Controls.Add(lbDescription, 1, 0);
+            tableLayoutPanel2.Controls.Add(lblNodeName, 0, 0);
+            tableLayoutPanel2.Dock = DockStyle.Left;
+            tableLayoutPanel2.GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
+            tableLayoutPanel2.Location = new Point(3, 3);
+            tableLayoutPanel2.Name = "tableLayoutPanel2";
+            tableLayoutPanel2.RowCount = 2;
+            tableLayoutPanel2.RowStyles.Add(new RowStyle());
+            tableLayoutPanel2.RowStyles.Add(new RowStyle());
+            tableLayoutPanel2.Size = new Size(378, 68);
+            tableLayoutPanel2.TabIndex = 9;
+            // 
+            // lblNodeType
+            // 
+            lblNodeType.AutoSize = true;
+            lblNodeType.BackColor = Color.Transparent;
+            lblNodeType.Font = new Font("Nirmala UI", 12F, FontStyle.Bold | FontStyle.Italic);
+            lblNodeType.ForeColor = Color.Silver;
+            lblNodeType.Location = new Point(0, 37);
+            lblNodeType.Margin = new Padding(0);
+            lblNodeType.Name = "lblNodeType";
+            lblNodeType.Size = new Size(101, 21);
+            lblNodeType.TabIndex = 14;
+            lblNodeType.Text = "placeholder";
             // 
             // lbDescription
             // 
@@ -522,8 +550,22 @@ namespace DuckPipe
             lbDescription.Margin = new Padding(0, 10, 0, 0);
             lbDescription.Name = "lbDescription";
             lbDescription.Size = new Size(156, 19);
-            lbDescription.TabIndex = 4;
+            lbDescription.TabIndex = 13;
             lbDescription.Text = "description Place Holder";
+            // 
+            // lblNodeName
+            // 
+            lblNodeName.AutoSize = true;
+            lblNodeName.BackColor = Color.Transparent;
+            lblNodeName.Font = new Font("Nirmala UI", 20F, FontStyle.Bold);
+            lblNodeName.ForeColor = Color.White;
+            lblNodeName.Location = new Point(0, 0);
+            lblNodeName.Margin = new Padding(0);
+            lblNodeName.Name = "lblNodeName";
+            lblNodeName.Size = new Size(222, 37);
+            lblNodeName.TabIndex = 8;
+            lblNodeName.Text = "PLACEHOLDER |";
+            lblNodeName.TextAlign = ContentAlignment.BottomLeft;
             // 
             // splitMain
             // 
@@ -1224,9 +1266,10 @@ namespace DuckPipe
             pnlPipelineStatus.ResumeLayout(false);
             pnlDeptBtn.ResumeLayout(false);
             pnlTopRight.ResumeLayout(false);
-            pnlTopRight.PerformLayout();
-            flpNodeDescription.ResumeLayout(false);
-            flpNodeDescription.PerformLayout();
+            tableLayoutPanel1.ResumeLayout(false);
+            tableLayoutPanel1.PerformLayout();
+            tableLayoutPanel2.ResumeLayout(false);
+            tableLayoutPanel2.PerformLayout();
             splitMain.Panel1.ResumeLayout(false);
             splitMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitMain).EndInit();
@@ -1278,8 +1321,6 @@ namespace DuckPipe
         private ToolStripMenuItem tsmiRename;
         private ToolStripMenuItem tsmiDelete;
         private Panel plNodeTaskInfo;
-        private Label lblNodeType;
-        private Label lblNodeName;
         private Panel pnlPipelineStatus;
         private Panel pnlTopRight;
         private SplitContainer splitMain;
@@ -1295,8 +1336,6 @@ namespace DuckPipe
         private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem viewInExplorerToolStripMenuItem;
         private ToolStripMenuItem toolsToolStripMenuItem;
-        private Label lbDescription;
-        private FlowLayoutPanel flpNodeDescription;
         private CustomTabControl tabCtrlMain;
         private TabPage tabPWork;
         private TabPage tabPNode;
@@ -1349,5 +1388,11 @@ namespace DuckPipe
         private Button btnTab1;
         private Button btnTab3;
         private Button btnTab4;
+        private TableLayoutPanel tableLayoutPanel1;
+        private TableLayoutPanel tableLayoutPanel2;
+        private Label lblNodeType;
+        private Label lbDescription;
+        private Label lblNodeName;
+        private Button button4;
     }
 }

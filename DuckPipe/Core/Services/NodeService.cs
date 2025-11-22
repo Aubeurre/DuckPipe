@@ -89,6 +89,33 @@ namespace DuckPipe.Core.Services
             createNode(selectedProd, newItemName, newItemType, "", Description, "", "");
         }
 
+        public static List<string> GetAllGrabbedInProd(string prodName, string userName)
+        {
+            var result = new List<string>();
+
+            // Parcours récursif des .lock
+            string rootFolder = Path.Combine(ProductionService.GetProductionRootPath(), prodName);
+            foreach (var file in Directory.EnumerateFiles(rootFolder, "*.lock", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    string content = File.ReadAllText(file);
+
+                    if (content.Contains(userName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        MessageBox.Show($"Fichier grabbe trouve : {file}");
+                        result.Add(file);
+                    }
+                }
+                catch
+                {
+                    // Ignore fichiers non lisibles (corrompus, droits, etc.)
+                }
+            }
+
+            return result;
+        }
+
         public static void createNode(string selectedProd, string newItemName, string newItemType, string seqName, string Description, string rangeIn, string rangeOut)
         {
                 if (string.IsNullOrEmpty(newItemName))
@@ -190,27 +217,5 @@ namespace DuckPipe.Core.Services
                                         t.GetString()?.Equals(type, StringComparison.OrdinalIgnoreCase) == true);
         }
 
-        public static string GetPublishPath(string selectedProd, string nodeType, string nodeName, string department, string desiredExt)
-        {
-            string rootPath = ProductionService.GetProductionRootPath();
-            string prodPath = Path.Combine(rootPath, selectedProd);
-
-            string baseNodeFolder = Path.Combine(prodPath, "Assets", nodeType);
-            string nodePath = Path.Combine(baseNodeFolder, nodeName);
-            string publishPath = Path.Combine(nodePath, "dlv");
-
-            // ca va poser probleme si plusieurs fichiers du meme departement.
-            // on run sur chaque fichier et trouve celui qui correspond au departement
-            foreach (var file in Directory.GetFiles(publishPath))
-            {
-                if (file.Contains($"_{department.ToLower()}_OK{desiredExt.ToLower()}"))
-                {
-                    return Path.Combine(publishPath, file);
-                }
-            }
-            // fallback si pas trouve
-            return Path.Combine(publishPath, $"{nodeName.ToLower()}_{department.ToLower()}_OK{desiredExt.ToLower()}");
-
-        }
     }
 }
