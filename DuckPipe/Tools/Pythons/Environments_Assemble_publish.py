@@ -6,17 +6,10 @@ import os
 import sys
 
 # ------------------------------------------------------
-# Ajout du r�pertoire courant au path
-# ------------------------------------------------------
-current_dir = os.path.dirname(__file__)
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
-
-# ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
 TRASHLIST = ['TRASH']
-DEPT_SUFFIX = '_dept_OK'
+DEPT_SUFFIX = '_assemble_OK'
 
 # ------------------------------------------------------
 # Gestion des arguments
@@ -27,7 +20,7 @@ if "--" in sys.argv:
     extra_args = sys.argv[idx + 1:]
     if extra_args:
         server_file_path = extra_args[0]
-        print("Fichier re�u :", server_file_path)
+        print("Fichier recu :", server_file_path)
 
 # ------------------------------------------------------
 # Detection environnement
@@ -37,8 +30,13 @@ IN_MAYA = False
 
 try:
     import bpy
-    import BlenderProcs
-    import GlobalProcs
+
+    current_dir = os.path.dirname(__file__)
+    if current_dir not in sys.path:
+        sys.path.append(current_dir)
+
+    from Soft_Procs import BlenderProcs
+    from Soft_Procs import GlobalProcs
 
     IN_BLENDER = True
     EXECUTED_FILE = bpy.data.filepath
@@ -51,17 +49,24 @@ except ImportError:
 
 try:
     import maya.cmds as cmds
-    import MayaProcs
-    import GlobalProcs
 
-    IN_MAYA = True
     python_file = sys.argv[1]
-    SCRIPT_FILE = python_file
+
     current_dir = os.path.dirname(python_file)
     if current_dir not in sys.path:
         sys.path.append(current_dir)
 
+    print("Maya detected")
+    from Soft_Procs import MayaProcs
+    print("MayaProcs imported")
+    from Soft_Procs import GlobalProcs
+    print("GlobalProcs imported")
+    from Sub_Procs import Assembly_export
+    print("Assembly_export imported")
+    
+    IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
+    SCRIPT_FILE = python_file
     PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
     LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
 
@@ -69,7 +74,7 @@ except ImportError:
     pass    
 
 # ------------------------------------------------------
-# Chemins et variables d�riv�es
+# Chemins et variables derirees
 # ------------------------------------------------------
 file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
@@ -112,8 +117,14 @@ def publish():
     print("publish")
 
     if IN_MAYA:
-        # des procs dans maya
-        pass
+        MayaProcs.import_ref()
+
+        Assembly_export.export(os.path.join(dlv_path, "assembly.json"))
+            
+        full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
+        cmds.file(rename=full_scene_path)
+        cmds.file(save=True, type="mayaAscii", prompt=False)
+
     elif IN_BLENDER:
         # des procs dans blender
         pass

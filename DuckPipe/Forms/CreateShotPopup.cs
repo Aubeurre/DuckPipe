@@ -62,7 +62,7 @@ namespace DuckPipe.Forms
         {
             if (string.IsNullOrWhiteSpace(txtShotName.Text))
             {
-                MessageBox.Show("Veuillez entrer un nom.");
+                LogService.EchoLog("Veuillez entrer un nom.");
                 return;
             }
             DialogResult = DialogResult.OK;

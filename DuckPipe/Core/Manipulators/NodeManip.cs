@@ -75,7 +75,7 @@ namespace DuckPipe.Core.Manipulator
             string rootPath = ProductionService.GetProductionRootPath();
             if (!Directory.Exists(rootPath))
             {
-                MessageBox.Show($"Le chemin defini dans DUCKPIPE_ROOT est invalide :\n{rootPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogService.EchoErrorLog($"Le chemin defini dans DUCKPIPE_ROOT est invalide :\n{rootPath}");
                 return null;
             }
             return path.Replace(rootPath ?? "", "${DUCKPIPE_ROOT}\\");
@@ -87,7 +87,7 @@ namespace DuckPipe.Core.Manipulator
 
             if (!Directory.Exists(rootPath))
             {
-                MessageBox.Show($"Le chemin defini dans DUCKPIPE_ROOT est invalide :\n{rootPath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogService.EchoErrorLog($"Le chemin defini dans DUCKPIPE_ROOT est invalide :\n{rootPath}");
                 return null;
             }
 
@@ -99,7 +99,7 @@ namespace DuckPipe.Core.Manipulator
         {
             if (!File.Exists(nodePath))
             {
-                MessageBox.Show("Fichier introuvable.");
+                LogService.EchoLog("Fichier introuvable.");
                 return 0;
             }
 
@@ -258,7 +258,7 @@ namespace DuckPipe.Core.Manipulator
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Erreur lors de la lecture du changelog :\n{ex.Message}");
+                    LogService.EchoLog($"Erreur lors de la lecture du changelog :\n{ex.Message}");
                     entries = new();
                 }
             }
@@ -413,7 +413,7 @@ namespace DuckPipe.Core.Manipulator
                 string PublishPath = Path.Combine(prodPath, "Assets", nodeName, "dlv");
                 string refAsset = SetEnvVariables(PublishPath).Replace("\\", "/");
 
-                MessageBox.Show($"Reference ajoutee avec succès.\n{refAsset}");
+                LogService.EchoLog($"Reference ajoutee avec succès.\n{refAsset}");
 
                 // --- JSON ---
                 string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
@@ -521,7 +521,7 @@ namespace DuckPipe.Core.Manipulator
                 if (refList.Contains(refPath))
                 {
                     refList.Remove(refPath);
-                    MessageBox.Show($"Référence supprimée avec succès.\n{refPath}");
+                    LogService.EchoLog($"Référence supprimée avec succès.\n{refPath}");
                 }
                 nodeInfos["refAssets"] = refList;
             }
@@ -579,7 +579,8 @@ namespace DuckPipe.Core.Manipulator
             ProdFilesManip.ReturnChanges(changedFiles);
 
 
-        MessageBox.Show($"Fichier copié en local :\n{tempNodelPath}", "Succès");
+            LogService.writeLog($"Fichier copié en local :\n{tempNodelPath}");
+            LogService.EchoSuccessLog($"Node grabbed : {ctx.File}");
         }
 
         public static void UngrabbNode(string nodePath)
@@ -589,6 +590,7 @@ namespace DuckPipe.Core.Manipulator
 
             // if (Directory.Exists(tempDirPath))
             //    Directory.Delete(tempDirPath, true);
+            LogService.writeLog($"Node ungrabbed :\n{tempNodelPath}");
         }
         #endregion
 
@@ -663,17 +665,17 @@ start """" ""{fileToOpen}""
                         if (ctx.Extension == ".ma")
                         {
                             MayaService.CreateBasicMaFile(templateFile, templateName);
-                            MessageBox.Show($"No template found for {templateName}.\nA basic scene has been created.", "Info");
+                            LogService.EchoInfoLog($"No template found for {templateName}.\nA basic scene has been created.");
                         }
                         else if (ctx.Extension == ".blend")
                         {
                             BlenderService.CreateBasicBlendFile(templateFile);
-                            MessageBox.Show($"No template found for {templateName}.\nA basic scene has been created.", "Info");
+                            LogService.EchoInfoLog($"No template found for {templateName}.\nA basic scene has been created.");
                         }
                         else if (ctx.Extension == ".hip" || ctx.Extension == ".hipnc")
                         {
                             HoudiniService.CreateBasicHoudiniFile(templateFile);
-                            MessageBox.Show($"No template found for {templateName}.\nA basic Houdini scene has been created.", "Info");
+                            LogService.EchoInfoLog($"No template found for {templateName}.\nA basic Houdini scene has been created.");
                         }
                     }
                 }
@@ -682,7 +684,7 @@ start """" ""{fileToOpen}""
                 string stubPath = Path.ChangeExtension(LocalFile, $".stub{ctx.Extension}");
                 if (File.Exists(stubPath))
                 {
-                    MessageBox.Show($"Stub detected. Rebuilding base scene for {ctx.Department}...", "DuckPipe");
+                    LogService.EchoLog($"Stub detected. Rebuilding base scene for {ctx.Department}...");
 
                     if (ctx.Extension == ".ma")
                         MayaService.CreateBasicMaFile(LocalFile, $"{ctx.NodeType}_{ctx.Department}");
@@ -738,7 +740,7 @@ start """" ""{fileToOpen}""
             }
             else
             {
-                MessageBox.Show($"Please Grab Node First");
+                LogService.EchoLog($"Please Grab Node First");
             }
         }
 
@@ -774,7 +776,7 @@ start """" ""{fileToOpen}""
             AddNote(nodePath, form);
             MarkDownstreamDepartmentsOutdated(nodePath, ctx.Department);
             form.RefreshTab(ctx.NodeRoot);
-            MessageBox.Show($"Node publie : {publishedFileName}", "Succès");
+            LogService.EchoSuccessLog($"Node publie : {publishedFileName}");
         }
 
         public static void VersionNode(string nodePath, AssetManagerForm form)
@@ -785,7 +787,7 @@ start """" ""{fileToOpen}""
                 string LocalFile = GetTempPath(nodePath);
                 if (!File.Exists(nodePath))
                 {
-                    MessageBox.Show("Fichier Local introuvable.");
+                    LogService.EchoLog("Fichier Local introuvable.");
                     return;
                 }
 
@@ -800,7 +802,7 @@ start """" ""{fileToOpen}""
 
                 File.Copy(LocalFile, destinationPath);
                 File.Copy(LocalFile, nodePath, true);
-                MessageBox.Show($"Version enregistree : {versionedFileName}", "Succès");
+                LogService.EchoSuccessLog($"Version enregistree : {versionedFileName}");
 
                 UpdateNodeMetadata(nodePath, newVersion, ctx.Department);
 
@@ -808,7 +810,7 @@ start """" ""{fileToOpen}""
             }
             else
             {
-                MessageBox.Show($"Please Grab Node First");
+                LogService.EchoLog($"Please Grab Node First");
             }
         }
         #endregion

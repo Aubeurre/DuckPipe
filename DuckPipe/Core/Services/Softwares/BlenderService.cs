@@ -1,4 +1,5 @@
 ﻿using DuckPipe.Core.Config;
+using DuckPipe.Core.Services;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -35,20 +36,20 @@ namespace DuckPipe.Core.Services.Softwares
 
             if (!File.Exists(blenderPath))
             {
-                MessageBox.Show("Blender introuvable !");
+                LogService.EchoLog("Blender introuvable !");
                 return;
             }
 
             if (!File.Exists(blendFilePath))
             {
                 // on force sa creation
-                MessageBox.Show("Le fichier .blend cible est introuvable !");
+                LogService.EchoLog("Le fichier .blend cible est introuvable !");
                 CreateBasicBlendFile(blendFilePath);
             }
 
             if (!File.Exists(assetPath))
             {
-                MessageBox.Show("L’asset .blend source est introuvable !");
+                LogService.EchoLog("L’asset .blend source est introuvable !");
                 return;
             }
 
@@ -82,13 +83,13 @@ namespace DuckPipe.Core.Services.Softwares
 
             if (!File.Exists(blenderPath) )
             {
-                MessageBox.Show("blender.exe introuvable !");
+                LogService.EchoLog("blender.exe introuvable !");
                 return;
             }
 
             if (!File.Exists(pyPath))
             {
-                MessageBox.Show("script Python introuvable !\n", pyPath);
+                LogService.EchoLog($"script Python introuvable !\n {pyPath}");
                 return;
             }
 
@@ -123,8 +124,8 @@ namespace DuckPipe.Core.Services.Softwares
                 p.WaitForExit();
             }
 
-            MessageBox.Show($"Blender Batch termine.\n--- STDOUT ---\n{stdout}", "Blender Batch");
-            MessageBox.Show($"Blender Batch termine.\n--- STDERR ---\n{stderr}", "Blender Batch");
+            LogService.EchoLog($"Blender Batch termine.\n--- STDOUT ---\n{stdout}");
+            LogService.EchoLog($"Blender Batch termine.\n--- STDERR ---\n{stderr}");
         }
 
         public static string PathIntoBlenderFormat(string path)

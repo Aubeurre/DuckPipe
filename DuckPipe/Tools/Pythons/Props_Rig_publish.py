@@ -1,5 +1,19 @@
 """
-Publish pour BLENDER et MAYA
+Publish pour MAYA (le rig se fera toujours dans maya avec DuckPipe)
+
+0-
+lance le script de publish rig custom
+1-
+Delete trash, remove references, 
+2-
+ajouter les shaders, sauvegarder le rig OK
+3-
+ajouter le facial si il existe, faire les connections, sauvegarder l'assemble OK
+4- 
+on split tous les costumes
+5-
+on ajoute une ref vers le split casual dans une scene vide, sauvegarder le Actor OK
+
 """
 
 import os
@@ -8,8 +22,8 @@ import sys
 # ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
-TRASHLIST = ['TRASH']
-DEPT_SUFFIX = "_model_OK"
+
+DEPT_SUFFIX = "_rig_OK"
 
 # ------------------------------------------------------
 # Gestion des arguments
@@ -58,6 +72,7 @@ try:
 
     from Soft_Procs import MayaProcs
     from Soft_Procs import GlobalProcs
+    from Sub_Procs import Maya_surfacing_import_vp
     
     IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
@@ -105,56 +120,79 @@ def prepublish():
     """
     Tout ce qui se passe ici se fait dans la scene de OK
     """
-    print("Pre-publish")
+    print(" -> Pre-publish")
+        
+    if IN_MAYA:  
+        # run custom script if exists
+        rig_scene_folder = os.path.dirname(EXECUTED_FILE)
+        custom_script_path = os.path.join(rig_scene_folder, "customScripts.py")
+        print("custom_script_path:", custom_script_path)
 
-    if IN_MAYA:
-        # des procs dans maya
-        pass
-    elif IN_BLENDER:
-        # des procs dans blender
-        pass
+        if rig_scene_folder not in sys.path:
+            sys.path.append(rig_scene_folder)
+
+        if os.path.exists(custom_script_path):
+            import customScripts
+            customScripts.execute()
 
 
 def publish():
     """
     Tout ce qui se passe ici se fait dans la scene de OK
     """
-    print("publish")
-        
-    export_list = [
-        [['BODY_GRP'], f'{dlv_path}/{asset_name}_body.fbx'],
-        [['CFX_GRP'], f'{dlv_path}/{asset_name}_cfx.fbx'],
-        [['HELPERS_GRP'], f'{dlv_path}/{asset_name}_model_helpers.fbx'],
-        [['BODY_GRP','CFX_GRP'], f'{dlv_path}/{asset_name}_surf.fbx'],
-    ]
-
+    print(" -> publish")
+    
     if IN_MAYA:
-        for grp, path in export_list:
-            MayaProcs.export_hierarchy_by_name(grp, path)
-    elif IN_BLENDER:
-        BlenderProcs.confo_from_blender()
-        for grp, path in export_list:
-            BlenderProcs.export_hierarchy_by_name(grp, path)
+        MayaProcs.remove_ref()
+        MayaProcs.clean_publish(['__TRASH__', '__UTILS__', '__REF__'])
+        cmds.group("__RIG__", "MODEL_OK", n=asset_name)
+
+        if os.path.exists(os.path.join(dlv_path, "surfacing_export.json")):
+            Maya_surfacing_import_vp.import_surf(os.path.join(dlv_path, "surfacing_export.json"))
+
+        full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
+        cmds.file(rename=full_scene_path)
+        cmds.file(save=True, type="mayaAscii", prompt=False)
+
+        addAssemblyAttr()
 
 
 def postpublish():
     """
-    Tout ce qui se passe ici se fait apres tout le reste
+    Tout ce qui se passe ici se fait apres tout le reste une fois la scene fermee
     """
-    print("Post-publish")
-
-    if IN_MAYA:
-        MayaProcs.clean_publish(TRASHLIST)
-        cmds.file(save=True, type="mayaAscii")
-    elif IN_BLENDER:
-        BlenderProcs.clean_publish(TRASHLIST)
-        bpy.ops.wm.save_mainfile()
+    print(" -> Post-publish")
     
+    if IN_MAYA:
+        cmds.file(save=True, type="mayaAscii")
+        cmds.file(new=True, force=True)
+            
         
+# ------------------------------------------------------
+# Fonction MAYA
+# ------------------------------------------------------
+
+def addAssemblyAttr():
+    """
+    ajout d un attr de animable or not for set assembly
+    """
+    if IN_MAYA:
+        if cmds.objExists("global_ctl"):
+            if not cmds.attributeQuery("is_assembly_animable", node="global_ctl", exists=True):
+                cmds.addAttr("global_ctl", ln="is_assembly_animable", at="bool", dv=1)
+                cmds.setAttr("global_ctl.is_assembly_animable", e=1, keyable=0, channelBox=1)
+                print("attribut is_assembly_animable ajoute a global_ctl")
+            if not cmds.attributeQuery("asset_name", node="global_ctl", exists=True):
+                cmds.addAttr("global_ctl", ln="asset_name", dt="string")
+                cmds.setAttr("global_ctl.asset_name", e=1, keyable=0, channelBox=1)
+                cmds.setAttr("global_ctl.asset_name" , asset_name, type='string')
+                print(f"attribut name {asset_name} ajoute a global_ctl")
+
+
 # ------------------------------------------------------
 # Main
 # ------------------------------------------------------
-def main():        
+def main():       
     prepublish()
     publish()
     postpublish()

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using DuckPipe.Core.Manipulator;
 using DuckPipe.Core.Services.Softwares;
+using DuckPipe.Core.Services;
 
 namespace DuckPipe.Core.Builders
 {
@@ -467,7 +468,7 @@ namespace DuckPipe.Core.Builders
 
             if (!File.Exists(nodeStructPath))
             {
-                MessageBox.Show($"Fichier NodeStructure.json manquant dans :\n{prodPath}");
+                LogService.EchoLog($"Fichier NodeStructure.json manquant dans :\n{prodPath}");
                 return null;
             }
 
@@ -494,7 +495,7 @@ namespace DuckPipe.Core.Builders
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur lors de la lecture de NodeStructure.json :\n{ex.Message}");
+                LogService.EchoLog($"Erreur lors de la lecture de NodeStructure.json :\n{ex.Message}");
                 return null;
             }
         }
@@ -513,7 +514,7 @@ namespace DuckPipe.Core.Builders
 
             if (!Directory.Exists(templatesDir))
             {
-                MessageBox.Show($"Dossier de template manquant dans :\n{templatesDir}");
+                LogService.EchoLog($"Dossier de template manquant dans :\n{templatesDir}");
                 return;
             }
 
@@ -529,7 +530,7 @@ namespace DuckPipe.Core.Builders
                             string templateFile = Path.Combine(templatesDir, $"{department}_{structure.Name}_template", extension);
                             if (!File.Exists(templateFile))
                             {
-                                MessageBox.Show($"Creation de :\n{templateFile}");
+                                LogService.EchoLog($"Creation de :\n{templateFile}");
                             }
                         }
 

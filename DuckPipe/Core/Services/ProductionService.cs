@@ -71,7 +71,7 @@ namespace DuckPipe.Core.Services
 
             if (!Directory.Exists(rootPath))
             {
-                MessageBox.Show($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n\n Enter fallback mode, \nPlease create first {UserConfig.GetLocalBasePath()} then reopen the tool", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogService.EchoErrorLog($"Le chemin défini dans DUCKPIPE_ROOT est invalide :\n\n Enter fallback mode, \nPlease create first {UserConfig.GetLocalBasePath()} then reopen the tool");
                 return new List<string>();
             }
             return Directory.GetDirectories(rootPath)
@@ -173,8 +173,8 @@ namespace DuckPipe.Core.Services
         public static bool CheckIfOnServer(string prodPath)
         {
             string serverPath = UserConfig.GetServerBasePath();
-            MessageBox.Show(prodPath);
-            MessageBox.Show(serverPath);
+            LogService.EchoLog(prodPath);
+            LogService.EchoLog(serverPath);
             if (prodPath.Contains(serverPath))
                 return true;
             else

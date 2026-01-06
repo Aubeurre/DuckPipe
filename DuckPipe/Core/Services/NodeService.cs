@@ -76,7 +76,7 @@ namespace DuckPipe.Core.Services
 
         public static void CreateShot(string selectedProd, string seqName, string newItemName, string Description, string rangeIn, string rangeOut)
         {
-            MessageBox.Show($"Creation du shot {newItemName} dans la sequence {seqName}");
+            LogService.EchoLog($"Creation du shot {newItemName} dans la sequence {seqName}");
             createNode(selectedProd, newItemName, "Shots", seqName, Description, rangeIn, rangeOut);
         }
         public static void CreateSequence(string selectedProd, string newItemName, string Description)
@@ -103,7 +103,7 @@ namespace DuckPipe.Core.Services
 
                     if (content.Contains(userName, StringComparison.OrdinalIgnoreCase))
                     {
-                        MessageBox.Show($"Fichier grabbe trouve : {file}");
+                        LogService.EchoLog($"Fichier grabbe trouve : {file}");
                         result.Add(file);
                     }
                 }
@@ -120,13 +120,13 @@ namespace DuckPipe.Core.Services
         {
                 if (string.IsNullOrEmpty(newItemName))
                 {
-                    MessageBox.Show("Le nom de l'node ne peut pas etre vide.");
+                    LogService.EchoLog("Le nom de l'node ne peut pas etre vide.");
                     return;
                 }
 
                 if (string.IsNullOrEmpty(selectedProd))
                 {
-                    MessageBox.Show("Aucune production selectionnee.");
+                    LogService.EchoLog("Aucune production selectionnee.");
                     return;
                 }
 
@@ -139,7 +139,7 @@ namespace DuckPipe.Core.Services
 
                     if (Directory.Exists(nodePath))
                     {
-                        MessageBox.Show("Ce node existe déjà.");
+                        LogService.EchoLog("Ce node existe déjà.");
                         return;
                     }
 
@@ -147,14 +147,14 @@ namespace DuckPipe.Core.Services
                     var nodeStructures = NodeStructureBuilder.LoadNodeStructures(prodPath);
                     if (nodeStructures == null || !nodeStructures.TryGetValue(newItemType, out var nodeStructure))
                     {
-                        MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
+                        LogService.EchoLog($"Structure introuvable pour le type : {newItemType}");
                         return;
                     }
 
                     // arborescence des fichiers/dossiers
                     NodeStructureBuilder.CreateNodeStructure(rootPath, nodePath, nodeStructure, newItemName, Description, rangeIn, rangeOut);
 
-                    MessageBox.Show($"Node '{newItemName}' ({newItemType}) créé dans :\n{nodePath}");
+                    LogService.EchoLog($"Node '{newItemName}' ({newItemType}) créé dans :\n{nodePath}");
                 }
 
                 if (newItemType == "Sequences")
@@ -164,7 +164,7 @@ namespace DuckPipe.Core.Services
 
                     if (Directory.Exists(seqPath))
                     {
-                        MessageBox.Show("Cette Sequence existe déjà.");
+                        LogService.EchoLog("Cette Sequence existe déjà.");
                         return;
                     }
 
@@ -172,7 +172,7 @@ namespace DuckPipe.Core.Services
                     var nodeStructures = NodeStructureBuilder.LoadNodeStructures(prodPath);
                     if (nodeStructures == null || !nodeStructures.TryGetValue(newItemType, out var nodeStructure))
                     {
-                        MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
+                        LogService.EchoLog($"Structure introuvable pour le type : {newItemType}");
                         return;
                     }
                     NodeStructureBuilder.CreateNodeStructure(rootPath, seqPath, nodeStructure, newItemName, Description, rangeIn, rangeOut);
@@ -186,7 +186,7 @@ namespace DuckPipe.Core.Services
 
                     if (Directory.Exists(seqPath))
                     {
-                        MessageBox.Show("Cette Sequence existe déjà.");
+                        LogService.EchoLog("Cette Sequence existe déjà.");
                         return;
                     }
 
@@ -194,7 +194,7 @@ namespace DuckPipe.Core.Services
                     var nodeStructures = NodeStructureBuilder.LoadNodeStructures(prodPath);
                     if (nodeStructures == null || !nodeStructures.TryGetValue(newItemType, out var nodeStructure))
                     {
-                        MessageBox.Show($"Structure introuvable pour le type : {newItemType}");
+                        LogService.EchoLog($"Structure introuvable pour le type : {newItemType}");
                         return;
                     }
                     NodeStructureBuilder.CreateNodeStructure(rootPath, seqPath, nodeStructure, $"{seqName}-{newItemName}", Description, rangeIn, rangeOut);

@@ -182,9 +182,9 @@ namespace DuckPipe.Core.Manipulators
         internal static void ReturnChanges(List<string> changedFiles)
         {
             if (changedFiles.Count == 0)
-                MessageBox.Show("Aucun fichier mis à jour !");
+                LogService.writeLog("Aucun fichier mis à jour !");
             else
-                MessageBox.Show("Fichiers mis à jour :\n" + string.Join("\n", changedFiles));
+                LogService.writeLog("Fichiers mis à jour :\n" + string.Join("\n", changedFiles));
         }
 
         #endregion

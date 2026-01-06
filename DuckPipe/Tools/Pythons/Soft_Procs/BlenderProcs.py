@@ -132,6 +132,10 @@ def collection_to_empty(coll, parent_empty=None):
     Cree un Empty pour representer la collection
     """
     coll_to_empty = {}
+    # # petit fix pour si la Col a deja _GRP
+    # if (coll.name).endswith("_GRP"):
+    #     coll.name = coll.name.replace("_GRP", "")
+    #     # rename a la porc de la coll
     empty_name = coll.name + "_GRP"
 
     # check empty

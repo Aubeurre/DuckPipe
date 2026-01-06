@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DuckPipe.Core.Services;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -35,7 +36,7 @@ namespace DuckPipe.Forms
         {
             if (string.IsNullOrWhiteSpace(txtNodeName.Text))
             {
-                MessageBox.Show("Veuillez entrer un nom.");
+                LogService.EchoLog("Veuillez entrer un nom.");
                 return;
             }
 

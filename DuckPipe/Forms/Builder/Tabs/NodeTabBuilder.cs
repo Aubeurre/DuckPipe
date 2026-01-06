@@ -231,7 +231,7 @@ namespace DuckPipe.Forms.Builder.NodeTab
 
                 thumb.DoubleClick += (s, e) =>
                 {
-                    MessageBox.Show($"Ouverture de: {Path.GetFileName(image.FullPath)}, soyez patient");
+                    LogService.EchoLog($"Ouverture de: {Path.GetFileName(image.FullPath)}, soyez patient");
                     Process.Start("explorer", $"\"{image.FullPath}\"");
                 };
 
@@ -338,7 +338,7 @@ namespace DuckPipe.Forms.Builder.NodeTab
 
                 image.DoubleClick += (s, e) =>
                 {
-                    MessageBox.Show($"Ouverture de: {Path.GetFileName(playblast.FullPath)}, soyez patient");
+                    LogService.EchoLog($"Ouverture de: {Path.GetFileName(playblast.FullPath)}, soyez patient");
                     Process.Start("explorer", $"\"{playblast.FullPath}\"");
                 };
 

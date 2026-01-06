@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DuckPipe.Core;
+using DuckPipe.Core.Services;
 
 namespace DuckPipe.Forms
 {
@@ -34,7 +35,7 @@ namespace DuckPipe.Forms
 
                 if (string.IsNullOrEmpty(Hours))
                 {
-                    MessageBox.Show("Veuillez remplir tous les champs obligatoires.");
+                    LogService.EchoLog("Veuillez remplir tous les champs obligatoires.");
                     return;
                 }
 

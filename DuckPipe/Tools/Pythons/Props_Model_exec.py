@@ -1,15 +1,29 @@
 """
-Publish pour BLENDER et MAYA
+Exec pour BLENDER et MAYA
 """
 
 import os
 import sys
 
 # ------------------------------------------------------
+# Ajout du repertoire courant au path
+# ------------------------------------------------------
+if "__file__" not in globals():
+    try:
+        __file__ = sys.argv[1]
+    except Exception:
+        __file__ = bpy.data.filepath
+
+current_dir = os.path.dirname(__file__)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
+# ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
-TRASHLIST = ['TRASH']
-DEPT_SUFFIX = "_model_OK"
+REFNODS = ["{node_dlv_path}{node_name}"] # y en a pas pour le modeling
+DEPT_SUFFIX = "_model"
+TEMPLATE_FILE = "Props_Model_template"
 
 # ------------------------------------------------------
 # Gestion des arguments
@@ -30,11 +44,6 @@ IN_MAYA = False
 
 try:
     import bpy
-
-    current_dir = os.path.dirname(__file__)
-    if current_dir not in sys.path:
-        sys.path.append(current_dir)
-
     from Soft_Procs import BlenderProcs
     from Soft_Procs import GlobalProcs
 
@@ -49,19 +58,17 @@ except ImportError:
 
 try:
     import maya.cmds as cmds
+    from Soft_Procs import MayaProcs
+    from Soft_Procs import GlobalProcs
 
+    IN_MAYA = True
     python_file = sys.argv[1]
-
+    SCRIPT_FILE = python_file
     current_dir = os.path.dirname(python_file)
     if current_dir not in sys.path:
         sys.path.append(current_dir)
 
-    from Soft_Procs import MayaProcs
-    from Soft_Procs import GlobalProcs
-    
-    IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
-    SCRIPT_FILE = python_file
     PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
     LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
 
@@ -75,9 +82,12 @@ file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
 asset_path = os.path.dirname(os.path.dirname(EXECUTED_FILE))
 asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
+root_asset_path = os.path.dirname(os.path.dirname(asset_root_path))
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
+local_template_path = os.path.join(asset_root_path, "Template")
+template_path = os.path.join(root_asset_path, "Template").replace(LOCAL_PATH, PROD_PATH)
 
 print("--------------------------------")
 debug_vars = {
@@ -85,79 +95,71 @@ debug_vars = {
     "SCRIPT_FILE": SCRIPT_FILE,
     "PROD_PATH": PROD_PATH,
     "LOCAL_PATH": LOCAL_PATH,
+    "root_asset_path": root_asset_path,
     "asset_path": asset_path,
     "asset_root_path": asset_root_path,
     "dlv_path": dlv_path,
     "asset_name": asset_name,
     "studio_dlv_path": studio_dlv_path,
+    "template_path": template_path,
 }
 
 print("\n----- DEBUG -----")
 for name, value in debug_vars.items():
     print(f"{name:<18} = {value}")
 print("-----------------\n")
-
+    
     
 # ------------------------------------------------------
 # Fonction commune
 # ------------------------------------------------------
-def prepublish():
+def preexecute():
     """
-    Tout ce qui se passe ici se fait dans la scene de OK
+    Tout ce qui se passe ici se fait dans la scene de work
     """
-    print("Pre-publish")
+    print(" -> Pre-execute")
 
     if IN_MAYA:
-        # des procs dans maya
-        pass
-    elif IN_BLENDER:
-        # des procs dans blender
-        pass
+        MayaProcs.sanitize_ma(f"{template_path}/{TEMPLATE_FILE}.ma")
+        MayaProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.ma")
+    elif IN_BLENDER:      
+        BlenderProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.blend")
+    
 
-
-def publish():
+def execute():
     """
-    Tout ce qui se passe ici se fait dans la scene de OK
+    Tout ce qui se passe ici se fait dans la scene de work
     """
-    print("publish")
-        
-    export_list = [
-        [['BODY_GRP'], f'{dlv_path}/{asset_name}_body.fbx'],
-        [['CFX_GRP'], f'{dlv_path}/{asset_name}_cfx.fbx'],
-        [['HELPERS_GRP'], f'{dlv_path}/{asset_name}_model_helpers.fbx'],
-        [['BODY_GRP','CFX_GRP'], f'{dlv_path}/{asset_name}_surf.fbx'],
-    ]
+    print(" -> execute")
 
     if IN_MAYA:
-        for grp, path in export_list:
-            MayaProcs.export_hierarchy_by_name(grp, path)
+        pass
     elif IN_BLENDER:
-        BlenderProcs.confo_from_blender()
-        for grp, path in export_list:
-            BlenderProcs.export_hierarchy_by_name(grp, path)
+        pass
 
 
-def postpublish():
+def postexecute():
     """
     Tout ce qui se passe ici se fait apres tout le reste
     """
-    print("Post-publish")
+    print(" -> Post-execute")
 
     if IN_MAYA:
-        MayaProcs.clean_publish(TRASHLIST)
-        cmds.file(save=True, type="mayaAscii")
+        cmds.file(rename=EXECUTED_FILE)
+        cmds.file(save=True, type="mayaAscii", force=True)
     elif IN_BLENDER:
-        BlenderProcs.clean_publish(TRASHLIST)
-        bpy.ops.wm.save_mainfile()
+        bpy.ops.wm.save_as_mainfile(filepath=EXECUTED_FILE)
     
-        
+
 # ------------------------------------------------------
 # Main
 # ------------------------------------------------------
-def main():        
-    prepublish()
-    publish()
-    postpublish()
+def main():
+    preexecute()
+    execute()
+    postexecute()
+
 
 if __name__ == "__main__":
     main()
+

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using DuckPipe.Core.Services;
 
 namespace DuckPipe.Core.Config
 {
@@ -110,7 +111,7 @@ namespace DuckPipe.Core.Config
         public static void OpenConfigFile()
         {
             string path = GetDefaultConfigPath();
-            MessageBox.Show(path);
+            LogService.EchoLog(path);
             if (!File.Exists(path))
             {
                 var config = new UserConfig();

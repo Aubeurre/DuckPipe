@@ -336,8 +336,7 @@ namespace DuckPipe.Forms.Builder.Tabs
                 if (!string.IsNullOrEmpty(nodePath))
                     onValidSelection(nodePath, form);
                 else
-                    MessageBox.Show("Aucun node sélectionné dans l’arborescence.", "Erreur",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    LogService.EchoErrorLog("Aucun node sélectionné dans l’arborescence.");
             };
 
             return btn;

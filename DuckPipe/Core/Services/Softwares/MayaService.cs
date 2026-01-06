@@ -91,7 +91,7 @@ namespace DuckPipe.Core.Services.Softwares
             }
             else
             {
-                MessageBox.Show("mayabatch.exe ou script Python introuvable !");
+                LogService.EchoLog("mayabatch.exe ou script Python introuvable !");
             }
 
         }

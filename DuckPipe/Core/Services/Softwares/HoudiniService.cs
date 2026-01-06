@@ -12,13 +12,13 @@ namespace DuckPipe.Core.Services.Softwares
         public static void CreateBasicHoudiniFile(string filePath)
         {
             string houdiniPath = GetHoudiniPath();
-            MessageBox.Show(houdiniPath);
+            LogService.EchoLog(houdiniPath);
             // Vérifie d’abord la présence réelle de houdini.exe et de hython.exe
             string hythonPath = Path.Combine(Path.GetDirectoryName(houdiniPath), "hython.exe");
-            MessageBox.Show(hythonPath);
+            LogService.EchoLog(hythonPath);
             bool houdiniExists = File.Exists(houdiniPath);
             bool hythonExists = File.Exists(hythonPath);
-            MessageBox.Show(houdiniExists.ToString());
+            LogService.EchoLog(houdiniExists.ToString());
 
             if (!houdiniExists || !hythonExists)
             {
@@ -50,13 +50,13 @@ print('Houdini: Fichier .hipnc créé ->', r'" + filePath.Replace("\\", "/") + @
 
             if (!File.Exists(hythonPath))
             {
-                MessageBox.Show("hython.exe introuvable !");
+                LogService.EchoLog("hython.exe introuvable !");
                 return;
             }
 
             if (!File.Exists(pyPath))
             {
-                MessageBox.Show($"Script Python introuvable : {pyPath}");
+                LogService.EchoLog($"Script Python introuvable : {pyPath}");
                 return;
             }
 
@@ -91,9 +91,9 @@ print('Houdini: Fichier .hipnc créé ->', r'" + filePath.Replace("\\", "/") + @
                 p.WaitForExit();
             }
 
-            MessageBox.Show($"Houdini Batch terminé.\n--- STDOUT ---\n{stdout}", "Houdini Batch");
+            LogService.EchoSuccessLog($"Houdini Batch terminé.\n--- STDOUT ---\n{stdout}");
             if (stderr.Length > 0)
-                MessageBox.Show($"--- STDERR ---\n{stderr}", "Erreurs Houdini");
+                LogService.EchoErrorLog($"--- STDERR ---\n{stderr}");
         }
 
         public static string GetHoudiniPath()

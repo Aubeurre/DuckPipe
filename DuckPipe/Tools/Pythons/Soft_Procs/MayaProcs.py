@@ -25,6 +25,7 @@ def import_ref():
             if cmds.namespace(exists=namespace) is True:
                 cmds.namespace(removeNamespace=namespace, mergeNamespaceWithRoot=True)
 
+    
 def sanitize_ma(path):
     with open(path, "r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -33,6 +34,7 @@ def sanitize_ma(path):
         for line in lines:
             if ".oclr" not in line:
                 f.write(line)
+
 
 def remove_ref():
     """
@@ -66,6 +68,7 @@ def reset_scene(path):
     path = path.replace("\\", "/")
     if os.path.exists(path):
         cmds.file(path, i=1)
+
 
 def export_hierarchy_by_name(root_names, filepath):
     """
@@ -123,54 +126,65 @@ def export_hierarchy_by_name(root_names, filepath):
     print(f"FBX exporte avec : {root_names} - {filepath}")
 
 
+def reroot_fbx(scene_path):
+
+    print("REROOT:", scene_path)
+    print("Existe ?", os.path.exists(scene_path))
+
+    with open(scene_path, "r", encoding="utf-8") as f:
+        print("lecture")
+        lines = f.readlines()
+
+    with open(scene_path, "w", encoding="utf-8") as f:
+        print("ecriture")
+        for line in lines:
+            if "__dummy" in line:
+                f.write(line.replace("__dummy", ""))
+                print(line.replace("__dummy", ""))
+            else:
+                f.write(line)
+        f.flush()
+        os.fsync(f.fileno())
+
+    print("REROOT DONE.")
 
 # NE FONCTIONNE PAS EN BATCH MAIS OUI DANS LE GUI
 def reference_fbx(file_path, parent_grp):
-    """Reference un FBX et le parent a parent_grp"""
-    if os.path.exists(file_path):
 
-        if not cmds.objExists(parent_grp):
-            cmds.group(em=1, n=parent_grp)
+    file_path = file_path.replace("\\", "/")
 
-        file_path = file_path.replace("\\", "/")
-
-        # plugin FBX
-        if not cmds.pluginInfo("fbxmaya", q=True, loaded=True):
-            try:
-                cmds.loadPlugin("fbxmaya")
-            except Exception as e:
-                cmds.error(f"Impossible de charger fbxmaya : {e}")
-
+    if not cmds.pluginInfo("fbxmaya", q=True, loaded=True):
         try:
-            print(f"Import FBX : {file_path}")
-            ref_node = cmds.file(file_path, r=True, type="FBX", ignoreVersion=True, options="v=0;", namespace=":")
-            ref_nodes = cmds.referenceQuery(ref_node, nodes=True, dagPath=True) or []
-            root_nodes = [n for n in ref_nodes if not cmds.listRelatives(n, parent=True)]
-            if root_nodes:
-               cmds.parent(root_nodes, parent_grp)
+            cmds.loadPlugin("fbxmaya")
         except Exception as e:
-            cmds.error(f"Erreur reference FBX : {e}")
+            cmds.error(f"Impossible de charger fbxmaya : {e}")
+
+    if not cmds.objExists(parent_grp):
+        cmds.group(em=1, n=parent_grp)
+
+    real_file_exists = os.path.exists(file_path)
+
+    # on cee le fbx qui pointe bien comme ca ne va pas charger et donc crash
+    if not real_file_exists:
+        print(f"[WARN] Fichier inexistant creation du fbx : {file_path}")
+        ref_node = cmds.file(file_path,
+                             r=True,
+                             type="FBX",
+                             ignoreVersion=True,
+                             options="v=0;",
+                             namespace=":")
+        print(f"[OK]")
 
     else:
-        try:
-            cmds.file(file_path, r=True, type="FBX", namespace=":", ignoreVersion=True, options="v=0;", deferReference=True)
-            print(f"[WARN] Fichier manquant (reference differee) : {file_path}")
-        except Exception as e:
-            cmds.error(f"Erreur reference FBX manquant : {e}")
-
-
-# ------------------------------------------------------
-# Fonction BLENDER to MAYA
-# ------------------------------------------------------
-def confo_from_maya():
-    locList = cmds.ls(exactType="locator", l=True) or []
-    all_ref = get_all_ref_items()
-    for locShape in locList:
-        # on ne touche pas au refs 
-        if not locShape in all_ref: 
-            loc = cmds.listRelatives(locShape, p=True, f=True)[0]
-            if loc.endswith("_GRP"):
-                print("->", locShape)
-                cmds.delete(locShape)
-    print("Maya Groups done !")
+        dummypath = file_path.replace(".fbx", "__dummy.fbx")
+        print(f"[WARN] Fichier existant creation du fbx : {dummypath}")
+        ref_node = cmds.file(dummypath,
+                             r=True,
+                             type="FBX",
+                             ignoreVersion=True,
+                             options="v=0;",
+                             namespace=":")
+        print(f"[DUMY OK]")
+        # on reroot apres en ecriture car maya en batch ne veut pas le faire.
+            
     

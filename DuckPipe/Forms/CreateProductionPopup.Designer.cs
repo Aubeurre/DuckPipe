@@ -1,4 +1,6 @@
-﻿namespace DuckPipe
+﻿using DuckPipe.Core.Services;
+
+namespace DuckPipe
 {
     partial class CreateProductionPopup
     {
@@ -386,7 +388,7 @@
             ProductionName = txtProductionName.Text.Trim();
             if (string.IsNullOrEmpty(ProductionName))
             {
-                MessageBox.Show("Veuillez entrer un nom de production.");
+                LogService.EchoLog("Veuillez entrer un nom de production.");
                 return;
             }
 

@@ -32,7 +32,7 @@ namespace DuckPipe
         {
             if (string.IsNullOrWhiteSpace(txtNodeName.Text))
             {
-                MessageBox.Show("Veuillez entrer un nom.");
+                LogService.EchoLog("Veuillez entrer un nom.");
                 return;
             }
             DialogResult = DialogResult.OK;

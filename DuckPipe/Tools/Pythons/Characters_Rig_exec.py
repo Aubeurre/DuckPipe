@@ -22,7 +22,6 @@ if current_dir not in sys.path:
 # Constantes
 # ------------------------------------------------------
 REFNODS = ["{node_dlv_path}/{node_name}_body.fbx",
-           "{node_dlv_path}/{node_name}_cfx_prez.fbx",
            "{node_dlv_path}/{node_name}_cfx.fbx",
            "{node_dlv_path}/{node_name}_model_helpers.fbx",
            "{node_dlv_path}/{node_name}_groom.fbx"
@@ -49,8 +48,8 @@ IN_MAYA = False
 
 try:
     import bpy
-    import BlenderProcs
-    import GlobalProcs
+    from Soft_Procs import BlenderProcs
+    from Soft_Procs import GlobalProcs
 
     IN_BLENDER = True
     EXECUTED_FILE = bpy.data.filepath
@@ -63,8 +62,8 @@ except ImportError:
 
 try:
     import maya.cmds as cmds
-    import MayaProcs
-    import GlobalProcs
+    from Soft_Procs import MayaProcs
+    from Soft_Procs import GlobalProcs
 
     IN_MAYA = True
     python_file = sys.argv[1]
@@ -85,7 +84,7 @@ except ImportError:
 # ------------------------------------------------------
 file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
-asset_path = os.path.dirname(os.path.dirname(EXECUTED_FILE))
+asset_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
 asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
 root_asset_path = os.path.dirname(os.path.dirname(asset_root_path))
 dlv_path = os.path.join(asset_path, "dlv")
@@ -141,7 +140,8 @@ def execute():
         # importer ou referencer les FBX
         for node_template in REFNODS:
             fbx_path = node_template.replace("{node_dlv_path}", studio_dlv_path).replace("{node_name}", asset_name)
-            # MayaProcs.reference_fbx(fbx_path, "REF")
+            MayaProcs.reference_fbx(fbx_path, "REF")
+
     elif IN_BLENDER:
         # importer les FBX
         for node_template in REFNODS:
@@ -151,16 +151,41 @@ def execute():
 
 def postexecute():
     """
-    Tout ce qui se passe ici se fait apres tout le reste
+    Tout ce qui se passe ici se fait apres tout le reste, une fois la scene fermee
     """
     print(" -> Post-execute")
 
     if IN_MAYA:
         cmds.file(rename=EXECUTED_FILE)
         cmds.file(save=True, type="mayaAscii", force=True)
+        cmds.file(new=True, force=True)
+        reroot_fbx(EXECUTED_FILE)
+
     elif IN_BLENDER:
         bpy.ops.wm.save_as_mainfile(filepath=EXECUTED_FILE)
     
+# ------------------------------------------------------
+# MAYA PROCS
+# ------------------------------------------------------
+def reroot_fbx(scene_path):
+
+    print("REROOT:", scene_path)
+
+    with open(scene_path, "r", encoding="utf-8") as f:
+        print("lecture")
+        lines = f.readlines()
+
+    with open(scene_path, "w", encoding="utf-8") as f:
+        print("ecriture")
+        for line in lines:
+            if "__dummy" in line:
+                f.write(line.replace("__dummy", ""))
+            else:
+                f.write(line)
+        f.flush()
+        os.fsync(f.fileno())
+
+    print("REROOT DONE.")
 
 # ------------------------------------------------------
 # Main

@@ -9,7 +9,7 @@ import sys
 # Constantes
 # ------------------------------------------------------
 TRASHLIST = ['TRASH']
-DEPT_SUFFIX = "_model_OK"
+DEPT_SUFFIX = '_dept_OK'
 
 # ------------------------------------------------------
 # Gestion des arguments
@@ -20,7 +20,7 @@ if "--" in sys.argv:
     extra_args = sys.argv[idx + 1:]
     if extra_args:
         server_file_path = extra_args[0]
-        print("Fichier recu :", server_file_path)
+        print("Fichier re�u :", server_file_path)
 
 # ------------------------------------------------------
 # Detection environnement
@@ -30,11 +30,6 @@ IN_MAYA = False
 
 try:
     import bpy
-
-    current_dir = os.path.dirname(__file__)
-    if current_dir not in sys.path:
-        sys.path.append(current_dir)
-
     from Soft_Procs import BlenderProcs
     from Soft_Procs import GlobalProcs
 
@@ -49,19 +44,17 @@ except ImportError:
 
 try:
     import maya.cmds as cmds
+    from Soft_Procs import MayaProcs
+    from Soft_Procs import GlobalProcs
 
+    IN_MAYA = True
     python_file = sys.argv[1]
-
+    SCRIPT_FILE = python_file
     current_dir = os.path.dirname(python_file)
     if current_dir not in sys.path:
         sys.path.append(current_dir)
 
-    from Soft_Procs import MayaProcs
-    from Soft_Procs import GlobalProcs
-    
-    IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
-    SCRIPT_FILE = python_file
     PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
     LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
 
@@ -69,7 +62,7 @@ except ImportError:
     pass    
 
 # ------------------------------------------------------
-# Chemins et variables derivees
+# Chemins et variables d�riv�es
 # ------------------------------------------------------
 file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
@@ -80,22 +73,12 @@ asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 
 print("--------------------------------")
-debug_vars = {
-    "EXECUTED_FILE": EXECUTED_FILE,
-    "SCRIPT_FILE": SCRIPT_FILE,
-    "PROD_PATH": PROD_PATH,
-    "LOCAL_PATH": LOCAL_PATH,
-    "asset_path": asset_path,
-    "asset_root_path": asset_root_path,
-    "dlv_path": dlv_path,
-    "asset_name": asset_name,
-    "studio_dlv_path": studio_dlv_path,
-}
-
-print("\n----- DEBUG -----")
-for name, value in debug_vars.items():
-    print(f"{name:<18} = {value}")
-print("-----------------\n")
+for item in [
+EXECUTED_FILE, SCRIPT_FILE, PROD_PATH, LOCAL_PATH,
+asset_path, asset_root_path, dlv_path, asset_name,
+studio_dlv_path
+]:
+    print(item)
 
     
 # ------------------------------------------------------
@@ -120,21 +103,14 @@ def publish():
     Tout ce qui se passe ici se fait dans la scene de OK
     """
     print("publish")
-        
-    export_list = [
-        [['BODY_GRP'], f'{dlv_path}/{asset_name}_body.fbx'],
-        [['CFX_GRP'], f'{dlv_path}/{asset_name}_cfx.fbx'],
-        [['HELPERS_GRP'], f'{dlv_path}/{asset_name}_model_helpers.fbx'],
-        [['BODY_GRP','CFX_GRP'], f'{dlv_path}/{asset_name}_surf.fbx'],
-    ]
 
     if IN_MAYA:
-        for grp, path in export_list:
-            MayaProcs.export_hierarchy_by_name(grp, path)
+        # des procs dans maya
+        pass
     elif IN_BLENDER:
-        BlenderProcs.confo_from_blender()
-        for grp, path in export_list:
-            BlenderProcs.export_hierarchy_by_name(grp, path)
+        # des procs dans blender
+        pass
+
 
 
 def postpublish():

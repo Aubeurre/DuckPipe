@@ -57,6 +57,62 @@ def maya_connect_texture(lambert, image_path, is_udim=False):
     print(f"[IMPORT] Connected texture {image_path}")
     return file_node
 
+
+def make_lambert_transparent(lambert, amount=1.0):
+    cmds.setAttr(lambert + ".transparency", amount, amount, amount, type="double3")
+    print(f"[IMPORT] {lambert} set transparent={amount}")
+
+
+def shader_is_transparent(entry):
+    graph = entry.get("graph", {})
+    nodes = graph.get("nodes", {})
+    links = graph.get("links", [])
+
+    incoming = {}
+    for l in links:
+        dst = l.get("dst_node")
+        src = l.get("src_node")
+        if dst and src:
+            incoming.setdefault(dst, []).append(src)
+
+    # BFS depuis Material Output
+    start = "Material Output"
+    if start not in nodes:
+        return False
+
+    to_visit = incoming.get(start, [])
+    visited = set()
+
+    while to_visit:
+        node = to_visit.pop(0)
+        if node in visited:
+            continue
+        visited.add(node)
+
+        info = nodes.get(node, {})
+        ntype = info.get("type", "").lower()
+        nname = node.lower()
+
+        # Transparent BSDF
+        if "transparent" in ntype or "transparent" in nname:
+            return True
+
+        # Mix Shader
+        if "mix" in ntype:
+            for s in incoming.get(node, []):
+                if s not in visited:
+                    to_visit.append(s)
+            continue
+
+        # Autre
+        for s in incoming.get(node, []):
+            if s not in visited:
+                to_visit.append(s)
+
+    return False
+
+
+
 def find_first_texture(entry):
     """Retourne le premier chemin de texture trouve dans le graph et si c'est un UDIM."""
     graph = entry.get("graph", {})
@@ -75,6 +131,7 @@ def find_first_texture(entry):
             return img, is_udim
 
     return None, False
+
 
 def import_light_shaders(json_path, texture_root=None):
     data = load_json(json_path)
@@ -105,6 +162,11 @@ def import_light_shaders(json_path, texture_root=None):
             
         else:
             print("[IMPORT] No texture in this material")
+
+        # DETECT TRANSPARENCY
+        if shader_is_transparent(entry):
+            print("[IMPORT] Shader is transparent - Adding transparency to lambert")
+            make_lambert_transparent(lambert, amount=1.0)
 
         # -----------------------------
         # 2. ASSIGN TO MESHES

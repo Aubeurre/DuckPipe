@@ -44,8 +44,8 @@ IN_MAYA = False
 
 try:
     import bpy
-    import BlenderProcs
-    import GlobalProcs
+    from Soft_Procs import BlenderProcs
+    from Soft_Procs import GlobalProcs
 
     IN_BLENDER = True
     EXECUTED_FILE = bpy.data.filepath
@@ -58,8 +58,8 @@ except ImportError:
 
 try:
     import maya.cmds as cmds
-    import MayaProcs
-    import GlobalProcs
+    from Soft_Procs import MayaProcs
+    from Soft_Procs import GlobalProcs
 
     IN_MAYA = True
     python_file = sys.argv[1]

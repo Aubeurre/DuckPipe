@@ -14,9 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Data OLD\NodeStructure.Json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Icons\ducky.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -103,16 +100,22 @@
     <None Update="Install\DuckPipeInstaller.iss">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tools\Pythons\BlenderProcs.py">
+    <None Update="Tools\Pythons\Soft_Procs\BlenderProcs.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\Props_Rig_publish.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\Props_Model_publish.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Tools\Pythons\Characters_Model_publish.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tools\Pythons\GlobalProcs.py">
+    <None Update="Tools\Pythons\Soft_Procs\GlobalProcs.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tools\Pythons\MayaProcs.py">
+    <None Update="Tools\Pythons\Soft_Procs\MayaProcs.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Tools\Pythons\Characters_Rig_exec.py">
@@ -121,10 +124,16 @@
     <None Update="Tools\Pythons\CharactersModel_exec.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tools\Pythons\type_dept_exec.py">
+    <None Update="Tools\Pythons\Environments_Assemble_exec.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tools\Pythons\type_dept_publish.py">
+    <None Update="Tools\Pythons\TPL\type_dept_exec.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\Emvironment_Assemble_publish.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Tools\Pythons\TPL\type_dept_publish.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Tools\Pythons\Characters_Rig_publish.py">

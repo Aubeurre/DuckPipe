@@ -16,7 +16,7 @@ namespace DuckPipe.Core.Services
             }
             else
             {
-                MessageBox.Show("Le chemin n'existe pas ou plus.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                LogService.EchoErrorLog("Le chemin n'existe pas ou plus.");
             }
         }
 
@@ -32,7 +32,7 @@ namespace DuckPipe.Core.Services
             }
             else
             {
-                MessageBox.Show($"Impossible d'ouvrir : {filePath}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogService.EchoErrorLog($"Impossible d'ouvrir : {filePath}");
             }
         }
     }

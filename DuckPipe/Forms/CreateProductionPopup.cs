@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DuckPipe.Core.Services;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -152,7 +153,7 @@ namespace DuckPipe
             ProductionName = txtProductionName.Text.Trim();
             if (string.IsNullOrEmpty(ProductionName))
             {
-                MessageBox.Show("Veuillez entrer un nom de production.");
+                LogService.EchoLog("Veuillez entrer un nom de production.");
                 return;
             }
 

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using DuckPipe.Core.Config;
+using DuckPipe.Core.Services;
 
 namespace DuckPipe
 {
@@ -41,11 +42,7 @@ namespace DuckPipe
                 if (latestVersionInt <= CurrentVersionInt)
                     return;
 
-                DialogResult result = MessageBox.Show(
-                    $"Une nouvelle version ({latestVersion}) est disponible.\nVoulez-vous l’installer maintenant ?",
-                    "Mise à jour disponible",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Information);
+                DialogResult result = MessageBox.Show($"Une nouvelle version ({latestVersion}) est disponible.\nVoulez-vous l’installer maintenant ?");
 
                 if (result != DialogResult.Yes)
                     return;
@@ -72,8 +69,7 @@ namespace DuckPipe
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erreur lors de la vérification des mises à jour : " + ex.Message,
-                                "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogService.EchoErrorLog($"Erreur lors de la vérification des mises à jour : \n {ex.Message}");
             }
         }
     }
