@@ -3,6 +3,27 @@ import bpy
 import os
 from pathlib import Path
 
+def assign_basic_material_to_all():
+    """
+    Assigne un materiau basique a tous les objets importes
+    """
+    basic_mat_name = "Ducky_MAT"
+    if basic_mat_name in bpy.data.materials:
+        basic_mat = bpy.data.materials[basic_mat_name]
+    else:
+        basic_mat = bpy.data.materials.new(name=basic_mat_name)
+        basic_mat.diffuse_color = (0.8, 0.8, 0.8, 1)
+
+    for obj in bpy.context.selected_objects:
+        if obj.type == 'MESH':
+            if len(obj.data.materials) == 0:
+                obj.data.materials.append(basic_mat)
+            else:
+                for i in range(len(obj.data.materials)):
+                    obj.data.materials[i] = basic_mat
+
+    print("Assigned basic material to all imported objects.")
+
 def reference_fbx(file_path, parent_grp_name="REF"):
     """
     Importe un FBX et le parent a parent_grp_name (collection ou objet vide)

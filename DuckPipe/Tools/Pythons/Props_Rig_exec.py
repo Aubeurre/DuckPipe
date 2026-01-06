@@ -18,13 +18,11 @@ if current_dir not in sys.path:
 # ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
-REFNODS = ["{node_dlv_path}/{node_name}_body.fbx",
-           "{node_dlv_path}/{node_name}_cfx.fbx",
-           "{node_dlv_path}/{node_name}_model_helpers.fbx",
-           "{node_dlv_path}/{node_name}_groom.fbx"
+REFNODS = ["{node_dlv_path}/{node_name}_model.fbx",
+           "{node_dlv_path}/{node_name}_model_helpers.fbx"
            ]
 DEPT_SUFFIX = "_rig"
-TEMPLATE_FILE = "Characters_Rig_template"
+TEMPLATE_FILE = "Props_Rig_template"
 
 # ------------------------------------------------------
 # Gestion des arguments

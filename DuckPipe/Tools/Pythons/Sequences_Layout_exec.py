@@ -18,9 +18,8 @@ if current_dir not in sys.path:
 # ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
-REFNODS = ["{node_dlv_path}{node_name}"]
-DEPT_SUFFIX = "_assemble"
-TEMPLATE_FILE = "Environment_Assemble_template"
+DEPT_SUFFIX = "_layout"
+TEMPLATE_FILE = "Sequences_Layout_template"
 
 # ------------------------------------------------------
 # Gestion des arguments
@@ -34,12 +33,13 @@ if "--" in sys.argv:
         print("Fichier reçu :", server_file_path)
 
 # ------------------------------------------------------
-# Detection environnement
+# Detection environnement FORCE MAYA
 # ------------------------------------------------------
 
 import maya.cmds as cmds
 from Soft_Procs import MayaProcs
 from Soft_Procs import GlobalProcs
+from Sub_Procs import Assembly_import
 
 IN_MAYA = True
 python_file = sys.argv[1]
@@ -50,7 +50,8 @@ if current_dir not in sys.path:
 
 EXECUTED_FILE = cmds.file(q=True, sn=True)
 PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
-LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)   
+LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
+
 
 # ------------------------------------------------------
 # Chemins et variables dérivées
@@ -63,6 +64,7 @@ dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 template_path = os.path.join(asset_root_path, "Template")
+studio_template_path = template_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 
 print("--------------------------------")
 debug_vars = {
@@ -79,11 +81,6 @@ debug_vars = {
     "template_path": template_path,
 }
 
-print("\n----- DEBUG -----")
-for name, value in debug_vars.items():
-    print(f"{name:<18} = {value}")
-print("-----------------\n")
-
 # ------------------------------------------------------
 # Fonction commune
 # ------------------------------------------------------
@@ -95,18 +92,16 @@ def preexecute():
 
     MayaProcs.sanitize_ma(f"{template_path}/{TEMPLATE_FILE}.ma")
     MayaProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.ma")
-    
+
 
 def execute():
     """
     Tout ce qui se passe ici se fait dans la scene de work
     """
     print(" -> execute")
-
-    # importer ou referencer les FBX
-    for node_template in REFNODS:
-        fbx_path = node_template.replace("{node_dlv_path}", studio_dlv_path).replace("{node_name}", asset_name)
-        MayaProcs.reference_fbx(fbx_path, "REF")
+    # on reference la camera
+    fbx_path = os.path.join(studio_template_path, "studio_cam.ma").replace("\\", "/")
+    MayaProcs.reference_fbx(fbx_path, "REF")
 
 
 def postexecute():
@@ -114,10 +109,22 @@ def postexecute():
     Tout ce qui se passe ici se fait apres tout le reste
     """
     print(" -> Post-execute")
-
+    
     # GESTION DES DEPENDANCES
+    # on lis les dependences et on regarde si y a un Environment a importer
+    print('GO ASSET DEPENDENCIES:')
     for item in get_asset_dependencies(asset_path):
-        if item['type'] in ['Props']:
+        if item['type'] == 'Environments':
+            asset_name = item['name']
+            dlv_path = item['path']
+            assembly_path = os.path.join(dlv_path, "assembly.json").replace("\\", "/")
+            if os.path.exists(assembly_path):
+                Assembly_import.import_assembly_for_anim(assembly_path, PROD_PATH)
+                print(f"[postexecute] Imported assembly for {asset_name}")
+            else:
+                print(f"[postexecute] No assembly.json found for {asset_name} at {assembly_path}")
+        # on rajoute aussi les rigs de persos et props
+        if item['type'] in ['Characters', 'Props']:
             asset_name = item['name']
             dlv_path = item['path']
             rig_path = os.path.join(dlv_path, f"{asset_name}_rig_OK.ma")
@@ -126,14 +133,33 @@ def postexecute():
                 print(f"[postexecute] Referenced rig for {asset_name}")
             else:
                 print(f"[postexecute] No rig found for {asset_name} at {rig_path}")
-                
+
     cmds.file(rename=EXECUTED_FILE)
     cmds.file(save=True, type="mayaAscii", force=True)
-    
-    
+    reroot_fbx(EXECUTED_FILE)
+
 # ------------------------------------------------------
 # CUSTOM
 # ------------------------------------------------------
+def reroot_fbx(scene_path):
+
+    print("REROOT:", scene_path)
+
+    with open(scene_path, "r", encoding="utf-8") as f:
+        print("lecture")
+        lines = f.readlines()
+
+    with open(scene_path, "w", encoding="utf-8") as f:
+        print("ecriture")
+        for line in lines:
+            if "__dummy" in line:
+                f.write(line.replace("__dummy", ""))
+            else:
+                f.write(line)
+        f.flush()
+        os.fsync(f.fileno())
+
+    print("REROOT DONE.")
 
 def read_json(json_path):
     """
@@ -213,3 +239,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

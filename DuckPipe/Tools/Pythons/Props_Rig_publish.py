@@ -7,13 +7,6 @@ lance le script de publish rig custom
 Delete trash, remove references, 
 2-
 ajouter les shaders, sauvegarder le rig OK
-3-
-ajouter le facial si il existe, faire les connections, sauvegarder l'assemble OK
-4- 
-on split tous les costumes
-5-
-on ajoute une ref vers le split casual dans une scene vide, sauvegarder le Actor OK
-
 """
 
 import os
@@ -72,7 +65,7 @@ try:
 
     from Soft_Procs import MayaProcs
     from Soft_Procs import GlobalProcs
-    from Sub_Procs import Maya_surfacing_import_vp
+    from Sub_Procs import Surfacing_import
     
     IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
@@ -148,7 +141,7 @@ def publish():
         cmds.group("__RIG__", "MODEL_OK", n=asset_name)
 
         if os.path.exists(os.path.join(dlv_path, "surfacing_export.json")):
-            Maya_surfacing_import_vp.import_surf(os.path.join(dlv_path, "surfacing_export.json"))
+            Surfacing_import.import_surf(os.path.join(dlv_path, "surfacing_export.json"))
 
         full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
         cmds.file(rename=full_scene_path)

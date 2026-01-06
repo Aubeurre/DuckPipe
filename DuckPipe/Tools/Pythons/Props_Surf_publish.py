@@ -37,7 +37,7 @@ try:
 
     from Soft_Procs import BlenderProcs
     from Soft_Procs import GlobalProcs
-    from Sub_Procs import export_surfacing
+    from Sub_Procs import Surfacing_export
 
     IN_BLENDER = True
     EXECUTED_FILE = bpy.data.filepath
@@ -59,7 +59,7 @@ try:
 
     from Soft_Procs import MayaProcs
     from Soft_Procs import GlobalProcs
-    from Sub_Procs import export_surfacing
+    from Sub_Procs import Surfacing_export
     
     IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
@@ -108,7 +108,7 @@ def prepublish():
     """
     print(" -> Pre-publish")
     
-    export_surfacing.export_surfacing(os.path.join(dlv_path, "surfacing_export.json"))
+    Surfacing_export.export_surfacing(os.path.join(dlv_path, "surfacing_export.json"))
     
     if IN_MAYA:  
         pass

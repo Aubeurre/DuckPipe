@@ -75,7 +75,7 @@ try:
 
     from Soft_Procs import MayaProcs
     from Soft_Procs import GlobalProcs
-    from Sub_Procs import Maya_surfacing_import_vp
+    from Sub_Procs import Surfacing_import
     
     IN_MAYA = True
     EXECUTED_FILE = cmds.file(q=True, sn=True)
@@ -152,7 +152,7 @@ def publish():
         addAttr()
 
         if os.path.exists(os.path.join(dlv_path, "surfacing_export.json")):
-            Maya_surfacing_import_vp.import_surf(os.path.join(dlv_path, "surfacing_export.json"))
+            Surfacing_import.import_surf(os.path.join(dlv_path, "surfacing_export.json"))
 
         full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
         cmds.file(rename=full_scene_path)
@@ -173,7 +173,7 @@ def postpublish():
         cmds.file(new=True, force=True)
         newFileName = file_name.replace(DEPT_SUFFIX, ASSEMBLESUFFIX)
         full_scene_path = os.path.join(dlv_path, newFileName)
-        MayaProcs.sanitize_me(full_scene_path)
+        MayaProcs.sanitize_ma(full_scene_path)
             
         
 # ------------------------------------------------------

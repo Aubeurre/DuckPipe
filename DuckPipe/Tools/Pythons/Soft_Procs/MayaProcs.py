@@ -187,4 +187,141 @@ def reference_fbx(file_path, parent_grp):
         print(f"[DUMY OK]")
         # on reroot apres en ecriture car maya en batch ne veut pas le faire.
             
+
+def reference_scene(file_path, namespace):
+    """
+    Reference une scene maya dans la scene courante
+    """
+    file_path = file_path.replace("\\", "/")
+
+    if not os.path.exists(file_path):
+        cmds.error(f"Fichier de reference introuvable : {file_path}")
+        return
+
+    try:
+        cmds.file(file_path,
+                  r=True,
+                  ignoreVersion=True,
+                  mergeNamespacesOnClash=False,
+                  namespace=namespace)
+        print(f"[reference_scene] Referenced: {file_path} under namespace: {namespace}")
+    except Exception as e:
+        cmds.error(f"Erreur lors de la reference de la scene : {e}")
+
+def assign_basic_material_to_ref(ref_grp):
+    """
+    Cree et assigne un materiau de base a une reference
+    """
+
+    # Cree un materiau lambert de base
+    material_name = "ducky_MAT"
+    material = cmds.shadingNode('lambert', asShader=True, name=material_name)
+    cmds.setAttr(f"{material}.color", 0.8, 0.8, 0.8, type="double3")
+
+    # Cree un shading group
+    shading_group = f"{material}_SG"
+    shading_group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=shading_group)
+    cmds.connectAttr(f"{material}.outColor", f"{shading_group}.surfaceShader", force=True)
+
     
+    if not cmds.objExists(ref_grp):
+        print(f"[assign_basic_material_to_ref] Reference group '{ref_grp}' does not exist.")
+        return
+    
+    # Assigne le materiau a tous les meshes sous le groupe de reference
+    meshes = cmds.listRelatives(ref_grp, allDescendents=True, type='mesh') or []
+    for mesh in meshes:
+        transform = cmds.listRelatives(mesh, parent=True, fullPath=True)[0]
+        cmds.sets(transform, e=True, forceElement=shading_group)
+
+    print(f"[assign_basic_material_to_ref] Assigned basic material to reference group '{ref_grp}'.")
+
+
+def reference_animable_rig(rig_path, asset_name):
+    if not os.path.exists(rig_path):
+        cmds.warning(f"Rig not found: {rig_path}")
+        return None
+
+    ns = asset_name
+
+    cmds.file(
+        rig_path,
+        reference=True,
+        namespace=ns,
+        mergeNamespacesOnClash=False
+    )
+
+    local_ctl = f"{ns}:local_ctl"
+    if not cmds.objExists(local_ctl):
+        cmds.warning(f"No local_ctl for {asset_name}")
+        return None
+
+    return local_ctl
+
+
+def fbx_to_gpu_cache(fbx_path):
+    if not os.path.exists(fbx_path):
+        raise RuntimeError("FBX introuvable")
+
+    base_dir = os.path.dirname(fbx_path)
+    base_name = os.path.splitext(os.path.basename(fbx_path))[0]
+
+    # Plugins
+    if not cmds.pluginInfo("fbxmaya", q=True, loaded=True):
+        cmds.loadPlugin("fbxmaya")
+    if not cmds.pluginInfo("gpuCache", q=True, loaded=True):
+        cmds.loadPlugin("gpuCache")
+
+    # Nodes existants avant import
+    nodes_before = set(cmds.ls(long=True))
+
+    # Import FBX
+    cmds.file(fbx_path, i=True, type="FBX", ignoreVersion=True, mergeNamespacesOnClash=False)
+
+    # Nodes après import
+    nodes_after = set(cmds.ls(long=True))
+    imported_nodes = nodes_after - nodes_before
+
+    # Sélectionne tous les meshes importés
+    new_meshes = [n for n in imported_nodes if cmds.nodeType(n) == "mesh"]
+    if not new_meshes:
+        raise RuntimeError("Aucun mesh trouvé après import FBX")
+
+    # Récupère les transforms parents uniques
+    transforms = list(set(cmds.listRelatives(new_meshes, parent=True, fullPath=True)))
+
+    # Supprime les transforms vides ou n'ayant pas de mesh enfant
+    clean_transforms = []
+    for t in transforms:
+        children = cmds.listRelatives(t, children=True) or []
+        if any(cmds.nodeType(c) == "mesh" for c in children):
+            clean_transforms.append(t)
+    if not clean_transforms:
+        raise RuntimeError("Aucun transform valide pour GPU cache")
+
+    # Crée le GPU cache et récupère le path exact
+    gpu_paths = cmds.gpuCache(
+        clean_transforms,
+        startTime=1,
+        endTime=1,
+        optimize=True,
+        writeMaterials=False,
+        dataFormat="ogawa",
+        directory=base_dir,
+        fileName=base_name
+    )
+    gpu_path = gpu_paths[0]
+
+    # Supprime les meshes FBX
+    cmds.delete(clean_transforms)
+
+    # Crée un node GPU cache qui pointe sur le fichier exact
+    
+    parent_transform = cmds.createNode("transform", name=base_name + "_gpu")
+    gpu_node = cmds.createNode("gpuCache", name=base_name + "_gpuShape", parent=parent_transform)
+    cmds.setAttr(gpu_node + ".cacheFileName", gpu_path, type="string")
+
+
+    print("GPU cache affiché :", gpu_node)
+    print("Chemin exact :", gpu_path)
+    return parent_transform, gpu_path

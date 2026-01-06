@@ -1,5 +1,5 @@
 """
-
+Publish pour MAYA (le rig se fera toujours dans maya avec DuckPipe)
 """
 
 import os
@@ -9,7 +9,7 @@ import sys
 # Constantes
 # ------------------------------------------------------
 
-DEPT_SUFFIX = "_surf_OK"
+DEPT_SUFFIX = "_facial_OK"
 
 # ------------------------------------------------------
 # Gestion des arguments
@@ -25,50 +25,24 @@ if "--" in sys.argv:
 # ------------------------------------------------------
 # Detection environnement
 # ------------------------------------------------------
-IN_BLENDER = False
-IN_MAYA = False
+import maya.cmds as cmds
 
-try:
-    import bpy
+python_file = sys.argv[1]
 
-    current_dir = os.path.dirname(__file__)
-    if current_dir not in sys.path:
-        sys.path.append(current_dir)
+current_dir = os.path.dirname(python_file)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 
-    from Soft_Procs import BlenderProcs
-    from Soft_Procs import GlobalProcs
-    from Sub_Procs import Surfacing_export
+from Soft_Procs import MayaProcs
+from Soft_Procs import GlobalProcs
+from Sub_Procs import Surfacing_import
 
-    IN_BLENDER = True
-    EXECUTED_FILE = bpy.data.filepath
-    SCRIPT_FILE = os.path.abspath(__file__)
-    PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
-    LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
+IN_MAYA = True
+EXECUTED_FILE = cmds.file(q=True, sn=True)
+SCRIPT_FILE = python_file
+PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
+LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
 
-except ImportError:
-    pass
-
-try:
-    import maya.cmds as cmds
-
-    python_file = sys.argv[1]
-
-    current_dir = os.path.dirname(python_file)
-    if current_dir not in sys.path:
-        sys.path.append(current_dir)
-
-    from Soft_Procs import MayaProcs
-    from Soft_Procs import GlobalProcs
-    from Sub_Procs import Surfacing_export
-    
-    IN_MAYA = True
-    EXECUTED_FILE = cmds.file(q=True, sn=True)
-    SCRIPT_FILE = python_file
-    PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
-    LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
-
-except ImportError:
-    pass    
 
 # ------------------------------------------------------
 # Chemins et variables derivees
@@ -81,6 +55,7 @@ dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 
+print("--------------------------------")
 debug_vars = {
     "EXECUTED_FILE": EXECUTED_FILE,
     "SCRIPT_FILE": SCRIPT_FILE,
@@ -107,13 +82,6 @@ def prepublish():
     Tout ce qui se passe ici se fait dans la scene de OK
     """
     print(" -> Pre-publish")
-    
-    Surfacing_export.export_surfacing(os.path.join(dlv_path, "surfacing_export.json"))
-    
-    if IN_MAYA:  
-        pass
-    if IN_BLENDER:  
-        pass
 
 
 def publish():
@@ -122,28 +90,26 @@ def publish():
     """
     print(" -> publish")
     
-    if IN_MAYA:  
-        pass
-    if IN_BLENDER:  
-        pass
+    if IN_MAYA:
+        MayaProcs.remove_ref()
+        MayaProcs.clean_publish(['__TRASH__', '__UTILS__', '__REF__'])
+
+        full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
+        cmds.file(rename=full_scene_path)
+        cmds.file(save=True, type="mayaAscii", prompt=False)
 
 
 def postpublish():
     """
-    Tout ce qui se passe ici se fait apres tout le reste
+    Tout ce qui se passe ici se fait apres tout le reste une fois la scene fermee
     """
     print(" -> Post-publish")
-    
-    if IN_MAYA:  
-        pass
-    if IN_BLENDER:  
-        pass
-
-
+                
+        
 # ------------------------------------------------------
 # Main
 # ------------------------------------------------------
-def main():        
+def main():       
     prepublish()
     publish()
     postpublish()
