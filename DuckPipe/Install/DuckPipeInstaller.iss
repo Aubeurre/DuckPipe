@@ -16,10 +16,10 @@ RestartApplications=yes
 
 [Files]
 ; Inclure tous les fichiers nécessaires de Release
-Source: "A:\ProjetsPerso\DuckPipe\DuckPipe\bin\Release\net8.0-windows\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
+Source: "A:\02 WORK IN\DuckPipe\DuckPipe\bin\Release\net8.0-windows\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 
 ; Inclure la documentation HTML
-Source: "A:\ProjetsPerso\DuckPipe\DuckPipe\bin\Release\net8.0-windows\Docs\*"; DestDir: "{app}\Docs"; Flags: recursesubdirs createallsubdirs
+Source: "A:\02 WORK IN\DuckPipe\DuckPipe\bin\Release\net8.0-windows\Docs\*"; DestDir: "{app}\Docs"; Flags: recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\DuckPipe"; Filename: "{app}\DuckPipe.exe"
