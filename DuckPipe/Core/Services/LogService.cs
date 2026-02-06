@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,34 +9,27 @@ namespace DuckPipe.Core.Services
 {
     public class LogService
     {
+        public static event Action<string> OnLog;
+
         public static void EchoLog(string message)
         {
             // Implémentation du logging
-            Console.WriteLine($"[ECHO] {DateTime.Now}: {message}");
             // MessageBox.Show(message);
+            OnLog?.Invoke(message);
         }
         public static void EchoErrorLog(string message)
         {
             // Implémentation du logging
-            Console.WriteLine($"[ECHO] {DateTime.Now}: {message}");
-            MessageBox.Show(message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         public static void EchoInfoLog(string message)
         {
             // Implémentation du logging
-            Console.WriteLine($"[ECHO] {DateTime.Now}: {message}");
-            MessageBox.Show(message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            OnLog?.Invoke($"INFO: {message}");
         }
         public static void EchoSuccessLog(string message)
         {
             // Implémentation du logging
-            Console.WriteLine($"[ECHO] {DateTime.Now}: {message}");
-            MessageBox.Show(message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-        public static void writeLog(string message)
-        {
-            // Implémentation du logging
-            Console.WriteLine($"[ECHO] {DateTime.Now}: {message}");
+            OnLog?.Invoke($"SUCCESS: {message}");
         }
 
     }

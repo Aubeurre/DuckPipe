@@ -153,7 +153,7 @@ namespace DuckPipe
             ProductionName = txtProductionName.Text.Trim();
             if (string.IsNullOrEmpty(ProductionName))
             {
-                LogService.EchoLog("Veuillez entrer un nom de production.");
+                LogService.EchoErrorLog("Veuillez entrer un nom de production.");
                 return;
             }
 

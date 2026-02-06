@@ -36,20 +36,20 @@ namespace DuckPipe.Core.Services.Softwares
 
             if (!File.Exists(blenderPath))
             {
-                LogService.EchoLog("Blender introuvable !");
+                LogService.EchoErrorLog("Blender introuvable !");
                 return;
             }
 
             if (!File.Exists(blendFilePath))
             {
                 // on force sa creation
-                LogService.EchoLog("Le fichier .blend cible est introuvable !");
+                LogService.EchoErrorLog("Le fichier .blend cible est introuvable !");
                 CreateBasicBlendFile(blendFilePath);
             }
 
             if (!File.Exists(assetPath))
             {
-                LogService.EchoLog("L’asset .blend source est introuvable !");
+                LogService.EchoErrorLog("L’asset .blend source est introuvable !");
                 return;
             }
 
@@ -83,13 +83,13 @@ namespace DuckPipe.Core.Services.Softwares
 
             if (!File.Exists(blenderPath) )
             {
-                LogService.EchoLog("blender.exe introuvable !");
+                LogService.EchoErrorLog("blender.exe introuvable !");
                 return;
             }
 
             if (!File.Exists(pyPath))
             {
-                LogService.EchoLog($"script Python introuvable !\n {pyPath}");
+                LogService.EchoErrorLog($"script Python introuvable !\n {pyPath}");
                 return;
             }
 
@@ -124,8 +124,11 @@ namespace DuckPipe.Core.Services.Softwares
                 p.WaitForExit();
             }
 
-            LogService.EchoLog($"Blender Batch termine.\n--- STDOUT ---\n{stdout}");
-            LogService.EchoLog($"Blender Batch termine.\n--- STDERR ---\n{stderr}");
+            if (!string.IsNullOrWhiteSpace(stdout.ToString()))
+                LogService.EchoLog(stdout.ToString());
+
+            if (!string.IsNullOrWhiteSpace(stderr.ToString()))
+                LogService.EchoLog(stderr.ToString());
         }
 
         public static string PathIntoBlenderFormat(string path)

@@ -258,7 +258,7 @@ namespace DuckPipe.Core.Manipulator
                 }
                 catch (Exception ex)
                 {
-                    LogService.EchoLog($"Erreur lors de la lecture du changelog :\n{ex.Message}");
+                    LogService.EchoErrorLog($"Erreur lors de la lecture du changelog :\n{ex.Message}");
                     entries = new();
                 }
             }
@@ -413,7 +413,7 @@ namespace DuckPipe.Core.Manipulator
                 string PublishPath = Path.Combine(prodPath, "Assets", nodeName, "dlv");
                 string refAsset = SetEnvVariables(PublishPath).Replace("\\", "/");
 
-                LogService.EchoLog($"Reference ajoutee avec succès.\n{refAsset}");
+                LogService.EchoSuccessLog($"Reference ajoutee avec succès.\n{refAsset}");
 
                 // --- JSON ---
                 string jsonPath = Path.Combine(ctx.NodeRoot, "node.json");
@@ -521,7 +521,7 @@ namespace DuckPipe.Core.Manipulator
                 if (refList.Contains(refPath))
                 {
                     refList.Remove(refPath);
-                    LogService.EchoLog($"Référence supprimée avec succès.\n{refPath}");
+                    LogService.EchoSuccessLog($"Référence supprimée avec succès.\n{refPath}");
                 }
                 nodeInfos["refAssets"] = refList;
             }
@@ -579,7 +579,7 @@ namespace DuckPipe.Core.Manipulator
             ProdFilesManip.ReturnChanges(changedFiles);
 
 
-            LogService.writeLog($"Fichier copié en local :\n{tempNodelPath}");
+            LogService.EchoInfoLog($"Fichier copié en local :\n{tempNodelPath}");
             LogService.EchoSuccessLog($"Node grabbed : {ctx.File}");
         }
 
@@ -590,7 +590,7 @@ namespace DuckPipe.Core.Manipulator
 
             // if (Directory.Exists(tempDirPath))
             //    Directory.Delete(tempDirPath, true);
-            LogService.writeLog($"Node ungrabbed :\n{tempNodelPath}");
+            LogService.EchoSuccessLog($"Node ungrabbed :\n{tempNodelPath}");
         }
         #endregion
 

@@ -12,13 +12,13 @@ namespace DuckPipe.Core.Services.Softwares
         public static void CreateBasicHoudiniFile(string filePath)
         {
             string houdiniPath = GetHoudiniPath();
-            LogService.EchoLog(houdiniPath);
+            LogService.EchoInfoLog(houdiniPath);
             // Vérifie d’abord la présence réelle de houdini.exe et de hython.exe
             string hythonPath = Path.Combine(Path.GetDirectoryName(houdiniPath), "hython.exe");
-            LogService.EchoLog(hythonPath);
+            LogService.EchoInfoLog(hythonPath);
             bool houdiniExists = File.Exists(houdiniPath);
             bool hythonExists = File.Exists(hythonPath);
-            LogService.EchoLog(houdiniExists.ToString());
+            LogService.EchoInfoLog(houdiniExists.ToString());
 
             if (!houdiniExists || !hythonExists)
             {
@@ -50,13 +50,13 @@ print('Houdini: Fichier .hipnc créé ->', r'" + filePath.Replace("\\", "/") + @
 
             if (!File.Exists(hythonPath))
             {
-                LogService.EchoLog("hython.exe introuvable !");
+                LogService.EchoErrorLog("hython.exe introuvable !");
                 return;
             }
 
             if (!File.Exists(pyPath))
             {
-                LogService.EchoLog($"Script Python introuvable : {pyPath}");
+                LogService.EchoErrorLog($"Script Python introuvable : {pyPath}");
                 return;
             }
 

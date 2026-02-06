@@ -86,35 +86,18 @@ namespace DuckPipe.Core.Services.Softwares
                     p.BeginErrorReadLine();
                     p.WaitForExit();
                 }
-                ShowLog(stdout.ToString(), stderr.ToString());
+                if (!string.IsNullOrWhiteSpace(stdout.ToString()))
+                    LogService.EchoLog(stdout.ToString());
+
+                if (!string.IsNullOrWhiteSpace(stderr.ToString()))
+                    LogService.EchoLog(stderr.ToString());
 
             }
             else
             {
-                LogService.EchoLog("mayabatch.exe ou script Python introuvable !");
+                LogService.EchoErrorLog("mayabatch.exe ou script Python introuvable !");
             }
 
-        }
-
-
-        public static void ShowLog(string stdout, string stderr)
-        {
-            Form logForm = new Form
-            {
-                Text = "Maya Batch - Log",
-                Width = 800,
-                Height = 600
-            };
-            TextBox tb = new TextBox
-            {
-                Multiline = true,
-                ScrollBars = ScrollBars.Both,
-                Dock = DockStyle.Fill,
-                ReadOnly = true,
-                Text = $"--- STDOUT ---\r\n{stdout}\r\n--- STDERR ---\r\n{stderr}"
-            };
-            logForm.Controls.Add(tb);
-            logForm.ShowDialog();
         }
 
 

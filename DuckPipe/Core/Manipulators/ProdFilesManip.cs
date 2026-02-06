@@ -144,19 +144,23 @@ namespace DuckPipe.Core.Manipulators
             if (Directory.Exists(sharedToolsPath))
                 changedFiles = SyncFolder(sharedToolsPath, changedFiles, toLocal: true);
 
-            //5. for each grabbed in prod, dependencies
-            var prodGrabbed = NodeService.GetAllGrabbedInProd(prodName, UserConfig.GetUserName());
-            foreach (var grabbed in prodGrabbed)
-            {
-                // on veut le root du node et pas le workfolder
-                string nodeRoot = NodeManip.ExtractNodeContext(grabbed).NodeRoot;
 
-                foreach (var refPath in NodeManip.GetAllRefs(nodeRoot))
-                {
-                    if (Directory.Exists(refPath))
-                        changedFiles = ProdFilesManip.SyncFolder(refPath, changedFiles, toLocal: true);
-                }
-            }
+            // disable ca for now, too long to process with many grabbed nodes puis a quoi ca sert che plus
+            //5. for each grabbed in prod, dependencies
+            //var prodGrabbed = NodeService.GetAllGrabbedInProd(prodName, UserConfig.GetUserName());
+            //foreach (var grabbed in prodGrabbed)
+            //{
+            //    LogService.EchoLog($"Vérification des dépendances pour le node grabbé : {grabbed}");
+            //    // on veut le root du node et pas le workfolder
+            //    string nodeRoot = NodeManip.ExtractNodeContext(grabbed).NodeRoot;
+
+            //    foreach (var refPath in NodeManip.GetAllRefs(nodeRoot))
+            //    {
+            //        LogService.EchoLog($"  - Référence : {refPath}");
+            //        if (Directory.Exists(refPath))
+            //            changedFiles = ProdFilesManip.SyncFolder(refPath, changedFiles, toLocal: true);
+            //    }
+            //}
 
             ReturnChanges(changedFiles);
         }
@@ -182,9 +186,9 @@ namespace DuckPipe.Core.Manipulators
         internal static void ReturnChanges(List<string> changedFiles)
         {
             if (changedFiles.Count == 0)
-                LogService.writeLog("Aucun fichier mis à jour !");
+                LogService.EchoInfoLog("Aucun fichier mis à jour !");
             else
-                LogService.writeLog("Fichiers mis à jour :\n" + string.Join("\n", changedFiles));
+                LogService.EchoInfoLog("Fichiers mis à jour :\n" + string.Join("\n", changedFiles));
         }
 
         #endregion

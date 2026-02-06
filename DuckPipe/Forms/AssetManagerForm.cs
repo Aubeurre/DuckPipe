@@ -36,8 +36,24 @@ namespace DuckPipe
             ScheduleTabBuilder.InitTimelineTab(pnlShelude, this);
             WorkTabBuilder.ClearPanel(WorkTabBuilder.GetContext("", ""));
             NodeTabBuilder.ClearPanel(NodeTabBuilder.GetContext("", ""));
+            LogService.OnLog -= WriteLog;
+            LogService.OnLog += WriteLog;
 
             this.Text = $"DuckPipe v{Program.CurrentVersion} . Running on {ProductionService.GetProductionRootPath()}";
+        }
+
+        public void WriteLog(string message)
+        {
+            if (IsDisposed) return;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<string>(WriteLog), message);
+                return;
+            }
+
+            LogRtb.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
+            LogRtb.ScrollToCaret();
         }
 
         private void LoadProductionList()
@@ -267,7 +283,7 @@ namespace DuckPipe
             string prodPath = GetSelectedProductionPath();
             if (!ProductionService.CheckIfOnServer(prodPath))
             {
-                LogService.EchoLog("This action an only be done on Server connection");
+                LogService.EchoErrorLog("This action an only be done on Server connection");
                 return;
             }
 
@@ -298,7 +314,7 @@ namespace DuckPipe
             string prodPath = GetSelectedProductionPath();
             if (!ProductionService.CheckIfOnServer(prodPath))
             {
-                LogService.EchoLog("This action an only be done on Server connection");
+                LogService.EchoErrorLog("This action an only be done on Server connection");
                 return;
             }
 
@@ -330,7 +346,7 @@ namespace DuckPipe
             string prodPath = GetSelectedProductionPath();
             if (!ProductionService.CheckIfOnServer(prodPath))
             {
-                LogService.EchoLog("This action an only be done on Server connection");
+                LogService.EchoErrorLog("This action an only be done on Server connection");
                 return;
             }
 
@@ -359,7 +375,7 @@ namespace DuckPipe
             string prodPath = GetSelectedProductionPath();
             if (!ProductionService.CheckIfOnServer(prodPath))
             {
-                LogService.EchoLog("This action an only be done on Server connection");
+                LogService.EchoErrorLog("This action an only be done on Server connection");
                 return;
             }
 
@@ -375,7 +391,7 @@ namespace DuckPipe
 
                     productionConfig.CreateProductionStructure(prodName, rootPath, prodStructure);
 
-                    LogService.EchoLog($"Production '{prodName}' créée !");
+                    LogService.EchoSuccessLog($"Production '{prodName}' créée !");
 
                     LoadProductionList();
                     cbProdList.SelectedItem = prodName;
@@ -414,7 +430,7 @@ namespace DuckPipe
             string prodPath = GetSelectedProductionPath();
             if (!ProductionService.CheckIfOnServer(prodPath))
             {
-                LogService.EchoLog("This action an only be done on Server connection");
+                LogService.EchoErrorLog("This action an only be done on Server connection");
                 return;
             }
 
@@ -435,7 +451,7 @@ namespace DuckPipe
                     };
 
                     TimeLogManager.Add(log, prodPath);
-                    LogService.EchoLog("TimeLog ajouté !");
+                    LogService.EchoSuccessLog("TimeLog ajouté !");
                 }
             }
         }
