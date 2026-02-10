@@ -10,7 +10,7 @@ namespace DuckPipe
         ///  The main entry point for the application.
         /// </summary>
         /// 
-        public static readonly string CurrentVersion = "2.0.0"; //fix
+        public static readonly string CurrentVersion = "2.0.1";
 
         [STAThread]
         static void Main()
@@ -42,7 +42,12 @@ namespace DuckPipe
                 if (latestVersionInt <= CurrentVersionInt)
                     return;
 
-                DialogResult result = MessageBox.Show($"Une nouvelle version ({latestVersion}) est disponible.\nVoulez-vous l’installer maintenant ?");
+                DialogResult result = MessageBox.Show(
+     $"Une nouvelle version ({latestVersion}) est disponible.\nVoulez-vous l’installer maintenant ?",
+     "Mise à jour",
+     MessageBoxButtons.YesNo,
+     MessageBoxIcon.Question
+ );
 
                 if (result != DialogResult.Yes)
                     return;
@@ -56,16 +61,16 @@ namespace DuckPipe
                     await using var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
                     await response.Content.CopyToAsync(fs);
                 }
-                string exePath = Application.ExecutablePath;
 
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = tempPath,
-                    Arguments = $"/VERYSILENT /NORESTART /RESTART=\"{exePath}\"",
+                    Arguments = "/VERYSILENT /NORESTART /CLOSEAPPLICATIONS",
                     UseShellExecute = true
                 });
 
                 Application.Exit();
+
             }
             catch (Exception ex)
             {
