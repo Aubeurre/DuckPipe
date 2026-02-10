@@ -118,6 +118,8 @@ namespace DuckPipe.Core.Manipulators
 
         public static List<string> SyncFolder(string folderPath, List<string> changedFiles, bool toLocal)
         {
+
+            LogService.EchoInfoLog($" Verification de :{folderPath}"); 
             foreach (string eachFile in Directory.EnumerateFiles(folderPath, "*", SearchOption.AllDirectories))
             {
                 string targetFile = MapPath(eachFile, toLocal);

@@ -384,6 +384,9 @@ namespace DuckPipe.Forms.Builder.Tabs
                     flpDeptButton.Controls.Add(incrementBtn);
                     Button publishBtn = CreateActionButton("Publish", NodeManip.PublishNode, form, nodePath); //if user is grabbed
                     flpDeptButton.Controls.Add(publishBtn);
+                    Button EnsureBtn = CreateActionButton("Ensure Local Files", NodeManip.EnsureDependences, form, nodePath); //if user is grabbed
+                    flpDeptButton.Controls.Add(EnsureBtn);
+
                 }
                     
             }

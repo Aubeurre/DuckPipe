@@ -552,12 +552,39 @@ namespace DuckPipe.Core.Manipulator
             return tempNodelPath;
         }
 
-        public static void GrabbNode(string nodePath)
+        public static void EnsureDependences(string nodePath, AssetManagerForm form)
         {
             // on check si les fichiers sont a jour
             var ctx = ExtractNodeContext(nodePath);
             ProdFilesManip.EnsureLocalProductionFiles(ctx.ProdName);
+            LogService.EchoInfoLog($"EnsureLocalProductionFiles OK");
 
+            List<string> changedFiles = new List<string>();
+
+            foreach (var refPath in GetAllRefs(nodePath))
+            {
+                if (Directory.Exists(refPath))
+                    changedFiles = ProdFilesManip.SyncFolder(refPath, changedFiles, toLocal: true);
+
+                // Si Environment sync sous refs
+                if (refPath.Contains("Environments"))
+                {
+                    string envPath = Path.GetDirectoryName(refPath);
+                    foreach (var underPath in GetAllRefs(envPath))
+                    {
+                        if (Directory.Exists(underPath))
+                            changedFiles = ProdFilesManip.SyncFolder(underPath, changedFiles, toLocal: true);
+                    }
+                }
+            }
+
+            ProdFilesManip.ReturnChanges(changedFiles);
+
+        }
+
+        public static void GrabbNode(string nodePath, AssetManagerForm form)
+        {
+            var ctx = ExtractNodeContext(nodePath);
             // grabb
             string tempNodelPath = GetTempPath(nodePath);
             string tempDirPath = Path.GetDirectoryName(tempNodelPath)!;
@@ -569,18 +596,11 @@ namespace DuckPipe.Core.Manipulator
             File.Copy(nodejsonPath, tempNodejsonPath, true);
 
 
-            List<string> changedFiles = new List<string>();
-            foreach (var refPath in GetAllRefs(nodePath))
-            {
-                if (Directory.Exists(refPath))
-                changedFiles = ProdFilesManip.SyncFolder(refPath, changedFiles, toLocal: true);
-            }
-
-            ProdFilesManip.ReturnChanges(changedFiles);
-
-
             LogService.EchoInfoLog($"Fichier copié en local :\n{tempNodelPath}");
             LogService.EchoSuccessLog($"Node grabbed : {ctx.File}");
+
+            EnsureDependences(nodePath, form);
+
         }
 
         public static void UngrabbNode(string nodePath)

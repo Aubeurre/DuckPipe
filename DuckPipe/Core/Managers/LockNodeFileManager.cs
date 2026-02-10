@@ -29,7 +29,7 @@ namespace DuckPipe.Core.Manager
 
             string[] nodeParts = nodePath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
             form.RefreshTab(nodeParts[0]);
-            NodeManip.GrabbNode(nodePath); // ERREUR EN FALLBACK
+            NodeManip.GrabbNode(nodePath, form); // ERREUR EN FALLBACK
             return;
         }
 
