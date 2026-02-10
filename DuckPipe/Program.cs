@@ -27,27 +27,35 @@ namespace DuckPipe
             Application.Run(new AssetManagerForm());
         }
 
-
         public static async Task CheckForUpdatesAsync()
         {
             try
             {
                 using HttpClient client = new HttpClient();
 
-                string latestVersion = (await client.GetStringAsync("https://raw.githubusercontent.com/Aubeurre/DuckPipe/master/version.txt"))
-                                       .Trim();
+                string latestVersion = (await client
+                    .GetStringAsync("https://raw.githubusercontent.com/Aubeurre/DuckPipe/master/version.txt"))
+                    .Trim();
 
-                int CurrentVersionInt = int.Parse(CurrentVersion.Split('.')[0]) * 10000 + int.Parse(CurrentVersion.Split('.')[1]) * 100 + int.Parse(CurrentVersion.Split('.')[2]);
-                int latestVersionInt = int.Parse(latestVersion.Split('.')[0]) * 10000 + int.Parse(latestVersion.Split('.')[1]) * 100 + int.Parse(latestVersion.Split('.')[2]);
+                int CurrentVersionInt =
+                    int.Parse(CurrentVersion.Split('.')[0]) * 10000 +
+                    int.Parse(CurrentVersion.Split('.')[1]) * 100 +
+                    int.Parse(CurrentVersion.Split('.')[2]);
+
+                int latestVersionInt =
+                    int.Parse(latestVersion.Split('.')[0]) * 10000 +
+                    int.Parse(latestVersion.Split('.')[1]) * 100 +
+                    int.Parse(latestVersion.Split('.')[2]);
+
                 if (latestVersionInt <= CurrentVersionInt)
                     return;
 
                 DialogResult result = MessageBox.Show(
-     $"Une nouvelle version ({latestVersion}) est disponible.\nVoulez-vous l’installer maintenant ?",
-     "Mise à jour",
-     MessageBoxButtons.YesNo,
-     MessageBoxIcon.Question
- );
+                    $"Une nouvelle version ({latestVersion}) est disponible.\nVoulez-vous l’installer maintenant ?",
+                    "Mise à jour DuckPipe",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                );
 
                 if (result != DialogResult.Yes)
                     return;
@@ -58,24 +66,32 @@ namespace DuckPipe
                 using (var response = await client.GetAsync(setupUrl))
                 {
                     response.EnsureSuccessStatusCode();
+
                     await using var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
                     await response.Content.CopyToAsync(fs);
+                }
+
+                if (!File.Exists(tempPath))
+                {
+                    MessageBox.Show("Erreur lors du téléchargement de la mise à jour.");
+                    return;
                 }
 
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = tempPath,
-                    Arguments = "/VERYSILENT /NORESTART /CLOSEAPPLICATIONS",
-                    UseShellExecute = true
+                    Arguments = "/VERYSILENT",
+                    UseShellExecute = true,
+                    Verb = "runas"
                 });
 
-                Application.Exit();
-
+                Environment.Exit(0);
             }
             catch (Exception ex)
             {
-                LogService.EchoErrorLog($"Erreur lors de la vérification des mises à jour : \n {ex.Message}");
+                LogService.EchoErrorLog($"Erreur update : {ex.Message}");
             }
         }
+
     }
 }
