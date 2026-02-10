@@ -47,7 +47,7 @@ namespace DuckPipe.Core.Manipulators
 
         #region FILE COMPARISON
 
-        private static bool FilesDiffer(string file1, string file2)
+        private static bool OLDFilesDiffer(string file1, string file2)
         {
             if (!File.Exists(file1) || !File.Exists(file2))
                 return true;
@@ -75,6 +75,24 @@ namespace DuckPipe.Core.Manipulators
                 return true; // si erreur ou verrouillage, considérer différent
             }
         }
+        private static bool FilesDiffer(string file1, string file2)
+        {
+            if (!File.Exists(file1) || !File.Exists(file2))
+                return true;
+
+            try
+            {
+                var f1 = new FileInfo(file1);
+                var f2 = new FileInfo(file2);
+
+                return f1.Length != f2.Length ||
+                       f1.LastWriteTimeUtc != f2.LastWriteTimeUtc;
+            }
+            catch
+            {
+                return true;
+            }
+        }
 
         #endregion
 
@@ -100,7 +118,7 @@ namespace DuckPipe.Core.Manipulators
 
         public static List<string> SyncFolder(string folderPath, List<string> changedFiles, bool toLocal)
         {
-            foreach (string eachFile in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
+            foreach (string eachFile in Directory.EnumerateFiles(folderPath, "*", SearchOption.AllDirectories))
             {
                 string targetFile = MapPath(eachFile, toLocal);
 

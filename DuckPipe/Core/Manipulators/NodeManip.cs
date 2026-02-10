@@ -653,6 +653,10 @@ start """" ""{fileToOpen}""
                 {
                     TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Assets", "Template");
                 }
+                else
+                {
+                    TmplPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Assets", "Template");
+                }
 
                 if (!string.IsNullOrEmpty(TmplPath))
                 {
@@ -698,43 +702,18 @@ start """" ""{fileToOpen}""
                 string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_exec.py");
                 if (ctx.Extension == ".ma")
                 {
+                    MayaService.CreateBasicMaFile(LocalFile, $"{ctx.FileName}_{ctx.Department}");
                     MayaService.ExecuteMayaBatchScript(LocalFile, pyPath, nodePath);
-                    // gestion des references
-                    foreach (var refPath in GetAllRefs(nodePath))
-                    {
-                        if (refPath.EndsWith(".ma", StringComparison.OrdinalIgnoreCase))
-                        {
-                            string mayaPath = MayaService.PathIntoMayaFormat(refPath);
-                            MayaService.AddReference(LocalFile, mayaPath);
-                        }
-                    }
                 }
                 else if (ctx.Extension == ".blend")
                 {
+                    BlenderService.CreateBasicBlendFile(LocalFile);
                     BlenderService.ExecuteBlenderBatchScript(LocalFile, pyPath, nodePath);
-                    // gestion des references
-                    foreach (var refPath in GetAllRefs(nodePath))
-                    {
-                        if (refPath.EndsWith(".blend", StringComparison.OrdinalIgnoreCase))
-                        {
-                            string blenderPath = BlenderService.PathIntoBlenderFormat(refPath);
-                            BlenderService.AddReference(LocalFile, blenderPath);
-                        }
-                    }
                 }
                 else if (ctx.Extension == ".hip" || ctx.Extension == ".hipnc")
                 {
+                    HoudiniService.CreateBasicHoudiniFile(LocalFile);
                     HoudiniService.ExecuteHoudiniBatchScript(LocalFile, pyPath, nodePath);
-
-                    // gestion des références Houdini
-                    foreach (var refPath in GetAllRefs(nodePath))
-                    {
-                        if (refPath.EndsWith(".hip", StringComparison.OrdinalIgnoreCase) ||
-                            refPath.EndsWith(".hipnc", StringComparison.OrdinalIgnoreCase))
-                        {
-                            string houdiniPath = HoudiniService.PathIntoHoudiniFormat(refPath);
-                        }
-                    }
                 }
 
             }
@@ -753,30 +732,40 @@ start """" ""{fileToOpen}""
             string publishFolder = Path.Combine(ctx.NodeRoot, "dlv");
             Directory.CreateDirectory(publishFolder);
 
+
+            string LocalFile = GetTempPath(nodePath);
+            string localPublishFolder = Path.Combine(Directory.GetParent(Directory.GetParent(Path.GetDirectoryName(LocalFile)).FullName).FullName, "dlv");
+            Directory.CreateDirectory(localPublishFolder);
+
             string publishedFileName = $"{ctx.FileName}_OK{ctx.Extension}";
             string publishedFilePath = Path.Combine(publishFolder, publishedFileName);
+            string localPublishedFilePath = Path.Combine(localPublishFolder, publishedFileName);
 
-            File.Copy(nodePath, publishedFilePath, overwrite: true);
+
+            File.Copy(nodePath, localPublishedFilePath, overwrite: true);
 
             // on lance la scene de publish pour lancer des scripts dedans
             string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_publish.py");
             if (ctx.Extension == ".ma")
             {
-                MayaService.ExecuteMayaBatchScript(publishedFilePath, pyPath, nodePath);
+                MayaService.ExecuteMayaBatchScript(localPublishedFilePath, pyPath, nodePath);
             }
             else if (ctx.Extension == ".blend")
             {
-                BlenderService.ExecuteBlenderBatchScript(publishedFilePath, pyPath, nodePath);
+                BlenderService.ExecuteBlenderBatchScript(localPublishedFilePath, pyPath, nodePath);
             }
             else if (ctx.Extension == ".hipnc" || ctx.Extension == ".hip")
             {
-                HoudiniService.ExecuteHoudiniBatchScript(publishedFilePath, pyPath, nodePath);
+                HoudiniService.ExecuteHoudiniBatchScript(localPublishedFilePath, pyPath, nodePath);
             }
+
+            // File.Copy(localPublishedFilePath, publishedFilePath, overwrite: true); // faut passer ca dans le pyton plutot
 
             AddNote(nodePath, form);
             MarkDownstreamDepartmentsOutdated(nodePath, ctx.Department);
             form.RefreshTab(ctx.NodeRoot);
             LogService.EchoSuccessLog($"Node publie : {publishedFileName}");
+
         }
 
         public static void VersionNode(string nodePath, AssetManagerForm form)

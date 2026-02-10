@@ -18,7 +18,6 @@ if current_dir not in sys.path:
 # ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
-REFNODS = ["{node_dlv_path}{node_name}"]
 DEPT_SUFFIX = "_assemble"
 TEMPLATE_FILE = "Environment_Assemble_template"
 
@@ -103,32 +102,42 @@ def execute():
     """
     print(" -> execute")
 
-    # importer ou referencer les FBX
-    for node_template in REFNODS:
-        fbx_path = node_template.replace("{node_dlv_path}", studio_dlv_path).replace("{node_name}", asset_name)
-        MayaProcs.reference_fbx(fbx_path, "REF")
-
 
 def postexecute():
-    """
-    Tout ce qui se passe ici se fait apres tout le reste
-    """
     print(" -> Post-execute")
 
-    # GESTION DES DEPENDANCES
-    for item in get_asset_dependencies(asset_path):
-        if item['type'] in ['Props']:
+    cmds.refresh(suspend=True)
+    cmds.undoInfo(openChunk=True)
+
+    try:
+        deps = get_asset_dependencies(asset_path)
+
+        for item in deps:
+            if item['type'] != 'Props':
+                continue
+
             asset_name = item['name']
             dlv_path = item['path']
             rig_path = os.path.join(dlv_path, f"{asset_name}_rig_OK.ma")
-            if os.path.exists(rig_path):
-                MayaProcs.reference_scene(rig_path, asset_name)
-                print(f"[postexecute] Referenced rig for {asset_name}")
-            else:
-                print(f"[postexecute] No rig found for {asset_name} at {rig_path}")
-                
-    cmds.file(rename=EXECUTED_FILE)
-    cmds.file(save=True, type="mayaAscii", force=True)
+
+            if not os.path.exists(rig_path):
+                print(f"[postexecute] Missing: {rig_path}")
+                continue
+
+            if is_already_referenced(asset_name):
+                print(f"[postexecute] Already referenced: {asset_name}")
+                continue
+
+            MayaProcs.reference_scene(rig_path, asset_name)
+            print(f"[postexecute] Referenced: {asset_name}")
+
+        cmds.file(rename=EXECUTED_FILE)
+        cmds.file(save=True, type="mayaAscii", force=True)
+
+    finally:
+        cmds.undoInfo(closeChunk=True)
+        cmds.refresh(suspend=False)
+
     
     
 # ------------------------------------------------------
@@ -206,9 +215,15 @@ def get_asset_dependencies(asset_path):
 # Main
 # ------------------------------------------------------
 def main():
-    preexecute()
-    execute()
-    postexecute()
+    try:
+        preexecute()
+        execute()
+        postexecute()
+    except Exception as e:
+        import traceback
+        print("\n[FATAL ERROR]")
+        print(e)
+        traceback.print_exc()
 
 
 if __name__ == "__main__":
