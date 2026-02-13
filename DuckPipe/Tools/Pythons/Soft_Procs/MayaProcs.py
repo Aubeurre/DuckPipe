@@ -148,8 +148,8 @@ def reroot_fbx(scene_path):
 
     print("REROOT DONE.")
 
-# NE FONCTIONNE PAS EN BATCH MAIS OUI DANS LE GUI
-def reference_fbx(file_path, parent_grp):
+
+def reference_fbx(file_path, parent_grp= "__REF__"):
 
     file_path = file_path.replace("\\", "/")
 
@@ -188,26 +188,6 @@ def reference_fbx(file_path, parent_grp):
         # on reroot apres en ecriture car maya en batch ne veut pas le faire.
             
 
-def reference_scene(file_path, namespace):
-    """
-    Reference une scene maya dans la scene courante
-    """
-    file_path = file_path.replace("\\", "/")
-
-    if not os.path.exists(file_path):
-        cmds.error(f"Fichier de reference introuvable : {file_path}")
-        return
-
-    try:
-        cmds.file(file_path,
-                  r=True,
-                  ignoreVersion=True,
-                  mergeNamespacesOnClash=False,
-                  namespace=namespace)
-        print(f"[reference_scene] Referenced: {file_path} under namespace: {namespace}")
-    except Exception as e:
-        cmds.error(f"Erreur lors de la reference de la scene : {e}")
-
 def assign_basic_material_to_ref(ref_grp):
     """
     Cree et assigne un materiau de base a une reference
@@ -237,31 +217,76 @@ def assign_basic_material_to_ref(ref_grp):
     print(f"[assign_basic_material_to_ref] Assigned basic material to reference group '{ref_grp}'.")
 
 
-def reference_animable_rig(rig_path, asset_name):
-    if not os.path.exists(rig_path):
-        cmds.warning(f"Rig not found: {rig_path}")
+def reference_scene(file_path, asset_name, load=True):
+
+    if not os.path.exists(file_path):
+        cmds.warning(f"File not found: {file_path}")
         return None
 
     ns = asset_name
 
-    cmds.file(
-        rig_path,
-        reference=True,
-        namespace=ns,
-        mergeNamespacesOnClash=False
-    )
-
-    local_ctl = f"{ns}:local_ctl"
-    if not cmds.objExists(local_ctl):
-        cmds.warning(f"No local_ctl for {asset_name}")
+    if load:
+        cmds.file(
+            file_path,
+            reference=True,
+            namespace=ns,
+            mergeNamespacesOnClash=False
+        )
+    else:
+        cmds.file(
+            file_path,
+            reference=True,
+            namespace=ns,
+            mergeNamespacesOnClash=False,
+            loadReferenceDepth="none"
+        )
+        print(f"[deferred] injected unloaded Scene: {asset_name}")
         return None
 
-    return local_ctl
+
+def inject_reference_into_ma(ma_path, ref_path, namespace):
+    print('run inject_reference_into_ma on:', ma_path, ref_path, namespace)
+    
+    ref_path = ref_path.replace("\\", "/")
+
+    ref_block = [
+        f'file -rdi 1 -ns "{namespace}" -dr 1 "{ref_path}";\n',
+        f'file -r -ns "{namespace}" "{ref_path}";\n'
+    ]
+
+    with open(ma_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    # Evite doublon
+    if any(ref_path in l for l in lines):
+        print(f"[inject] already exists: {namespace}")
+        return
+
+    # Trouver dernier fileInfo
+    insert_index = 0
+    for i, line in enumerate(lines):
+        if line.startswith("fileInfo"):
+            insert_index = i + 1
+
+    # Injection
+    lines.insert(insert_index, "\n// DuckPipe injected reference\n")
+    for l in reversed(ref_block):
+        lines.insert(insert_index + 1, l)
+
+    tmp = ma_path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+
+    os.replace(tmp, ma_path)
+
+    print(f"[inject] OK: {ref_path}")
+
 
 
 def fbx_to_gpu_cache(fbx_path):
     if not os.path.exists(fbx_path):
         raise RuntimeError("FBX introuvable")
+    print('go', fbx_path)
 
     base_dir = os.path.dirname(fbx_path)
     base_name = os.path.splitext(os.path.basename(fbx_path))[0]
@@ -325,3 +350,10 @@ def fbx_to_gpu_cache(fbx_path):
     print("GPU cache affiché :", gpu_node)
     print("Chemin exact :", gpu_path)
     return parent_transform, gpu_path
+
+
+def apply_transform(node, pos, rot, scale):
+    print(node, pos, rot, scale)
+    cmds.xform(node, ws=True, t=pos)
+    cmds.xform(node, ws=True, ro=rot)
+    cmds.xform(node, ws=True, s=scale)

@@ -556,10 +556,20 @@ namespace DuckPipe.Core.Manipulator
         {
             // on check si les fichiers sont a jour
             var ctx = ExtractNodeContext(nodePath);
+
+            // on copy les fichiers de dlv en local pour les refs
+            string dlvPath = Path.Combine(ctx.NodeRoot, "dlv");
+            string tempDlvPath = GetTempPath(dlvPath);
+            List<string> changedFiles = new List<string>();
+            changedFiles = ProdFilesManip.SyncFolder(dlvPath, changedFiles, toLocal: true);
+            LogService.EchoSuccessLog($"Fichiers DLV copie en local : {changedFiles.ToString()}");
+
+            // on copy les fichiers de la prod en local
             ProdFilesManip.EnsureLocalProductionFiles(ctx.ProdName);
             LogService.EchoInfoLog($"EnsureLocalProductionFiles OK");
 
-            List<string> changedFiles = new List<string>();
+            // on copy les dependences des refs du node en local
+            changedFiles = new List<string>();
 
             foreach (var refPath in GetAllRefs(nodePath))
             {
@@ -594,12 +604,10 @@ namespace DuckPipe.Core.Manipulator
             Directory.CreateDirectory(tempDirPath);
             File.Copy(nodePath, tempNodelPath, true);
             File.Copy(nodejsonPath, tempNodejsonPath, true);
-
-
             LogService.EchoInfoLog($"Fichier copié en local :\n{tempNodelPath}");
-            LogService.EchoSuccessLog($"Node grabbed : {ctx.File}");
 
             EnsureDependences(nodePath, form);
+            LogService.EchoSuccessLog($"Node grabbed : {ctx.File}");
 
         }
 
@@ -762,7 +770,7 @@ start """" ""{fileToOpen}""
             string localPublishedFilePath = Path.Combine(localPublishFolder, publishedFileName);
 
 
-            File.Copy(nodePath, localPublishedFilePath, overwrite: true);
+            ProdFilesManip.SafeCopyLargeFile(LocalFile, localPublishedFilePath);
 
             // on lance la scene de publish pour lancer des scripts dedans
             string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_publish.py");
@@ -808,9 +816,8 @@ start """" ""{fileToOpen}""
                 int newVersion = GetLastWorkVersion(nodePath) + 1;
                 string versionedFileName = $"{ctx.FileName}_v{newVersion:D3}{ctx.Extension}";
                 string destinationPath = Path.Combine(incrementalsDir, versionedFileName);
-
-                File.Copy(LocalFile, destinationPath);
-                File.Copy(LocalFile, nodePath, true);
+                ProdFilesManip.SafeCopyLargeFile(LocalFile, nodePath);
+                ProdFilesManip.SafeCopyNasToNas(nodePath, destinationPath);
                 LogService.EchoSuccessLog($"Version enregistree : {versionedFileName}");
 
                 UpdateNodeMetadata(nodePath, newVersion, ctx.Department);

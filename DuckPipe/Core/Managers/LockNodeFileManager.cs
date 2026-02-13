@@ -33,6 +33,21 @@ namespace DuckPipe.Core.Manager
             return;
         }
 
+
+        public static void forceUnlockFile(string nodePath, AssetManagerForm form)
+        {
+            string workFolderPath = Path.GetDirectoryName(nodePath);
+            string fileName = Path.GetFileNameWithoutExtension(nodePath);
+            string FileExt = Path.GetExtension(nodePath);
+            string lockFile = Path.Combine(workFolderPath, $"{fileName}{FileExt}.lock");
+            if (File.Exists(lockFile))
+                File.Delete(lockFile);
+            NodeManip.UngrabbNode(nodePath);
+            string[] nodeParts = nodePath.Split(new[] { "\\Work\\" }, StringSplitOptions.None);
+            form.RefreshTab(nodeParts[0]);
+        }
+
+
         public static void UnlockFile(string nodePath, AssetManagerForm form)
         {
             string workFolderPath = Path.GetDirectoryName(nodePath);

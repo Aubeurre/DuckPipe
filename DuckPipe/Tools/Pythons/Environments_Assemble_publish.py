@@ -4,6 +4,7 @@ Publish pour BLENDER et MAYA
 
 import os
 import sys
+import shutil
 
 # ------------------------------------------------------
 # Constantes
@@ -136,6 +137,12 @@ def postpublish():
     Tout ce qui se passe ici se fait apres tout le reste
     """
     print("Post-publish")
+
+    
+    # Copie  assembly.json sur le serveur
+    local_json = os.path.join(dlv_path, "assembly.json")
+    server_json_path = os.path.join(studio_dlv_path, "assembly.json")
+    shutil.copy2(local_json, server_json_path)
 
     if IN_MAYA:
         MayaProcs.clean_publish(TRASHLIST)

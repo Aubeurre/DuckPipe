@@ -4,6 +4,7 @@ Publish pour MAYA (le rig se fera toujours dans maya avec DuckPipe)
 
 import os
 import sys
+import shutil
 
 # ------------------------------------------------------
 # Constantes
@@ -83,13 +84,6 @@ def prepublish():
     """
     print(" -> Pre-publish")
 
-
-def publish():
-    """
-    Tout ce qui se passe ici se fait dans la scene de OK
-    """
-    print(" -> publish")
-    
     if IN_MAYA:
         MayaProcs.remove_ref()
         MayaProcs.clean_publish(['__TRASH__', '__UTILS__', '__REF__'])
@@ -99,11 +93,22 @@ def publish():
         cmds.file(save=True, type="mayaAscii", prompt=False)
 
 
+def publish():
+    """
+    Tout ce qui se passe ici se fait dans la scene de OK
+    """
+    print(" -> publish")   
+
+
 def postpublish():
     """
     Tout ce qui se passe ici se fait apres tout le reste une fois la scene fermee
     """
     print(" -> Post-publish")
+    
+    server_dlv_path = os.path.join(studio_dlv_path, file_name).replace("\\", "/")
+    shutil.copy2(EXECUTED_FILE, server_dlv_path)
+    print(f"[postpublish] Copied {EXECUTED_FILE} -> {server_dlv_path}")
                 
         
 # ------------------------------------------------------

@@ -63,6 +63,7 @@ asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirnam
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
+local_dlv_path = dlv_path.replace("\\", "/").replace(PROD_PATH, LOCAL_PATH)
 template_path = os.path.join(asset_root_path, "Template")
 studio_template_path = template_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 
@@ -99,10 +100,19 @@ def execute():
     Tout ce qui se passe ici se fait dans la scene de work
     """
     print(" -> execute")
-    # on reference la camera
-    fbx_path = os.path.join(studio_template_path, "studio_cam.ma").replace("\\", "/")
-    MayaProcs.reference_fbx(fbx_path, "REF")
 
+    deps = get_asset_dependencies(asset_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH))
+    # on gere l assemblage dans maya ouvert car on doit positionner les refs et caches dans la scene
+    for item in deps:
+        if item['type'] == 'Environments':
+            asset_name = item['name']
+            dlv_path = item['path']
+            assembly_path = os.path.join(dlv_path, "assembly.json").replace("\\", "/")
+            if os.path.exists(assembly_path):
+                Assembly_import.import_assembly_for_anim(EXECUTED_FILE, assembly_path, LOCAL_PATH)
+                print(f"[postexecute] Imported assembly for {asset_name}")
+            else:
+                print(f"[postexecute] No assembly.json found for {asset_name} at {assembly_path}")
 
 def postexecute():
     """
@@ -110,33 +120,46 @@ def postexecute():
     """
     print(" -> Post-execute")
     
+    cmds.file(rename=EXECUTED_FILE)
+    cmds.file(save=True, type="mayaAscii", force=True)
+    
+    # on reference la camera
+    camPath = os.path.join(template_path, "studio_cam.ma").replace("\\", "/")
+    MayaProcs.inject_reference_into_ma(EXECUTED_FILE, camPath, 'cam')
+    
     # GESTION DES DEPENDANCES
     # on lis les dependences et on regarde si y a un Environment a importer
     print('GO ASSET DEPENDENCIES:')
-    for item in get_asset_dependencies(asset_path):
-        if item['type'] == 'Environments':
-            asset_name = item['name']
-            dlv_path = item['path']
-            assembly_path = os.path.join(dlv_path, "assembly.json").replace("\\", "/")
-            if os.path.exists(assembly_path):
-                Assembly_import.import_assembly_for_anim(assembly_path, PROD_PATH)
-                print(f"[postexecute] Imported assembly for {asset_name}")
-            else:
-                print(f"[postexecute] No assembly.json found for {asset_name} at {assembly_path}")
-        # on rajoute aussi les rigs de persos et props
-        if item['type'] in ['Characters', 'Props']:
-            asset_name = item['name']
-            dlv_path = item['path']
-            rig_path = os.path.join(dlv_path, f"{asset_name}_rig_OK.ma")
-            if os.path.exists(rig_path):
-                MayaProcs.reference_scene(rig_path, asset_name)
-                print(f"[postexecute] Referenced rig for {asset_name}")
-            else:
-                print(f"[postexecute] No rig found for {asset_name} at {rig_path}")
 
-    cmds.file(rename=EXECUTED_FILE)
-    cmds.file(save=True, type="mayaAscii", force=True)
-    reroot_fbx(EXECUTED_FILE)
+    deps = get_asset_dependencies(asset_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH))
+
+    for item in deps:
+        print(item['type'])
+
+        if item['type'] == 'Characters':
+            asset_name = item['name']
+            item_dlv_path = item['path']
+            rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{asset_name}_rig_OK.ma")
+
+            print(rig_path)
+            if not os.path.exists(rig_path):
+                print(f"[postexecute] Missing: {rig_path}")
+                continue
+            MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, asset_name)
+
+        if item['type'] ==  'Props':
+            print('FOUND', item)
+            asset_name = item['name']
+            item_dlv_path = item['path']
+            rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{asset_name}_rig_OK.ma")
+
+            if not os.path.exists(rig_path):
+                print(f"[postexecute] Missing: {rig_path}")
+                continue
+
+            MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, asset_name)
+
+
 
 # ------------------------------------------------------
 # CUSTOM

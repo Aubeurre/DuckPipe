@@ -83,11 +83,12 @@ def publish():
     """
     print("publish")
 
+    # on a juste besoin de monter le json, pas besoin de scene maya
     Layout_export.export(os.path.join(dlv_path, "layout.json"))
             
-    full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
-    cmds.file(rename=full_scene_path)
-    cmds.file(save=True, type="mayaAscii", prompt=False)
+    # full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
+    # cmds.file(rename=full_scene_path)
+    # cmds.file(save=True, type="mayaAscii", prompt=False)
 
 
 def postpublish():
@@ -96,8 +97,8 @@ def postpublish():
     """
     print("Post-publish")
 
-    MayaProcs.clean_publish(TRASHLIST)
-    cmds.file(save=True, type="mayaAscii")
+    # MayaProcs.clean_publish(TRASHLIST)
+    # cmds.file(save=True, type="mayaAscii")
     
         
 # ------------------------------------------------------

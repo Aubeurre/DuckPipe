@@ -6,7 +6,7 @@ import os
 import sys
 
 # ------------------------------------------------------
-# Ajout du répertoire courant au path
+# Ajout du repertoire courant au path
 # ------------------------------------------------------
 if "__file__" not in globals():
     __file__ = sys.argv[1]
@@ -30,7 +30,7 @@ if "--" in sys.argv:
     extra_args = sys.argv[idx + 1:]
     if extra_args:
         server_file_path = extra_args[0]
-        print("Fichier reçu :", server_file_path)
+        print("Fichier recu :", server_file_path)
 
 # ------------------------------------------------------
 # Detection environnement
@@ -52,7 +52,7 @@ PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
 LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)   
 
 # ------------------------------------------------------
-# Chemins et variables dérivées
+# Chemins et variables derivees
 # ------------------------------------------------------
 file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
@@ -61,6 +61,7 @@ asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirnam
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
+local_dlv_path = dlv_path.replace("\\", "/").replace(PROD_PATH, LOCAL_PATH)
 template_path = os.path.join(asset_root_path, "Template")
 
 print("--------------------------------")
@@ -104,45 +105,55 @@ def execute():
 
 
 def postexecute():
+    # operation apres la fermeture de la scene, on travail sur le .ma directement
     print(" -> Post-execute")
+    
+    cmds.file(rename=EXECUTED_FILE)
+    cmds.file(save=True, type="mayaAscii", force=True)
 
-    cmds.refresh(suspend=True)
-    cmds.undoInfo(openChunk=True)
+    deps = get_asset_dependencies(asset_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH))
 
-    try:
-        deps = get_asset_dependencies(asset_path)
+    for item in deps:
+        if item['type'] != 'Props':
+            continue
 
-        for item in deps:
-            if item['type'] != 'Props':
-                continue
+        asset_name = item['name']
+        item_dlv_path = item['path']
+        rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{asset_name}_rig_OK.ma")
 
-            asset_name = item['name']
-            dlv_path = item['path']
-            rig_path = os.path.join(dlv_path, f"{asset_name}_rig_OK.ma")
+        if not os.path.exists(rig_path):
+            print(f"[postexecute] Missing: {rig_path}")
+            continue
 
-            if not os.path.exists(rig_path):
-                print(f"[postexecute] Missing: {rig_path}")
-                continue
+        MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, asset_name)
 
-            if is_already_referenced(asset_name):
-                print(f"[postexecute] Already referenced: {asset_name}")
-                continue
-
-            MayaProcs.reference_scene(rig_path, asset_name)
-            print(f"[postexecute] Referenced: {asset_name}")
-
-        cmds.file(rename=EXECUTED_FILE)
-        cmds.file(save=True, type="mayaAscii", force=True)
-
-    finally:
-        cmds.undoInfo(closeChunk=True)
-        cmds.refresh(suspend=False)
-
+    print("[postexecute] Done.")
     
     
 # ------------------------------------------------------
 # CUSTOM
 # ------------------------------------------------------
+
+def reroot_fbx(scene_path):
+
+    print("REROOT:", scene_path)
+
+    with open(scene_path, "r", encoding="utf-8") as f:
+        print("lecture")
+        lines = f.readlines()
+
+    with open(scene_path, "w", encoding="utf-8") as f:
+        print("ecriture")
+        for line in lines:
+            if "__dummy" in line:
+                f.write(line.replace("__dummy", ""))
+            else:
+                f.write(line)
+        f.flush()
+        os.fsync(f.fileno())
+
+    print("REROOT DONE.")
+
 
 def read_json(json_path):
     """
@@ -170,10 +181,23 @@ def remove_envvar_from_path(path):
         path = path.replace(env_var, env_value)
     return path
 
+
+def is_already_referenced(asset_name):
+    """
+    Verifie si une reference contenant le nom de l'asset est deja chargee
+    """
+    try:
+        refs = cmds.file(q=True, r=True) or []
+        return any(asset_name in r for r in refs)
+    except Exception as e:
+        print(f"[is_already_referenced] error: {e}")
+        return False
+    
+    
 def get_asset_dependencies(asset_path):
     """
-    Retourne la liste des dépendances d'un asset
-    elles sont listées dans le fichier node.json dans le dossier de l'asset. sous refAssets
+    Retourne la liste des dependances d'un asset
+    elles sont listees dans le fichier node.json dans le dossier de l'asset. sous refAssets
         {...
         "nodeInfos": {
             "refAssets": [

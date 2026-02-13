@@ -370,6 +370,11 @@ namespace DuckPipe.Forms.Builder.Tabs
                     Button ungrabBtn = CreateActionButton("Ungrab", LockNodeFileManager.UnlockFile, form, nodePath); //if user is grabbed
                     flpDeptButton.Controls.Add(ungrabBtn);
                 }
+                else
+                {
+                    Button breackGrabBtn = CreateActionButton("Break Grab", LockNodeFileManager.forceUnlockFile, form, nodePath); //if other user is grabbed
+                    flpDeptButton.Controls.Add(breackGrabBtn);
+                }
             }
             Button runBtn = CreateActionButton("Run", NodeManip.LaunchNode, form, nodePath);
             flpDeptButton.Controls.Add(runBtn);

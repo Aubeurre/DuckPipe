@@ -105,7 +105,7 @@ def execute():
     # importer ou referencer les FBX
     for node_template in REFNODS:
         fbx_path = node_template.replace("{node_dlv_path}", studio_dlv_path).replace("{node_name}", asset_name)
-        MayaProcs.reference_fbx(fbx_path, "REF")
+        MayaProcs.reference_fbx(fbx_path, "__REF__")
 
 
 def postexecute():

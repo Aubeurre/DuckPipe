@@ -18,6 +18,7 @@ on ajoute une ref vers le split casual dans une scene vide, sauvegarder le Actor
 
 import os
 import sys
+import shutil
 
 # ------------------------------------------------------
 # Constantes
@@ -138,6 +139,12 @@ def prepublish():
             import customScripts
             customScripts.execute()
 
+        # clean de la scne
+        MayaProcs.remove_ref()
+        MayaProcs.clean_publish(['__TRASH__', '__UTILS__', '__REF__'])
+        cmds.group("__RIG__", "MODEL_OK", n=asset_name)
+        addAttr()
+
 
 def publish():
     """
@@ -146,20 +153,17 @@ def publish():
     print(" -> publish")
     
     if IN_MAYA:
-        MayaProcs.remove_ref()
-        MayaProcs.clean_publish(['__TRASH__', '__UTILS__', '__REF__'])
-        cmds.group("__RIG__", "MODEL_OK", n=asset_name)
-        addAttr()
-
+        # import du surfacing
         if os.path.exists(os.path.join(dlv_path, "surfacing_export.json")):
             Surfacing_import.import_surf(os.path.join(dlv_path, "surfacing_export.json"))
 
+        # import du facial
+        addFacialToAssemble()
+
+        # save de la scene
         full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
         cmds.file(rename=full_scene_path)
         cmds.file(save=True, type="mayaAscii", prompt=False)
-
-        createAssemble()
-        addFacialToAssemble()
 
 
 def postpublish():
@@ -169,18 +173,18 @@ def postpublish():
     print(" -> Post-publish")
     
     if IN_MAYA:
-        cmds.file(save=True, type="mayaAscii")
-        cmds.file(new=True, force=True)
-        newFileName = file_name.replace(DEPT_SUFFIX, ASSEMBLESUFFIX)
-        full_scene_path = os.path.join(dlv_path, newFileName)
-        MayaProcs.sanitize_ma(full_scene_path)
+        pass
+        
+    server_dlv_path = os.path.join(server_dlv_path, file_name).replace("\\", "/")
+    shutil.copy2(EXECUTED_FILE, server_dlv_path)
+    print(f"[postpublish] Copied {EXECUTED_FILE} -> {server_dlv_path}")
             
         
 # ------------------------------------------------------
 # Fonction MAYA
 # ------------------------------------------------------
 
-def addAttr():
+def addAttr(): #NOT USED
     """
     ajout d un attr de animable or not for set assembly
     """
@@ -191,7 +195,8 @@ def addAttr():
             cmds.setAttr("global_ctl.asset_name" , asset_name, type='string')
             print(f"attribut name {asset_name} ajoute a global_ctl")
 
-def createAssemble():
+
+def createAssemble(): #OLD
     """
     creation de la scene d'Assemble pour le rig et le facial'
     """
@@ -202,12 +207,29 @@ def createAssemble():
         cmds.file(rename=full_scene_path)
         cmds.file(save=True, type="mayaAscii")
 
+
 def addFacialToAssemble():
     """
     Importation du facial et connection
     """
             
     print("[FACIAL]")
+    def new_cleanFacial():
+        # rangement
+        source = ['facial_DFJNT_GRP', 'facial_MODEL_GRP', 'facial_RIG_GRP']
+        dest = ['DFJNT_GRP', 'ADDITIV_RIG', '__RIG__']
+        for i,item in enumerate(source):
+            cmds.parent(item, dest[i])
+        if cmds.objExists("Facial_ctl_set"):
+            cmds.sets("Facial_ctl_set", e=1, fe="ctl_set")
+
+        # connection du rig
+        dest ['center_Head_ctl', 'center_HeadUp_ctl', 'center_Skull_0_ctl', 'center_Skull_1_ctl', 
+              'center_Skull_2_ctl', 'center_Skull_3_ctl', 'center_nose_2_fk_ctl', 
+              'l_eyepocket_ctl', 'r_eyepocket_ctl']
+        source = ['zone_01', 'zone_02', 'zone_03', 'zone_04', 'zone_05']
+
+
     def clean_facial() :
         # rangement
         if cmds.objExists("facial_def_jnt_grp"):
@@ -308,7 +330,6 @@ def addFacialToAssemble():
         clean_facial()
     else:
         print("Pas de facial trouve.")
-
 
 
 # ------------------------------------------------------

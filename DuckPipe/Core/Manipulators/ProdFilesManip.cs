@@ -4,6 +4,7 @@ using DuckPipe.Core.Manipulator;
 using DuckPipe.Core.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
@@ -98,7 +99,7 @@ namespace DuckPipe.Core.Manipulators
 
         #region COPY METHODS
 
-        private static void CopyFileSafe(string sourceFile, string destFile)
+        private static void CopyFileSafe(string sourceFile, string destFile) // on peut rester sur ca pour du serv vers local
         {
             try
             {
@@ -211,6 +212,135 @@ namespace DuckPipe.Core.Manipulators
                 LogService.EchoInfoLog("Fichiers mis à jour :\n" + string.Join("\n", changedFiles));
         }
 
+
+        public static void SafeCopyNasToNas(string source, string destination, int retry = 3)
+        {
+            for (int attempt = 1; attempt <= retry; attempt++)
+            {
+                try
+                {
+                    string srcDir = Path.GetDirectoryName(source);
+                    string srcFile = Path.GetFileName(source);
+
+                    string dstDir = Path.GetDirectoryName(destination);
+                    string dstFile = Path.GetFileName(destination);
+
+                    Directory.CreateDirectory(dstDir);
+
+                    string tempPath = Path.Combine(dstDir, srcFile);
+
+                    ProcessStartInfo psi = new ProcessStartInfo
+                    {
+                        FileName = "robocopy",
+                        Arguments = $"\"{srcDir}\" \"{dstDir}\" \"{srcFile}\" /Z /R:3 /W:2 /NFL /NDL /NP",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using Process proc = Process.Start(psi);
+
+                    while (!proc.StandardOutput.EndOfStream)
+                    {
+                        string line = proc.StandardOutput.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(line))
+                            LogService.EchoLog(line);
+                    }
+
+                    proc.WaitForExit();
+
+                    if (proc.ExitCode >= 8)
+                        throw new Exception($"Robocopy failed with code {proc.ExitCode}");
+
+                    // Rename atomique vers nom final
+                    string finalPath = Path.Combine(dstDir, dstFile);
+
+                    if (File.Exists(finalPath))
+                        File.Delete(finalPath);
+
+                    File.Move(tempPath, finalPath);
+
+                    LogService.EchoSuccessLog($"NAS copy complete → {dstFile}");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    LogService.EchoLog($"NAS copy failed attempt {attempt}: {ex.Message}");
+
+                    if (attempt == retry)
+                        throw;
+
+                    Thread.Sleep(2000);
+                }
+            }
+        }
+
+
+        public static void SafeCopyLargeFile(string source, string destination, int retry = 3)
+        {
+            LogService.EchoLog($"SafeCopyLargeFile : {source}, {destination}");
+            string tempDest = destination + ".tmp";
+            const int bufferSize = 8 * 1024 * 1024; // 8 MB
+
+            for (int attempt = 1; attempt <= retry; attempt++)
+            {
+                try
+                {
+                    long totalBytes = new FileInfo(source).Length;
+                    long copiedBytes = 0;
+                    int lastLoggedPercent = 0;
+
+                    using (FileStream sourceStream = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    using (FileStream destStream = new FileStream(tempDest, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        byte[] buffer = new byte[bufferSize];
+                        int read;
+
+                        int nextLogPercent = 10;
+
+                        while ((read = sourceStream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            destStream.Write(buffer, 0, read);
+                            copiedBytes += read;
+
+                            int percent = (int)((copiedBytes * 100) / totalBytes);
+
+                            while (percent >= nextLogPercent)
+                            {
+                                LogService.EchoLog($"Copy progress: {nextLogPercent}%");
+                                nextLogPercent += 10;
+                            }
+                        }
+
+                        destStream.Flush(true);
+                    }
+
+                    long dstSize = new FileInfo(tempDest).Length;
+
+                    if (dstSize != totalBytes)
+                        throw new IOException("File corrupted during transfer.");
+
+                    if (File.Exists(destination))
+                        File.Delete(destination);
+
+                    File.Move(tempDest, destination);
+
+                    LogService.EchoSuccessLog("Copy complete ");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    LogService.EchoLog($"Copy failed attempt {attempt}: {ex.Message}");
+
+                    if (attempt == retry)
+                        throw;
+
+                    Thread.Sleep(2000);
+                }
+            }
+        }
+
         #endregion
     }
+
 }

@@ -4,6 +4,7 @@ Publish pour BLENDER et MAYA
 
 import os
 import sys
+import shutil
 
 # ------------------------------------------------------
 # Constantes
@@ -120,7 +121,9 @@ def publish():
     Tout ce qui se passe ici se fait dans la scene de OK
     """
     print("publish")
-        
+    
+    
+    # on a juste besoin de sortir les fbx et compagniem on ne va pas gerer de cene OK
     export_list = [
         [['MODEL_GRP'], f'{dlv_path}/{asset_name}_model.fbx']
     ]
@@ -128,10 +131,16 @@ def publish():
     if IN_MAYA:
         for grp, path in export_list:
             MayaProcs.export_hierarchy_by_name(grp, path)
+        # MayaProcs.clean_publish(TRASHLIST)
+        # full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
+        # cmds.file(rename=full_scene_path)
+        # cmds.file(save=True, type="mayaAscii")
     elif IN_BLENDER:
         BlenderProcs.confo_from_blender()
         for grp, path in export_list:
             BlenderProcs.export_hierarchy_by_name(grp, path)
+        # BlenderProcs.clean_publish(TRASHLIST)
+        # bpy.ops.wm.save_mainfile()
 
 
 def postpublish():
@@ -140,15 +149,14 @@ def postpublish():
     """
     print("Post-publish")
 
-    if IN_MAYA:
-        MayaProcs.clean_publish(TRASHLIST)
 
-        full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
-        cmds.file(rename=full_scene_path)
-        cmds.file(save=True, type="mayaAscii")
-    elif IN_BLENDER:
-        BlenderProcs.clean_publish(TRASHLIST)
-        bpy.ops.wm.save_mainfile()
+    export_list = [f'{dlv_path}/{asset_name}_model.fbx']
+
+    for file_path in export_list:
+        if os.path.exists(file_path):
+            dest_path = os.path.join(studio_dlv_path, os.path.basename(file_path)).replace("\\", "/")
+            shutil.copy2(file_path, dest_path)
+            print(f"[postpublish] Copied {file_path} -> {dest_path}")
     
         
 # ------------------------------------------------------

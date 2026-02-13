@@ -4,6 +4,7 @@
 
 import os
 import sys
+import shutil
 
 # ------------------------------------------------------
 # Constantes
@@ -108,8 +109,6 @@ def prepublish():
     """
     print(" -> Pre-publish")
     
-    Surfacing_export.export_surfacing(os.path.join(dlv_path, "surfacing_export.json"))
-    
     if IN_MAYA:  
         pass
     if IN_BLENDER:  
@@ -122,6 +121,9 @@ def publish():
     """
     print(" -> publish")
     
+    # on ne fait qu exporter les shd. la proc check le soft
+    Surfacing_export.export_surfacing(os.path.join(dlv_path, "surfacing_export.json"))
+
     if IN_MAYA:  
         pass
     if IN_BLENDER:  
@@ -139,6 +141,9 @@ def postpublish():
     if IN_BLENDER:  
         pass
 
+    local_json = os.path.join(dlv_path, "surfacing_export.json")
+    server_json_path = os.path.join(studio_dlv_path, "surfacing_export.json")
+    shutil.copy2(local_json, server_json_path)
 
 # ------------------------------------------------------
 # Main

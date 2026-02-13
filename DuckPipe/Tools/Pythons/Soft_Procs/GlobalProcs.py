@@ -73,7 +73,7 @@ def get_prodpath_from_pythonpath(py_path):
     """
     if not py_path:
         return ""
-    
+    py_path = py_path.replace("\\", "/")
     if "/Dev/" in py_path:
         prod_path = py_path.split("/Dev/")[0]
         return prod_path
@@ -87,6 +87,9 @@ def get_local_path_from_filepath(file_path, prod_path):
     """
     if not file_path:
         return ""
+    
+    file_path = file_path.replace("\\", "/")
+    prod_path = prod_path.replace("\\", "/")
     
     prodName = os.path.basename(prod_path)
 
