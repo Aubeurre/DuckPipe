@@ -180,5 +180,13 @@ namespace DuckPipe.Core.Services
             else
                 return false;
         }
+
+        public static void setPipeEnvVar()
+        {
+            string rootPath = ProductionService.GetProductionRootPath();
+            string localPath = UserConfig.GetLocalBasePath();
+            Environment.SetEnvironmentVariable("DUCKPIPE_ROOT", localPath, EnvironmentVariableTarget.Process);
+            LogService.EchoInfoLog($"DUCKPIPE_ROOT set to: {localPath}");
+        }
     }
 }

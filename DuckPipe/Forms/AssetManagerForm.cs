@@ -38,6 +38,7 @@ namespace DuckPipe
             NodeTabBuilder.ClearPanel(NodeTabBuilder.GetContext("", ""));
             LogService.OnLog -= WriteLog;
             LogService.OnLog += WriteLog;
+            ProductionService.setPipeEnvVar();
 
             this.Text = $"DuckPipe v{Program.CurrentVersion} . Running on {ProductionService.GetProductionRootPath()}";
         }

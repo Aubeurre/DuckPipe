@@ -70,6 +70,7 @@ namespace DuckPipe.Core.Manipulator
             return JsonDocument.Parse(jsonText);
         }
 
+
         public static string SetEnvVariables(string path)
         {
             string rootPath = ProductionService.GetProductionRootPath();
