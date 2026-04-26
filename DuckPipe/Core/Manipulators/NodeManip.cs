@@ -55,9 +55,23 @@ namespace DuckPipe.Core.Manipulator
             string[] segments = relativeToRoot.Split('\\', StringSplitOptions.RemoveEmptyEntries);
 
             ctx.ProdName = (segments.Length >= 1) ? segments[0] : "Unknown";
-            ctx.NodeType = (segments.Length >= 3) ? segments[2] : "Unknown";
-            ctx.Department = (segments.Length >= 6) ? segments[5] : "Unknown";
+            int workIndex = Array.IndexOf(segments, "Work");
 
+            if (workIndex != -1)
+            {
+                ctx.Department = (segments.Length > workIndex + 1)
+                    ? segments[workIndex + 1]
+                    : "Unknown";
+                ctx.NodeType = (segments.Length > workIndex - 2)
+                    ? segments[workIndex - 2]
+                    : "Unknown";
+            }
+            else
+            {
+                ctx.Department = "Unknown";
+                ctx.NodeType = "Unknown";
+            }
+                        
             return ctx;
         }
 

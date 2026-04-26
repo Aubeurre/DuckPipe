@@ -35,11 +35,8 @@ if current_dir not in sys.path:
 
 print("Maya detected")
 from Soft_Procs import MayaProcs
-print("MayaProcs imported")
 from Soft_Procs import GlobalProcs
-print("GlobalProcs imported")
 from Sub_Procs import Layout_export
-print("Layout_export imported")
 
 IN_MAYA = True
 EXECUTED_FILE = cmds.file(q=True, sn=True)
@@ -52,8 +49,8 @@ LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
 # ------------------------------------------------------
 file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
-asset_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
-asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))))
+asset_path = os.path.dirname(os.path.dirname(EXECUTED_FILE))
+asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE))))
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
@@ -84,7 +81,8 @@ def publish():
     print("publish")
 
     # on a juste besoin de monter le json, pas besoin de scene maya
-    Layout_export.export(os.path.join(dlv_path, "layout.json"))
+    out_json_path = Layout_export.export(os.path.join(studio_dlv_path, "layout.json"))
+    Layout_export.update_shots_from_layout(out_json_path)
             
     # full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
     # cmds.file(rename=full_scene_path)
@@ -96,7 +94,7 @@ def postpublish():
     Tout ce qui se passe ici se fait apres tout le reste
     """
     print("Post-publish")
-
+    
     # MayaProcs.clean_publish(TRASHLIST)
     # cmds.file(save=True, type="mayaAscii")
     

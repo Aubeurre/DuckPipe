@@ -86,6 +86,7 @@ root_asset_path = os.path.dirname(os.path.dirname(asset_root_path))
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
+local_dlv_path = dlv_path.replace("\\", "/").replace(PROD_PATH, LOCAL_PATH)
 local_template_path = os.path.join(asset_root_path, "Template")
 template_path = os.path.join(root_asset_path, "Template").replace(LOCAL_PATH, PROD_PATH)
 
@@ -137,11 +138,17 @@ def execute():
             ref_path = item.replace("$AssetDlvPath", studio_dlv_path).replace("$AssetName", asset_name)
             MayaProcs.reference_fbx(ref_path, "REF")
             MayaProcs.assign_basic_material_to_ref("REF")
+            
+        MayaProcs.cleanReferencesBeforeSave()
+        cmds.file(rename=EXECUTED_FILE)
+        cmds.file(save=True, type="mayaAscii", force=True)
+
     elif IN_BLENDER:
         for item in REFNODS:
             ref_path = item.replace("$AssetDlvPath", studio_dlv_path).replace("$AssetName", asset_name)
             BlenderProcs.reference_fbx(ref_path)
             BlenderProcs.assign_basic_material_to_all()
+        bpy.ops.wm.save_as_mainfile(filepath=EXECUTED_FILE)
 
 
 def postexecute():
@@ -151,12 +158,10 @@ def postexecute():
     print(" -> Post-execute")
 
     if IN_MAYA:
-        cmds.file(rename=EXECUTED_FILE)
-        cmds.file(save=True, type="mayaAscii", force=True)
         reroot_fbx(EXECUTED_FILE)
     
     elif IN_BLENDER:
-        bpy.ops.wm.save_as_mainfile(filepath=EXECUTED_FILE)
+        pass
     
 # ------------------------------------------------------
 # MAYA PROCS

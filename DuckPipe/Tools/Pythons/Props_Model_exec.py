@@ -86,6 +86,7 @@ root_asset_path = os.path.dirname(os.path.dirname(asset_root_path))
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
+local_dlv_path = dlv_path.replace("\\", "/").replace(PROD_PATH, LOCAL_PATH)
 local_template_path = os.path.join(asset_root_path, "Template")
 template_path = os.path.join(root_asset_path, "Template").replace(LOCAL_PATH, PROD_PATH)
 
@@ -133,9 +134,11 @@ def execute():
     print(" -> execute")
 
     if IN_MAYA:
-        pass
+        MayaProcs.cleanReferencesBeforeSave()
+        cmds.file(rename=EXECUTED_FILE)
+        cmds.file(save=True, type="mayaAscii", force=True)
     elif IN_BLENDER:
-        pass
+        bpy.ops.wm.save_as_mainfile(filepath=EXECUTED_FILE)
 
 
 def postexecute():
@@ -145,10 +148,9 @@ def postexecute():
     print(" -> Post-execute")
 
     if IN_MAYA:
-        cmds.file(rename=EXECUTED_FILE)
-        cmds.file(save=True, type="mayaAscii", force=True)
+        pass
     elif IN_BLENDER:
-        bpy.ops.wm.save_as_mainfile(filepath=EXECUTED_FILE)
+        pass
     
 
 # ------------------------------------------------------

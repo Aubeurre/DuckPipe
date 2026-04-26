@@ -30,40 +30,57 @@ def find_global_ctl(node):
 
     return None
 
+def clean_ctl_name(node):
+    short = node.split("|")[-1]  # enlève long path
+    short = short.split(":")[-1]  # enlève namespace
+    return short
 
-def get_all_ctl_in_scene():
+
+def get_ctl_under_root(root):
     all_ctl_info = {}
-    for item in cmds.ls("*_ctl", l=1) or []:
-        # on cree un dico des infos de chaque ctl si pas null
-        pos = cmds.xform(item, q=True, ws=True, t=True)
-        rot = cmds.xform(item, q=True, ws=True, ro=True)
-        scale = cmds.xform(item, q=True, ws=True, scale=True)
-        if not pos == [0,0,0] and not rot == [0,0,0] and not scale == [1,1,1]:
-            all_ctl_info[item] = {
-                "position": pos,
-                "rotation": rot,
-                "scale": scale
-            }
+
+    descendants = cmds.listRelatives(root, ad=True, f=True) or []
+
+    for node in descendants:
+        if not node.endswith("_ctl"):
+            continue
+
+        short = node.split("|")[-1].split(":")[-1]
+
+        pos = cmds.xform(node, q=True, ws=True, t=True)
+        rot = cmds.xform(node, q=True, ws=True, ro=True)
+        scale = cmds.xform(node, q=True, ws=True, scale=True)
+
+        all_ctl_info[short] = {
+            "position": pos,
+            "rotation": rot,
+            "scale": scale
+        }
 
     return all_ctl_info
 
 
+
 def get_all_props_in_scene():
     props_info = {}
-    all_local_ctls = cmds.ls("local_ctl", l=1) or []
+    all_local_ctls = cmds.ls("local_ctl", l=True) or []
 
     for local_ctl in all_local_ctls:
+
         global_ctl = find_global_ctl(local_ctl)
+
         name = cmds.getAttr(f"{global_ctl}.asset_name")
         is_assembly_animable = cmds.getAttr(f"{global_ctl}.is_assembly_animable")
-        all_ctl_position = get_all_ctl_in_scene()
+
+        ctl_data = get_ctl_under_root(global_ctl)
 
         props_info.setdefault(name, []).append({
             "is_assembly_animable": is_assembly_animable,
-            "ctl_info": all_ctl_position
+            "ctl_info": ctl_data
         })
 
     return props_info
+
 
 
 # ----------------------------

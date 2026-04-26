@@ -172,13 +172,12 @@ def postpublish():
     """
     print(" -> Post-publish")
     
-    if IN_MAYA:
-        pass
-        
-    server_dlv_path = os.path.join(server_dlv_path, file_name).replace("\\", "/")
-    shutil.copy2(EXECUTED_FILE, server_dlv_path)
-    print(f"[postpublish] Copied {EXECUTED_FILE} -> {server_dlv_path}")
-            
+    if IN_MAYA:        
+        cmds.file(save=True, type="mayaAscii")
+        cmds.file(new=True, force=True)
+        server_dlv_path = os.path.join(studio_dlv_path, file_name).replace("\\", "/")
+        shutil.copy2(EXECUTED_FILE, server_dlv_path)
+        print(f"[postpublish] Copied {EXECUTED_FILE} -> {server_dlv_path}")            
         
 # ------------------------------------------------------
 # Fonction MAYA

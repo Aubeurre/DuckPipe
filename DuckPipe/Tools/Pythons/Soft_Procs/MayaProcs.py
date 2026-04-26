@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import maya.cmds as cmds
 import os
+import maya.mel as mel
 
 def import_ref():
     """
@@ -282,7 +283,6 @@ def inject_reference_into_ma(ma_path, ref_path, namespace):
     print(f"[inject] OK: {ref_path}")
 
 
-
 def fbx_to_gpu_cache(fbx_path):
     if not os.path.exists(fbx_path):
         raise RuntimeError("FBX introuvable")
@@ -357,3 +357,98 @@ def apply_transform(node, pos, rot, scale):
     cmds.xform(node, ws=True, t=pos)
     cmds.xform(node, ws=True, ro=rot)
     cmds.xform(node, ws=True, s=scale)
+
+
+def cleanReferencesBeforeSave(env_name="DUCKPIPE_ROOT"):
+
+    env_value = os.environ.get(env_name)
+    if not env_value:
+        cmds.warning(f"{env_name} not found. Skipping clean.")
+        return
+
+    env_value = os.path.normpath(env_value)
+
+    references = cmds.ls(type="reference")
+
+    for ref in references:
+        try:
+            ref_path = cmds.referenceQuery(ref, filename=True)
+        except:
+            continue
+
+        if not ref_path:
+            continue
+
+        normalized_path = os.path.normpath(ref_path)
+
+        if normalized_path.startswith(env_value):
+            new_path = normalized_path.replace(
+                env_value,
+                f"${{{env_name}}}"
+            )
+
+            try:
+                cmds.file(new_path, loadReference=ref)
+                print(f"[CLEANED] {ref}")
+            except Exception as e:
+                print(f"[ERROR] {ref} -> {e}")
+
+
+def import_fbx(file_path):
+    cmds.loadPlugin("fbxmaya", quiet=True)
+    mel.eval(f'FBXImport -f "{file_path}"')
+
+
+def deal_with_cinecam(cam_path, shotname):
+    def create_image_plane_for_camera(cam, image_path=""):
+        shapes = cmds.listRelatives(cam, shapes=True)
+        camera_shape = shapes[0]
+        img_plane, img_plane_shape = cmds.imagePlane(camera=camera_shape, n=f'{cam}_imageplane')
+
+        if image_path:
+            cmds.setAttr(img_plane_shape + ".imageName", image_path, type="string")
+    import_fbx(cam_path)
+
+    oldName = "cineCam"
+    new_name = f'{shotname}_cam'
+    objs = cmds.ls("*cineCam*", long=False)
+
+    for i, obj in enumerate(objs):
+        short_name = obj.split("|")[-1]
+        short_new_name = short_name.replace(oldName, new_name)
+        try:
+            cmds.rename(obj, short_new_name)
+        except:
+            pass
+    
+    create_image_plane_for_camera(f'{new_name}_cam', '')
+        
+    return f'{new_name}'
+
+
+def create_shots_sequencer(shotlist, seqname, cam_path):
+
+    blank = 0
+    margingframein = 0
+    for item in shotlist:
+
+        # gestion camera
+        shotname = f"{seqname}_{item['name']}"
+        camebasename = deal_with_cinecam(cam_path, shotname)
+        try:
+            cmds.parent(f'{camebasename}_grp', 'CAM')
+        except:
+            print('CAN NOT PARENT', f'{camebasename}_grp', 'CAM')
+                
+        # gestion shot sequencer
+        shot_total_frame = int(item['outframe']) - int(item['inframe'])
+
+        # get shot time to know if g ofor a 100 or 200 or more marging
+        blank = blank + ((shot_total_frame//100)+1)*100
+        cmds.shot(sn = item['name'], 
+                st = 1 + blank,
+                et = shot_total_frame + blank,
+                sst = margingframein, 
+                set = margingframein + shot_total_frame,
+                currentCamera = f'{camebasename}_cam')
+        margingframein += shot_total_frame + 100

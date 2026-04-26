@@ -1,18 +1,15 @@
 """
-Exec pour BLENDER et MAYA
+Exec pour MAYA
 """
 
 import os
 import sys
 
 # ------------------------------------------------------
-# Ajout du repertoire courant au path
+# Ajout du répertoire courant au path
 # ------------------------------------------------------
 if "__file__" not in globals():
-    try:
-        __file__ = sys.argv[1]
-    except Exception:
-        __file__ = bpy.data.filepath
+    __file__ = sys.argv[1]
 
 current_dir = os.path.dirname(__file__)
 if current_dir not in sys.path:
@@ -21,9 +18,8 @@ if current_dir not in sys.path:
 # ------------------------------------------------------
 # Constantes
 # ------------------------------------------------------
-REFNODS = ["{node_dlv_path}{node_name}"] # y en a pas pour le modeling
-DEPT_SUFFIX = "_model"
-TEMPLATE_FILE = "Props_Model_template"
+DEPT_SUFFIX = "_lanim"
+TEMPLATE_FILE = "Shots_Anim_template"
 
 # ------------------------------------------------------
 # Gestion des arguments
@@ -34,62 +30,44 @@ if "--" in sys.argv:
     extra_args = sys.argv[idx + 1:]
     if extra_args:
         server_file_path = extra_args[0]
-        print("Fichier recu :", server_file_path)
+        print("Fichier reçu :", server_file_path)
 
 # ------------------------------------------------------
-# Detection environnement
+# Detection environnement FORCE MAYA
 # ------------------------------------------------------
-IN_BLENDER = False
-IN_MAYA = False
 
-try:
-    import bpy
-    from Soft_Procs import BlenderProcs
-    from Soft_Procs import GlobalProcs
+import maya.cmds as cmds
+from Soft_Procs import MayaProcs
+from Soft_Procs import GlobalProcs
+from Sub_Procs import Assembly_import
 
-    IN_BLENDER = True
-    EXECUTED_FILE = bpy.data.filepath
-    SCRIPT_FILE = os.path.abspath(__file__)
-    PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
-    LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
+IN_MAYA = True
+python_file = sys.argv[1]
+SCRIPT_FILE = python_file
+current_dir = os.path.dirname(python_file)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 
-except ImportError:
-    pass
+EXECUTED_FILE = cmds.file(q=True, sn=True)
+PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
+LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
 
-try:
-    import maya.cmds as cmds
-    from Soft_Procs import MayaProcs
-    from Soft_Procs import GlobalProcs
-    from Sub_Procs import Assembly_import
-
-    IN_MAYA = True
-    python_file = sys.argv[1]
-    SCRIPT_FILE = python_file
-    current_dir = os.path.dirname(python_file)
-    if current_dir not in sys.path:
-        sys.path.append(current_dir)
-
-    EXECUTED_FILE = cmds.file(q=True, sn=True)
-    PROD_PATH = GlobalProcs.get_prodpath_from_pythonpath(SCRIPT_FILE)
-    LOCAL_PATH = GlobalProcs.get_local_path_from_filepath(EXECUTED_FILE, PROD_PATH)
-
-except ImportError:
-    pass    
 
 # ------------------------------------------------------
-# Chemins et variables derivees
+# Chemins et variables dérivées
 # ------------------------------------------------------
 file_name = os.path.basename(EXECUTED_FILE)
 file_root, file_ext = os.path.splitext(file_name)
-asset_path = os.path.dirname(os.path.dirname(EXECUTED_FILE))
-asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
-root_asset_path = os.path.dirname(os.path.dirname(asset_root_path))
+asset_path = os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))
+asset_root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(EXECUTED_FILE)))))
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 local_dlv_path = dlv_path.replace("\\", "/").replace(PROD_PATH, LOCAL_PATH)
-local_template_path = os.path.join(asset_root_path, "Template")
-template_path = os.path.join(root_asset_path, "Template").replace(LOCAL_PATH, PROD_PATH)
+seq_root_path = os.path.dirname(os.path.dirname(os.path.dirname(dlv_path)))
+seq_dlv_path = os.path.join(seq_root_path, 'dlv')
+template_path = os.path.join(os.path.dirname(os.path.dirname(asset_root_path)), "Template")
+studio_template_path = template_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 
 print("--------------------------------")
 debug_vars = {
@@ -97,20 +75,19 @@ debug_vars = {
     "SCRIPT_FILE": SCRIPT_FILE,
     "PROD_PATH": PROD_PATH,
     "LOCAL_PATH": LOCAL_PATH,
-    "root_asset_path": root_asset_path,
+    "file_root": file_root,
     "asset_path": asset_path,
     "asset_root_path": asset_root_path,
     "dlv_path": dlv_path,
     "asset_name": asset_name,
     "studio_dlv_path": studio_dlv_path,
-    "template_path": template_path,
+    "seq_root_path": seq_root_path,
+    "seq_dlv_path": seq_dlv_path,
 }
-
-print("\n----- DEBUG -----")
-for name, value in debug_vars.items():
-    print(f"{name:<18} = {value}")
-print("-----------------\n")
-    
+print("\n========== DEBUG VARS ==========")
+for k, v in debug_vars.items():
+    print(f"{k:<20} : {v}")
+print("=================================\n")
 
 # ------------------------------------------------------
 # Fonction commune
@@ -121,12 +98,8 @@ def preexecute():
     """
     print(" -> Pre-execute")
 
-    if IN_MAYA:
-        MayaProcs.sanitize_ma(f"{template_path}/{TEMPLATE_FILE}.ma")
-        MayaProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.ma")
-    elif IN_BLENDER:      
-        BlenderProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.blend")
-    
+    MayaProcs.sanitize_ma(f"{template_path}/{TEMPLATE_FILE}.ma")
+    MayaProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.ma")
 
 
 def execute():
@@ -135,13 +108,26 @@ def execute():
     """
     print(" -> execute")
 
-    if IN_MAYA:
-        MayaProcs.cleanReferencesBeforeSave()
-        cmds.file(rename=EXECUTED_FILE)
-        cmds.file(save=True, type="mayaAscii", force=True)
-    elif IN_BLENDER:      
-        pass
-    
+    camPath = os.path.join(seq_dlv_path, os.path.basename(asset_path) + "_camera.fbx").replace("\\", "/")
+    print(camPath)
+    MayaProcs.import_fbx(camPath)
+
+    deps = get_asset_dependencies(asset_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH))
+    # on gere l assemblage dans maya ouvert car on doit positionner les refs et caches dans la scene
+    for item in deps:
+        if item['type'] == 'Environments':
+            i_asset_name = item['name']
+            dlv_path = item['path']
+            assembly_path = os.path.join(dlv_path, "assembly.json").replace("\\", "/")
+            if os.path.exists(assembly_path):
+                Assembly_import.import_assembly_for_anim(EXECUTED_FILE, assembly_path, LOCAL_PATH)
+                print(f"[postexecute] Imported assembly for {i_asset_name}")
+            else:
+                print(f"[postexecute] No assembly.json found for {i_asset_name} at {assembly_path}")
+
+    MayaProcs.cleanReferencesBeforeSave()
+    cmds.file(rename=EXECUTED_FILE)
+    cmds.file(save=True, type="mayaAscii", force=True)
 
 
 def postexecute():
@@ -149,25 +135,38 @@ def postexecute():
     Tout ce qui se passe ici se fait apres tout le reste
     """
     print(" -> Post-execute")
-    # on va importer les assets dependants en cache et remonter les shaders sur chacun d'eux
-    if IN_MAYA:
-        print('GO ASSET DEPENDENCIES:')
-        for item in get_asset_dependencies(asset_path):
-            if item['type'] == 'Environments':
-                i_asset_name = item['name']
-                dlv_path = item['path']
-                assembly_path = os.path.join(dlv_path, "assembly.json").replace("\\", "/")
-                if os.path.exists(assembly_path):
-                    Assembly_import.import_assembly_for_anim(assembly_path, PROD_PATH, cach_only=True)
-                    print(f"[postexecute] Imported assembly for {i_asset_name}")
-                else:
-                    print(f"[postexecute] No assembly.json found for {i_asset_name} at {assembly_path}")
-            #TODO gestion des shaders sur les assets importes
-    elif IN_BLENDER:   
-        #TODO comme ce que fait MAYA mais en BLENDER
-        pass
+    
+    # GESTION DES DEPENDANCES
+    # on lis les dependences et on regarde si y a un Environment a importer
+    print('GO ASSET DEPENDENCIES:')
 
-    reroot_fbx(EXECUTED_FILE)
+    deps = get_asset_dependencies(asset_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH))
+
+    for item in deps:
+        print(item['type'])
+
+        if item['type'] == 'Characters':
+            i_asset_name = item['name']
+            item_dlv_path = item['path']
+            rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{i_asset_name}_rig_OK.ma")
+
+            print(rig_path)
+            if not os.path.exists(rig_path):
+                print(f"[postexecute] Missing: {rig_path}")
+                continue
+            MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, i_asset_name)
+
+        if item['type'] ==  'Props':
+            print('FOUND', item)
+            i_asset_name = item['name']
+            item_dlv_path = item['path']
+            rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{i_asset_name}_rig_OK.ma")
+
+            if not os.path.exists(rig_path):
+                print(f"[postexecute] Missing: {rig_path}")
+                continue
+
+            MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, i_asset_name)
 
 # ------------------------------------------------------
 # CUSTOM
@@ -263,6 +262,7 @@ def get_asset_dependencies(asset_path):
 # Main
 # ------------------------------------------------------
 def main():
+    print('ici')
     preexecute()
     execute()
     postexecute()

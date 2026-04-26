@@ -67,7 +67,6 @@ local_dlv_path = dlv_path.replace("\\", "/").replace(PROD_PATH, LOCAL_PATH)
 template_path = os.path.join(asset_root_path, "Template")
 studio_template_path = template_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
 
-print("--------------------------------")
 debug_vars = {
     "EXECUTED_FILE": EXECUTED_FILE,
     "SCRIPT_FILE": SCRIPT_FILE,
@@ -81,6 +80,10 @@ debug_vars = {
     "studio_dlv_path": studio_dlv_path,
     "template_path": template_path,
 }
+print("\n========== DEBUG VARS ==========")
+for k, v in debug_vars.items():
+    print(f"{k:<20} : {v}")
+print("=================================\n")
 
 # ------------------------------------------------------
 # Fonction commune
@@ -105,14 +108,23 @@ def execute():
     # on gere l assemblage dans maya ouvert car on doit positionner les refs et caches dans la scene
     for item in deps:
         if item['type'] == 'Environments':
-            asset_name = item['name']
+            i_asset_name = item['name']
             dlv_path = item['path']
             assembly_path = os.path.join(dlv_path, "assembly.json").replace("\\", "/")
             if os.path.exists(assembly_path):
                 Assembly_import.import_assembly_for_anim(EXECUTED_FILE, assembly_path, LOCAL_PATH)
-                print(f"[postexecute] Imported assembly for {asset_name}")
+                print(f"[postexecute] Imported assembly for {i_asset_name}")
             else:
-                print(f"[postexecute] No assembly.json found for {asset_name} at {assembly_path}")
+                print(f"[postexecute] No assembly.json found for {i_asset_name} at {assembly_path}")
+
+    # on gere la creation des shots au sequencer
+    shotlist = GlobalProcs.getAllShots(asset_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH))
+    seqname = asset_name.split('_')[0]
+    camPath = os.path.join(template_path, "cineCam.fbx").replace("\\", "/")
+    MayaProcs.create_shots_sequencer(shotlist, seqname, camPath)
+    MayaProcs.cleanReferencesBeforeSave()
+    cmds.file(rename=EXECUTED_FILE)
+    cmds.file(save=True, type="mayaAscii", force=True)
 
 def postexecute():
     """
@@ -120,12 +132,9 @@ def postexecute():
     """
     print(" -> Post-execute")
     
-    cmds.file(rename=EXECUTED_FILE)
-    cmds.file(save=True, type="mayaAscii", force=True)
-    
     # on reference la camera
-    camPath = os.path.join(template_path, "studio_cam.ma").replace("\\", "/")
-    MayaProcs.inject_reference_into_ma(EXECUTED_FILE, camPath, 'cam')
+    camPath = os.path.join(template_path, "cineCam.ma").replace("\\", "/")
+    #MayaProcs.inject_reference_into_ma(EXECUTED_FILE, camPath, 'cam')
     
     # GESTION DES DEPENDANCES
     # on lis les dependences et on regarde si y a un Environment a importer
@@ -137,27 +146,27 @@ def postexecute():
         print(item['type'])
 
         if item['type'] == 'Characters':
-            asset_name = item['name']
+            i_asset_name = item['name']
             item_dlv_path = item['path']
-            rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{asset_name}_rig_OK.ma")
+            rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{i_asset_name}_rig_OK.ma")
 
             print(rig_path)
             if not os.path.exists(rig_path):
                 print(f"[postexecute] Missing: {rig_path}")
                 continue
-            MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, asset_name)
+            MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, i_asset_name)
 
         if item['type'] ==  'Props':
             print('FOUND', item)
-            asset_name = item['name']
+            i_asset_name = item['name']
             item_dlv_path = item['path']
-            rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{asset_name}_rig_OK.ma")
+            rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{i_asset_name}_rig_OK.ma")
 
             if not os.path.exists(rig_path):
                 print(f"[postexecute] Missing: {rig_path}")
                 continue
 
-            MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, asset_name)
+            MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, i_asset_name)
 
 
 
@@ -258,6 +267,7 @@ def main():
     preexecute()
     execute()
     postexecute()
+    print(' -> Done')
 
 
 if __name__ == "__main__":

@@ -26,6 +26,7 @@ def write_json(data, out_path):
     print(f"[export_assemble] Wrote JSON -> {out_path}")
 
 
+
 def get_asset_dependencies(asset_path):
     """
     Retourne la liste des dépendances d'un asset
@@ -87,7 +88,7 @@ def get_local_path_from_filepath(file_path, prod_path):
     """
     if not file_path:
         return ""
-    
+    print((file_path, prod_path))
     file_path = file_path.replace("\\", "/")
     prod_path = prod_path.replace("\\", "/")
     
@@ -100,12 +101,66 @@ def get_local_path_from_filepath(file_path, prod_path):
     else:
         return ""
 
-def remove_envvar_from_path(path):
+
+def resolve_envvar_in_path(path):
     """
-    Supprime la variable d'environnement du type ${DUCKPIPE_ROOT} dans un chemin
+    Remplace ${DUCKPIPE_ROOT} par sa valeur réelle
     """
-    if '${DUCKPIPE_ROOT}' in path:
-        env_var = "${DUCKPIPE_ROOT}"
-        env_value = os.environ.get("DUCKPIPE_ROOT", "")
-        path = path.replace(env_var, env_value)
-        #TODO la variable d env ne porte pas le meme nom
+    env_name = "DUCKPIPE_ROOT"
+    token = f"${{{env_name}}}"
+
+    if token in path:
+        env_value = os.environ.get(env_name)
+        if not env_value:
+            raise RuntimeError(f"Environment variable {env_name} not found")
+        path = path.replace(token, env_value)
+
+    return path
+
+
+def inject_envvar_in_path(path):
+    """
+    Remplace le root absolu par ${DUCKPIPE_ROOT}
+    """
+    env_name = "DUCKPIPE_ROOT"
+    env_value = os.environ.get(env_name)
+
+    if not env_value:
+        raise RuntimeError(f"Environment variable {env_name} not found")
+
+    normalized_path = os.path.normpath(path)
+    normalized_env = os.path.normpath(env_value)
+
+    if normalized_path.startswith(normalized_env):
+        path = path.replace(normalized_env, f"${{{env_name}}}")
+
+    return path
+
+
+def getAllShots(path):
+    """
+    Get all shots from given seq
+    get it by reading prod all nodes file.
+
+    Args:
+        path (string): path from sequence
+    
+    Return all_shots(list): a list of dict with all shots info
+    """
+    shots_dir = os.path.join(path, 'Shots')
+    all_shots = []
+
+    for item in os.listdir(shots_dir):
+        full_shot_path = os.path.join(shots_dir, item, 'node.json')
+        shot_node_json = read_json(full_shot_path)        
+        nodeInfos = shot_node_json.get("nodeInfos", {})
+
+        shot_info = {"name": item, 
+                     'inframe': nodeInfos.get("inframe", 0), 
+                     'outframe': nodeInfos.get("ounframe", 10)}
+        
+        print('found', shot_info)
+        all_shots.append(shot_info)
+    
+    return all_shots
+

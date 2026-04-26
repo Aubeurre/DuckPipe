@@ -102,14 +102,15 @@ def execute():
     Tout ce qui se passe ici se fait dans la scene de work
     """
     print(" -> execute")
+    
+    MayaProcs.cleanReferencesBeforeSave()
+    cmds.file(rename=EXECUTED_FILE)
+    cmds.file(save=True, type="mayaAscii", force=True)
 
 
 def postexecute():
     # operation apres la fermeture de la scene, on travail sur le .ma directement
     print(" -> Post-execute")
-    
-    cmds.file(rename=EXECUTED_FILE)
-    cmds.file(save=True, type="mayaAscii", force=True)
 
     deps = get_asset_dependencies(asset_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH))
 
@@ -117,7 +118,7 @@ def postexecute():
         if item['type'] != 'Props':
             continue
 
-        asset_name = item['name']
+        i_asset_name = item['name']
         item_dlv_path = item['path']
         rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{asset_name}_rig_OK.ma")
 

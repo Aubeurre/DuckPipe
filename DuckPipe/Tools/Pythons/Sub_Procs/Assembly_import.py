@@ -57,7 +57,7 @@ def import_assembly_for_anim(EXECUTED_FILE, assembly_json, prod_base_path, cach_
                     continue
                 else:
                     object = MayaProcs.fbx_to_gpu_cache(model_path)
-                    place_gpucache(object, info["local_ctl"])
+                    place_gpucache(object,  info["ctl_info"].get("local_ctl"))
 
             else:
                 if not info.get("is_assembly_animable"):
@@ -67,7 +67,7 @@ def import_assembly_for_anim(EXECUTED_FILE, assembly_json, prod_base_path, cach_
                     else:
                         print("fbx_to_gpu_cache")
                         object = MayaProcs.fbx_to_gpu_cache(model_path)
-                        place_gpucache(object, info["local_ctl"])
+                        place_gpucache(object,  info["ctl_info"].get("local_ctl"))
 
                 else:
                     if not os.path.exists(rig_path):
@@ -85,6 +85,11 @@ def import_assembly_for_anim(EXECUTED_FILE, assembly_json, prod_base_path, cach_
 
 
 def place_gpucache(object, info):
+    
+    if isinstance(object, (list, tuple)):
+        object = object[0] 
+
+    print(object, info)
     MayaProcs.apply_transform(
         object,
         info["position"],
@@ -94,21 +99,30 @@ def place_gpucache(object, info):
 
     
 def place_all_imported_ctl(imported_namespaces, assembly_data):
+
     for namespace in imported_namespaces:
+
         asset_name = namespace.rsplit("_", 1)[0]
         index = int(namespace.rsplit("_", 1)[1]) - 1
-
         info = assembly_data.get(asset_name, [])[index]
 
         if not info:
             print(f"[place_all_imported_ctl] No data found for {namespace}")
             continue
-        # on run sur tous les ctl pas juste le local
-        all_imported_ctl = cmds.ls(f"{namespace}:*_ctl", l=1) or []
-        for ctl in all_imported_ctl:
+
+        ctl_data = info["ctl_info"]
+
+        for ctl_name, transform in ctl_data.items():
+
+            full_ctl = f"{namespace}:{ctl_name}"
+
+            if not cmds.objExists(full_ctl):
+                print(f"[WARN] Missing ctl: {full_ctl}")
+                continue
+
             MayaProcs.apply_transform(
-                ctl,
-                info["position"],
-                info["rotation"],
-                info["scale"]
+                full_ctl,
+                transform["position"],
+                transform["rotation"],
+                transform["scale"]
             )

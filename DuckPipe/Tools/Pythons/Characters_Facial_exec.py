@@ -63,6 +63,7 @@ root_asset_path = os.path.dirname(os.path.dirname(asset_root_path))
 dlv_path = os.path.join(asset_path, "dlv")
 asset_name = file_root.replace(DEPT_SUFFIX, "")
 studio_dlv_path = dlv_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH)
+local_dlv_path = dlv_path.replace("\\", "/").replace(PROD_PATH, LOCAL_PATH)
 local_template_path = os.path.join(asset_root_path, "Template")
 template_path = os.path.join(root_asset_path, "Template").replace(LOCAL_PATH, PROD_PATH)
 
@@ -105,6 +106,10 @@ def execute():
         fbx_path = node_template.replace("{node_dlv_path}", studio_dlv_path).replace("{node_name}", asset_name)
         MayaProcs.reference_fbx(fbx_path, "REF")
 
+    MayaProcs.cleanReferencesBeforeSave()
+    cmds.file(rename=EXECUTED_FILE)
+    cmds.file(save=True, type="mayaAscii", force=True)
+
 
 def postexecute():
     """
@@ -112,9 +117,6 @@ def postexecute():
     """
     print(" -> Post-execute")
 
-    cmds.file(rename=EXECUTED_FILE)
-    cmds.file(save=True, type="mayaAscii", force=True)
-    cmds.file(new=True, force=True)
     reroot_fbx(EXECUTED_FILE)
     
 # ------------------------------------------------------
