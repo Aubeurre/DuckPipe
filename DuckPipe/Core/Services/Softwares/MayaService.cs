@@ -61,8 +61,12 @@ namespace DuckPipe.Core.Services.Softwares
 
             string mayabatch = Path.Combine(GetMayaPath(), "bin", "mayabatch.exe");
 
+            LogService.EchoLog($"ExecuteMayaBatchScript - args : {args}");
+            LogService.EchoLog($"ExecuteMayaBatchScript - mayabatch : {mayabatch}");
             if (File.Exists(pyPath) && File.Exists(mayabatch))
             {
+                LogService.EchoLog($"ExecuteMayaBatchScript - pyPath : {pyPath}");
+                LogService.EchoLog($"ExecuteMayaBatchScript - scenePath : {scenePath}");
                 var psi = new ProcessStartInfo
                 {
                     FileName = mayabatch,

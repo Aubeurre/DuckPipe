@@ -789,17 +789,24 @@ start """" ""{fileToOpen}""
 
             // on lance la scene de publish pour lancer des scripts dedans
             string pyPath = Path.Combine(ctx.RootPath, ctx.ProdName, "Dev", "Pythons", $"{ctx.NodeType}_{ctx.Department}_publish.py");
+            LogService.EchoLog($"EXTENSION : {ctx.Extension}");
             if (ctx.Extension == ".ma")
             {
+                LogService.EchoLog($"MayaService.ExecuteMayaBatchScript : {pyPath}");
                 MayaService.ExecuteMayaBatchScript(localPublishedFilePath, pyPath, nodePath);
             }
             else if (ctx.Extension == ".blend")
             {
+                LogService.EchoLog($"BlenderService.ExecuteBlenderBatchScript : {pyPath}");
                 BlenderService.ExecuteBlenderBatchScript(localPublishedFilePath, pyPath, nodePath);
             }
             else if (ctx.Extension == ".hipnc" || ctx.Extension == ".hip")
             {
+                LogService.EchoLog($"HoudiniService.ExecuteHoudiniBatchScript : {pyPath}");
                 HoudiniService.ExecuteHoudiniBatchScript(localPublishedFilePath, pyPath, nodePath);
+            }
+            else {
+                LogService.EchoLog($"Extension non supportee : {ctx.Extension}");
             }
 
             // File.Copy(localPublishedFilePath, publishedFilePath, overwrite: true); // faut passer ca dans le pyton plutot
