@@ -40,13 +40,13 @@
             <p>
                 DuckPipe peut être installé via un installeur ou lancé manuellement depuis l’exécutable.<br>
                 Un fichier <code>user_config.json</code> sera généré à la première ouverture dans ton dossier utilisateur.<br>
-                Tu peux l’éditer directement dans le tool (il comprend notamment le chemin vers les disques de prod, donc il faut y avoir accès pour que le tool se lance proprement).
+                Tu peux et dois l’éditer directement dans le tool (il comprend notamment le chemin vers les disques de prod, donc il faut y avoir accès pour que le tool se lance proprement).
             </p>
             <p>
                 📦 Dernière version : <a href="https://github.com/Aubeurre/DuckPipe/releases1" target="_blank">v1.8.0</a>
             </p>
             <p>
-                🔄 Pour les mises à jour : DuckPipe vous indique si vous êtes à jour. Il faudra désinstaller puis réinstaller la dernière version depuis l’exécutable disponible sur GitHub.
+                🔄 Pour les mises à jour : DuckPipe vous indique si vous êtes à jour. Il faudra faire les maj automatique a l'ouverture du tool.
             </p>
         </section>
 
@@ -56,12 +56,12 @@
         </section>
 
         <section>
-            <h4>1. Installation de Tailscale</h4>
-            <p>DuckPipe utilise <strong>Tailscale</strong> pour accéder au NAS du studio à distance de façon sécurisée.</p>
+            <h4>1. Installation de OpenVPN</h4>
+            <p>DuckPipe utilise <strong>OpenVPN</strong> pour accéder au NAS du studio à distance de façon sécurisée.</p>
             <ol>
-                <li>Télécharge l'application Tailscale ici : <a href="https://tailscale.com/download" target="_blank">https://tailscale.com/download</a></li>
-                <li>Installe l'application et connecte-toi (via Google ou GitHub par exemple).</li>
-                <li>Laisse Tailscale ouvert en arrière-plan : tu es maintenant connecté au réseau privé Ichigo ✨</li>
+                <li>Télécharge l'application OpenVpn GUI  ici : <a href="https://lienametreajour" target="_blank">https://lienametreajour</a></li>
+                <li>Installe l'application et ajoute le fichier de configuration que tu peux trouver sur discord.(via le salon IT studio). il faudra editer le remot dans la config pour y setter le DNS.</li>
+                <li>Laisse OpenVPN ouvert en arrière-plan : tu es maintenant connecté au réseau privé Ichigo ✨</li>
             </ol>
         </section>
 
@@ -85,7 +85,7 @@
         <section>
             <h3>Notes Importantes</h3>
             <ul>
-                <li>Le montage réseau ne fonctionne que si Tailscale est actif ou que vous êtes connecté au réseau du studio.</li>
+                <li>Le montage réseau ne fonctionne que si OpenVPN est et ou que vous êtes connecté au réseau du studio.</li>
                 <li>DuckPipe est prévu pour éviter de naviguer manuellement dans l’arborescence — tout passe par l’interface !</li>
             </ul>
         </section>
