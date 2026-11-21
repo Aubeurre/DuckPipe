@@ -39,6 +39,7 @@ if "--" in sys.argv:
 import maya.cmds as cmds
 from Soft_Procs import MayaProcs
 from Soft_Procs import GlobalProcs
+from Sub_Procs import repathAllMayaSceneInEnvVar
 
 IN_MAYA = True
 python_file = sys.argv[1]
@@ -120,15 +121,16 @@ def postexecute():
 
         i_asset_name = item['name']
         item_dlv_path = item['path']
-        rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{asset_name}_rig_OK.ma")
+        rig_path = os.path.join(item_dlv_path.replace(PROD_PATH, LOCAL_PATH), f"{i_asset_name}_rig_OK.ma")
 
         if not os.path.exists(rig_path):
             print(f"[postexecute] Missing: {rig_path}")
             continue
 
-        MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, asset_name)
+        MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, i_asset_name)
+        
+    repathAllMayaSceneInEnvVar.repath_ma_file(EXECUTED_FILE, PROD_PATH.split('/')[-1])
 
-    print("[postexecute] Done.")
     
     
 # ------------------------------------------------------

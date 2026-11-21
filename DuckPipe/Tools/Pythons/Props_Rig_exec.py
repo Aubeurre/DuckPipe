@@ -42,6 +42,7 @@ if "--" in sys.argv:
 import maya.cmds as cmds
 from Soft_Procs import MayaProcs
 from Soft_Procs import GlobalProcs
+from Sub_Procs import repathAllMayaSceneInEnvVar
 
 IN_MAYA = True
 python_file = sys.argv[1]
@@ -119,6 +120,8 @@ def postexecute():
     """
     print(" -> Post-execute")
     reroot_fbx(EXECUTED_FILE)
+    
+    repathAllMayaSceneInEnvVar.repath_ma_file(EXECUTED_FILE, PROD_PATH.split('/')[-1])
     
 # ------------------------------------------------------
 # MAYA PROCS

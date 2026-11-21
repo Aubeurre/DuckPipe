@@ -120,7 +120,7 @@ def publish():
     if IN_MAYA:
         MayaProcs.import_ref()
 
-        Assembly_export.export(os.path.join(dlv_path, "assembly.json"))
+        Assembly_export.export(os.path.join(dlv_path, "assembly.json")) 
             
         full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
         cmds.file(rename=full_scene_path)
@@ -147,6 +147,13 @@ def postpublish():
     if IN_MAYA:
         MayaProcs.clean_publish(TRASHLIST)
         cmds.file(save=True, type="mayaAscii")
+
+        #on save un OK dans le dlv
+        cmds.file(new=True, force=True)
+        server_dlv_path = os.path.join(studio_dlv_path, file_name).replace("\\", "/")
+        shutil.copy2(EXECUTED_FILE, server_dlv_path)
+        print(f"[postpublish] Copied {EXECUTED_FILE} -> {server_dlv_path}")     
+
     elif IN_BLENDER:
         BlenderProcs.clean_publish(TRASHLIST)
         bpy.ops.wm.save_mainfile()

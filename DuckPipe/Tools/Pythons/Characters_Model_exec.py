@@ -123,6 +123,7 @@ def preexecute():
     if IN_MAYA:
         MayaProcs.sanitize_ma(f"{template_path}/{TEMPLATE_FILE}.ma")
         MayaProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.ma")
+        print((f"{template_path}/{TEMPLATE_FILE}.ma"))
     elif IN_BLENDER:      
         BlenderProcs.reset_scene(f"{template_path}/{TEMPLATE_FILE}.blend")
     

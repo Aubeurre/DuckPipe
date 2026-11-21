@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Xml.Linq;
-using System.Diagnostics;
+using static DuckPipe.Forms.Builder.NodeTab.NodeTabBuilder;
 
 namespace DuckPipe.Core.Manipulator
 {
@@ -41,11 +42,14 @@ namespace DuckPipe.Core.Manipulator
 
             return result;
         }
-        public static string GenerateThumbnail(string videoPath)
+        public static string GenerateThumbnail(string videoPath, string rootPath, string selectedProd)
         {
             string videoDir = Path.GetDirectoryName(videoPath)!;
             string videoName = Path.GetFileNameWithoutExtension(videoPath);
             string thumbPath = Path.Combine(videoDir, "thmb", $"{videoName}_thumb.jpg");
+            // le chemin de ffmpeg est dans le dossier DEV de la prod
+            string devPath = Path.Combine(rootPath, selectedProd, "Dev");
+            string ffmpegPath = Path.Combine(devPath, "ffmpeg.exe");
 
             Directory.CreateDirectory(Path.Combine(videoDir, "thmb"));
 
@@ -54,7 +58,7 @@ namespace DuckPipe.Core.Manipulator
 
             var ffmpeg = new ProcessStartInfo
             {
-                FileName = "ffmpeg",
+                FileName = ffmpegPath,
                 Arguments = $"-i \"{videoPath}\" -ss 00:00:01 -vframes 1 \"{thumbPath}\" -y",
                 CreateNoWindow = true,
                 UseShellExecute = false,

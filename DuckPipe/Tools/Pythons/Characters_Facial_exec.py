@@ -40,6 +40,7 @@ if "--" in sys.argv:
 import maya.cmds as cmds
 from Soft_Procs import MayaProcs
 from Soft_Procs import GlobalProcs
+from Sub_Procs import repathAllMayaSceneInEnvVar
 
 IN_MAYA = True
 python_file = sys.argv[1]
@@ -116,6 +117,8 @@ def postexecute():
     Tout ce qui se passe ici se fait apres tout le reste, une fois la scene fermee
     """
     print(" -> Post-execute")
+        
+    repathAllMayaSceneInEnvVar.repath_ma_file(EXECUTED_FILE, PROD_PATH.split('/')[-1])
 
     reroot_fbx(EXECUTED_FILE)
     

@@ -1,8 +1,8 @@
 [Setup]
 AppName=DuckPipe
-AppVersion=2.0.5
-AppVerName=DuckPipe 2.0.5
-VersionInfoVersion=2.0.5.0
+AppVersion=2.0.6
+AppVerName=DuckPipe 2.0.6
+VersionInfoVersion=2.0.6.0
 AppPublisher=Alexandre Wojtkow
 DefaultDirName={pf}\DuckPipe
 DefaultGroupName=DuckPipe

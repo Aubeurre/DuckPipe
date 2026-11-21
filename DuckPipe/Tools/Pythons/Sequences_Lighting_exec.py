@@ -61,6 +61,7 @@ try:
     from Soft_Procs import MayaProcs
     from Soft_Procs import GlobalProcs
     from Sub_Procs import Assembly_import
+    from Sub_Procs import repathAllMayaSceneInEnvVar
 
     IN_MAYA = True
     python_file = sys.argv[1]
@@ -163,6 +164,8 @@ def postexecute():
                 else:
                     print(f"[postexecute] No assembly.json found for {i_asset_name} at {assembly_path}")
             #TODO gestion des shaders sur les assets importes
+        
+        repathAllMayaSceneInEnvVar.repath_ma_file(EXECUTED_FILE, PROD_PATH.split('/')[-1])
     elif IN_BLENDER:   
         #TODO comme ce que fait MAYA mais en BLENDER
         pass

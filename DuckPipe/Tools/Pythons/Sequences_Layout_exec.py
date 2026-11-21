@@ -40,6 +40,7 @@ import maya.cmds as cmds
 from Soft_Procs import MayaProcs
 from Soft_Procs import GlobalProcs
 from Sub_Procs import Assembly_import
+from Sub_Procs import repathAllMayaSceneInEnvVar
 
 IN_MAYA = True
 python_file = sys.argv[1]
@@ -104,6 +105,9 @@ def execute():
     """
     print(" -> execute")
 
+    # cmds.evaluationManager(mode="off")
+    # cmds.undoInfo(state=False)
+ 
     deps = get_asset_dependencies(asset_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH))
     # on gere l assemblage dans maya ouvert car on doit positionner les refs et caches dans la scene
     for item in deps:
@@ -118,11 +122,20 @@ def execute():
                 print(f"[postexecute] No assembly.json found for {i_asset_name} at {assembly_path}")
 
     # on gere la creation des shots au sequencer
+    print(' on gere maintenant shotlist')
     shotlist = GlobalProcs.getAllShots(asset_path.replace("\\", "/").replace(LOCAL_PATH, PROD_PATH))
+    print(shotlist)
     seqname = asset_name.split('_')[0]
-    camPath = os.path.join(template_path, "cineCam.fbx").replace("\\", "/")
+    camPath = os.path.join(template_path, "IchigoCam.ma").replace("\\", "/")
+    print('camPath:', camPath)
+    print('create_shots_sequencer:')
     MayaProcs.create_shots_sequencer(shotlist, seqname, camPath)
     MayaProcs.cleanReferencesBeforeSave()
+    MayaProcs.clean_unknown_nodes()
+
+    # cmds.undoInfo(state=True)
+    # cmds.evaluationManager(mode="parallel")  
+    
     cmds.file(rename=EXECUTED_FILE)
     cmds.file(save=True, type="mayaAscii", force=True)
 
@@ -131,10 +144,6 @@ def postexecute():
     Tout ce qui se passe ici se fait apres tout le reste
     """
     print(" -> Post-execute")
-    
-    # on reference la camera
-    camPath = os.path.join(template_path, "cineCam.ma").replace("\\", "/")
-    #MayaProcs.inject_reference_into_ma(EXECUTED_FILE, camPath, 'cam')
     
     # GESTION DES DEPENDANCES
     # on lis les dependences et on regarde si y a un Environment a importer
@@ -167,6 +176,8 @@ def postexecute():
                 continue
 
             MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, i_asset_name)
+        
+    repathAllMayaSceneInEnvVar.repath_ma_file(EXECUTED_FILE, PROD_PATH.split('/')[-1])
 
 
 

@@ -156,6 +156,8 @@ def publish():
         # import du surfacing
         if os.path.exists(os.path.join(dlv_path, "surfacing_export.json")):
             Surfacing_import.import_surf(os.path.join(dlv_path, "surfacing_export.json"))
+        else:
+            Surfacing_import.set_basic_shader()
 
         # import du facial
         addFacialToAssemble()

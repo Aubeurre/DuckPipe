@@ -567,5 +567,15 @@ def import_light_surfacing(json_path):
     if IN_MAYA:
         import_light_shaders(json_path)
         
+
+def set_basic_shader():
+    meshes = cmds.ls(type="mesh", long=True)
+    for mesh in meshes:
+        sgs = cmds.listConnections(mesh, type="shadingEngine")        
+        if not sgs:
+            transform = cmds.listRelatives(mesh, parent=True, fullPath=True)[0]
+            cmds.sets(transform, e=True, forceElement="initialShadingGroup")
+
+            
 #import_surfacing("A:\ICHIGO\surfacing_export.json")
 #import_light_surfacing("A:\ICHIGO\surfacing_export.json")

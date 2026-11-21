@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Large ffmpeg binary downloaded separately
+/DuckPipe/Tools/ffmpeg.exe

@@ -63,13 +63,15 @@ def get_ctl_under_root(root):
 
 def get_all_props_in_scene():
     props_info = {}
-    all_local_ctls = cmds.ls("local_ctl", l=True) or []
+    all_local_ctls = cmds.ls("*:local_ctl", l=True) or []
+    all_local_ctls += cmds.ls("local_ctl", l=True) or []
 
     for local_ctl in all_local_ctls:
 
         global_ctl = find_global_ctl(local_ctl)
 
         name = cmds.getAttr(f"{global_ctl}.asset_name")
+        print(name)
         is_assembly_animable = cmds.getAttr(f"{global_ctl}.is_assembly_animable")
 
         ctl_data = get_ctl_under_root(global_ctl)
@@ -86,8 +88,10 @@ def get_all_props_in_scene():
 # ----------------------------
 # Main exporter
 # ----------------------------
-def export(out_json_path):
+def export(out_json_path, frame=1):
 
+    print('\n -------- \n \n ASSEMBLY EXPORT\n -------- \n \n ')
+    cmds.currentTime(frame)
     props_info = get_all_props_in_scene()
     GlobalProcs.write_json(props_info, out_json_path)
     print(f"[export_assemble] Exported {len(props_info)} props.")

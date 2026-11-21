@@ -143,6 +143,8 @@ def publish():
 
         if os.path.exists(os.path.join(dlv_path, "surfacing_export.json")):
             Surfacing_import.import_surf(os.path.join(dlv_path, "surfacing_export.json"))
+        else:
+            Surfacing_import.set_basic_shader()
 
         full_scene_path = os.path.join(dlv_path, file_name).replace("\\", "/")
         cmds.file(rename=full_scene_path)

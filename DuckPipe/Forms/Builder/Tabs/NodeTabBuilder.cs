@@ -301,6 +301,7 @@ namespace DuckPipe.Forms.Builder.NodeTab
         {
             ctx.FlpNodeTask.SuspendLayout();
             float scale = GetScaleFactor();
+            string rootPath = ProductionService.GetProductionRootPath();
 
             Panel pbpPnel = new()
             {
@@ -328,7 +329,7 @@ namespace DuckPipe.Forms.Builder.NodeTab
             {
                 var image = new PictureBox
                 {
-                    ImageLocation = ShotManip.GenerateThumbnail(playblast.FullPath),
+                    ImageLocation = ShotManip.GenerateThumbnail(playblast.FullPath, rootPath, ctx.SelectedProd),
                     SizeMode = PictureBoxSizeMode.Zoom,
                     Size = new Size((int) (100 * scale), (int)( 60 * scale)),
                     Cursor = Cursors.Hand,

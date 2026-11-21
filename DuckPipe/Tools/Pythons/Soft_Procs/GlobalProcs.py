@@ -149,11 +149,16 @@ def getAllShots(path):
     """
     shots_dir = os.path.join(path, 'Shots')
     all_shots = []
+    print(shots_dir)
 
     for item in os.listdir(shots_dir):
+        print('item',item)
         full_shot_path = os.path.join(shots_dir, item, 'node.json')
-        shot_node_json = read_json(full_shot_path)        
+        print('full_shot_path',full_shot_path)
+        shot_node_json = read_json(full_shot_path)       
+        print('shot_node_json',shot_node_json) 
         nodeInfos = shot_node_json.get("nodeInfos", {})
+        print('nodeInfos',nodeInfos) 
 
         shot_info = {"name": item, 
                      'inframe': nodeInfos.get("inframe", 0), 

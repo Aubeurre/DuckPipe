@@ -3,30 +3,11 @@ import maya.cmds as cmds
 import os
 import maya.mel as mel
 
-def import_ref():
-    """
-    Importe toutes les references et supprime les namespaces
-    """
 
-    for ref in cmds.ls(type='reference'):
-        if ref == 'sharedReferenceNode':
-            pass
-        else:
-            try:
-                rFile = cmds.referenceQuery(ref, f=True)
-                cmds.file(rFile, importReference=True)
-            except:
-                pass
-                
-    cmds.namespace(setNamespace=':')
-    all_namespaces = [x for x in cmds.namespaceInfo(listOnlyNamespaces=True, recurse=True) if x != "UI" and x != "shared"]
-    if all_namespaces:
-        all_namespaces.sort(key=len, reverse=True)
-        for namespace in all_namespaces:
-            if cmds.namespace(exists=namespace) is True:
-                cmds.namespace(removeNamespace=namespace, mergeNamespaceWithRoot=True)
+###########################
+# CLEANING
+###########################
 
-    
 def sanitize_ma(path):
     with open(path, "r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -35,6 +16,24 @@ def sanitize_ma(path):
         for line in lines:
             if ".oclr" not in line:
                 f.write(line)
+
+
+def clean_unknown_nodes():
+    unknown_nodes = cmds.ls(type="unknown") or []
+    unknown_dag = cmds.ls(type="unknownDag") or []
+    unknown_transform = cmds.ls(type="unknownTransform") or []
+
+    all_unknowns = list(set(unknown_nodes + unknown_dag + unknown_transform))
+
+    print(f"[CLEAN] Found {len(all_unknowns)} unknown nodes")
+
+    for node in all_unknowns:
+        try:
+            cmds.lockNode(node, lock=False)
+            cmds.delete(node)
+            print(f"[CLEAN] Deleted {node}")
+        except Exception as e:
+            print(f"[CLEAN] Failed to delete {node}: {e}")
 
 
 def remove_ref():
@@ -71,83 +70,58 @@ def reset_scene(path):
         cmds.file(path, i=1)
 
 
-def export_hierarchy_by_name(root_names, filepath):
+###########################
+# IMPORT IN SCENES
+###########################
+
+def import_ref():
     """
-    Exporte en un seul fichier FBX plusieurs racines (EMPTY, GROUP, JOINT, MESH, etc.) 
-    ainsi que toutes leurs hierarchies (descendants inclus).
-    Compatible pipeline  minimal, propre et fiable.
+    Importe toutes les references et supprime les namespaces
     """
-    # Selection vide
-    cmds.select(clear=True)
 
-    to_export = []
+    for ref in cmds.ls(type='reference'):
+        if ref == 'sharedReferenceNode':
+            pass
+        else:
+            try:
+                rFile = cmds.referenceQuery(ref, f=True)
+                cmds.file(rFile, importReference=True)
+            except:
+                pass
+                
+    cmds.namespace(setNamespace=':')
+    all_namespaces = [x for x in cmds.namespaceInfo(listOnlyNamespaces=True, recurse=True) if x != "UI" and x != "shared"]
+    if all_namespaces:
+        all_namespaces.sort(key=len, reverse=True)
+        for namespace in all_namespaces:
+            if cmds.namespace(exists=namespace) is True:
+                cmds.namespace(removeNamespace=namespace, mergeNamespaceWithRoot=True)
 
-    for root in root_names:
-        if not cmds.objExists(root):
-            print(f"Objet '{root}' introuvable  ignore")
-            continue
-
-        # Ajouter racine
-        to_export.append(root)
-
-        # Ajouter tous les descendants
-        descendants = cmds.listRelatives(root, allDescendents=True, fullPath=True) or []
-        to_export.extend(descendants)
-
-    if not to_export:
-        cmds.error(" Aucun objet valide trouve  export annule.")
+# IMPORT .MA WITH CLEAN UNKNOWN CALL
+def import_scene(path):
+    if not os.path.exists(path):
+        print(f"[ERROR] File not found: {path}")
         return
 
-    # Selection globale
-    cmds.select(list(set(to_export)), replace=True)  # set() pour eviter les doublons
+    print(f"[IMPORT] Importing: {path}")
 
-    # Creer dossier destination si besoin
-    folder = os.path.dirname(filepath.replace("\\", "/"))
-    if not os.path.exists(folder):
-        os.makedirs(folder)
+    try:
+        cmds.file(
+            path,
+            i=True,                      # import (pas open)
+            ignoreVersion=True,         # ignore version mismatch
+            ra=True,                    # rename all
+            mergeNamespacesOnClash=False,
+            namespace=":",              # root namespace
+            options="v=0;",
+            pr=True,                    # preserve references
+            loadReferenceDepth="none",  # évite de charger refs
+            returnNewNodes=True
+        )
+        print("[IMPORT] Success")
 
-    # Charger plugin FBX si necessaire
-    if not cmds.pluginInfo("fbxmaya", q=True, loaded=True):
-        cmds.loadPlugin("fbxmaya")
-
-    import maya.mel as mel
-
-    # Reset + options export FBX pipeline-friendly
-    mel.eval('FBXResetExport;')
-    mel.eval('FBXExportBakeComplexAnimation -v false;')
-    mel.eval('FBXExportInputConnections -v false;')
-    mel.eval('FBXExportFileVersion -v FBX202000;')
-
-    # Export FBX
-    filepath = filepath.replace("\\", "/")
-    print(filepath)
-    print(root_names)
-    mel.eval(f'FBXExport -f "{filepath}" -s;')
-
-    print(f"FBX exporte avec : {root_names} - {filepath}")
-
-
-def reroot_fbx(scene_path):
-
-    print("REROOT:", scene_path)
-    print("Existe ?", os.path.exists(scene_path))
-
-    with open(scene_path, "r", encoding="utf-8") as f:
-        print("lecture")
-        lines = f.readlines()
-
-    with open(scene_path, "w", encoding="utf-8") as f:
-        print("ecriture")
-        for line in lines:
-            if "__dummy" in line:
-                f.write(line.replace("__dummy", ""))
-                print(line.replace("__dummy", ""))
-            else:
-                f.write(line)
-        f.flush()
-        os.fsync(f.fileno())
-
-    print("REROOT DONE.")
+    except Exception as e:
+        print(f"[IMPORT] Failed with exception: {e}")
 
 
 def reference_fbx(file_path, parent_grp= "__REF__"):
@@ -187,35 +161,29 @@ def reference_fbx(file_path, parent_grp= "__REF__"):
                              namespace=":")
         print(f"[DUMY OK]")
         # on reroot apres en ecriture car maya en batch ne veut pas le faire.
-            
+         
 
-def assign_basic_material_to_ref(ref_grp):
-    """
-    Cree et assigne un materiau de base a une reference
-    """
+def reroot_fbx(scene_path):
 
-    # Cree un materiau lambert de base
-    material_name = "ducky_MAT"
-    material = cmds.shadingNode('lambert', asShader=True, name=material_name)
-    cmds.setAttr(f"{material}.color", 0.8, 0.8, 0.8, type="double3")
+    print("REROOT:", scene_path)
+    print("Existe ?", os.path.exists(scene_path))
 
-    # Cree un shading group
-    shading_group = f"{material}_SG"
-    shading_group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=shading_group)
-    cmds.connectAttr(f"{material}.outColor", f"{shading_group}.surfaceShader", force=True)
+    with open(scene_path, "r", encoding="utf-8") as f:
+        print("lecture")
+        lines = f.readlines()
 
-    
-    if not cmds.objExists(ref_grp):
-        print(f"[assign_basic_material_to_ref] Reference group '{ref_grp}' does not exist.")
-        return
-    
-    # Assigne le materiau a tous les meshes sous le groupe de reference
-    meshes = cmds.listRelatives(ref_grp, allDescendents=True, type='mesh') or []
-    for mesh in meshes:
-        transform = cmds.listRelatives(mesh, parent=True, fullPath=True)[0]
-        cmds.sets(transform, e=True, forceElement=shading_group)
+    with open(scene_path, "w", encoding="utf-8") as f:
+        print("ecriture")
+        for line in lines:
+            if "__dummy" in line:
+                f.write(line.replace("__dummy", ""))
+                print(line.replace("__dummy", ""))
+            else:
+                f.write(line)
+        f.flush()
+        os.fsync(f.fileno())
 
-    print(f"[assign_basic_material_to_ref] Assigned basic material to reference group '{ref_grp}'.")
+    print("REROOT DONE.")
 
 
 def reference_scene(file_path, asset_name, load=True):
@@ -282,6 +250,107 @@ def inject_reference_into_ma(ma_path, ref_path, namespace):
 
     print(f"[inject] OK: {ref_path}")
 
+
+def cleanReferencesBeforeSave(env_name="DUCKPIPE_ROOT"):
+
+    env_value = os.environ.get(env_name)
+    if not env_value:
+        cmds.warning(f"{env_name} not found. Skipping clean.")
+        return
+
+    env_value = os.path.normpath(env_value)
+
+    references = cmds.ls(type="reference")
+
+    for ref in references:
+        try:
+            ref_path = cmds.referenceQuery(ref, filename=True)
+        except:
+            continue
+
+        if not ref_path:
+            continue
+
+        normalized_path = os.path.normpath(ref_path)
+
+        if normalized_path.startswith(env_value):
+            new_path = normalized_path.replace(
+                env_value,
+                f"${{{env_name}}}"
+            )
+
+            try:
+                cmds.file(new_path, loadReference=ref)
+                print(f"[CLEANED] {ref}")
+            except Exception as e:
+                print(f"[ERROR] {ref} -> {e}")
+
+
+def import_fbx(file_path):
+    print('try import', file_path)
+    cmds.loadPlugin("fbxmaya", quiet=True)
+    mel.eval(f'FBXImport -f "{file_path}"')
+
+
+###########################
+# EXPORT
+###########################
+
+def export_hierarchy_by_name(root_names, filepath):
+    """
+    Exporte en un seul fichier FBX plusieurs racines (EMPTY, GROUP, JOINT, MESH, etc.) 
+    ainsi que toutes leurs hierarchies (descendants inclus).
+    Compatible pipeline  minimal, propre et fiable.
+    """
+    # Selection vide
+    cmds.select(clear=True)
+
+    to_export = []
+
+    for root in root_names:
+        if not cmds.objExists(root):
+            print(f"Objet '{root}' introuvable  ignore")
+            continue
+
+        # Ajouter racine
+        to_export.append(root)
+
+        # Ajouter tous les descendants
+        descendants = cmds.listRelatives(root, allDescendents=True, fullPath=True) or []
+        to_export.extend(descendants)
+
+    if not to_export:
+        cmds.error(" Aucun objet valide trouve  export annule.")
+        return
+
+    # Selection globale
+    cmds.select(list(set(to_export)), replace=True)  # set() pour eviter les doublons
+
+    # Creer dossier destination si besoin
+    folder = os.path.dirname(filepath.replace("\\", "/"))
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    # Charger plugin FBX si necessaire
+    if not cmds.pluginInfo("fbxmaya", q=True, loaded=True):
+        cmds.loadPlugin("fbxmaya")
+
+    import maya.mel as mel
+
+    # Reset + options export FBX pipeline-friendly
+    mel.eval('FBXResetExport;')
+    mel.eval('FBXExportBakeComplexAnimation -v false;')
+    mel.eval('FBXExportInputConnections -v false;')
+    mel.eval('FBXExportFileVersion -v FBX202000;')
+
+    # Export FBX
+    filepath = filepath.replace("\\", "/")
+    print(filepath)
+    print(root_names)
+    mel.eval(f'FBXExport -f "{filepath}" -s;')
+
+    print(f"FBX exporte avec : {root_names} - {filepath}")
+   
 
 def fbx_to_gpu_cache(fbx_path):
     if not os.path.exists(fbx_path):
@@ -352,6 +421,39 @@ def fbx_to_gpu_cache(fbx_path):
     return parent_transform, gpu_path
 
 
+###########################
+# MISC
+###########################
+
+def assign_basic_material_to_ref(ref_grp): # a voir pour utiliser autre chose et confo avec SurfacingImport plutot
+    """
+    Cree et assigne un materiau de base a une reference
+    """
+
+    # Cree un materiau lambert de base
+    material_name = "ducky_MAT"
+    material = cmds.shadingNode('lambert', asShader=True, name=material_name)
+    cmds.setAttr(f"{material}.color", 0.8, 0.8, 0.8, type="double3")
+
+    # Cree un shading group
+    shading_group = f"{material}_SG"
+    shading_group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=shading_group)
+    cmds.connectAttr(f"{material}.outColor", f"{shading_group}.surfaceShader", force=True)
+
+    
+    if not cmds.objExists(ref_grp):
+        print(f"[assign_basic_material_to_ref] Reference group '{ref_grp}' does not exist.")
+        return
+    
+    # Assigne le materiau a tous les meshes sous le groupe de reference
+    meshes = cmds.listRelatives(ref_grp, allDescendents=True, type='mesh') or []
+    for mesh in meshes:
+        transform = cmds.listRelatives(mesh, parent=True, fullPath=True)[0]
+        cmds.sets(transform, e=True, forceElement=shading_group)
+
+    print(f"[assign_basic_material_to_ref] Assigned basic material to reference group '{ref_grp}'.")
+
+
 def apply_transform(node, pos, rot, scale):
     print(node, pos, rot, scale)
     cmds.xform(node, ws=True, t=pos)
@@ -359,47 +461,10 @@ def apply_transform(node, pos, rot, scale):
     cmds.xform(node, ws=True, s=scale)
 
 
-def cleanReferencesBeforeSave(env_name="DUCKPIPE_ROOT"):
-
-    env_value = os.environ.get(env_name)
-    if not env_value:
-        cmds.warning(f"{env_name} not found. Skipping clean.")
-        return
-
-    env_value = os.path.normpath(env_value)
-
-    references = cmds.ls(type="reference")
-
-    for ref in references:
-        try:
-            ref_path = cmds.referenceQuery(ref, filename=True)
-        except:
-            continue
-
-        if not ref_path:
-            continue
-
-        normalized_path = os.path.normpath(ref_path)
-
-        if normalized_path.startswith(env_value):
-            new_path = normalized_path.replace(
-                env_value,
-                f"${{{env_name}}}"
-            )
-
-            try:
-                cmds.file(new_path, loadReference=ref)
-                print(f"[CLEANED] {ref}")
-            except Exception as e:
-                print(f"[ERROR] {ref} -> {e}")
-
-
-def import_fbx(file_path):
-    cmds.loadPlugin("fbxmaya", quiet=True)
-    mel.eval(f'FBXImport -f "{file_path}"')
-
-
-def deal_with_cinecam(cam_path, shotname):
+###########################
+# SEQUENCER AND LAYOUT MISC
+###########################
+def deal_with_ichigoshotnameholder(cam_path, shotname):
     def create_image_plane_for_camera(cam, image_path=""):
         shapes = cmds.listRelatives(cam, shapes=True)
         camera_shape = shapes[0]
@@ -407,23 +472,26 @@ def deal_with_cinecam(cam_path, shotname):
 
         if image_path:
             cmds.setAttr(img_plane_shape + ".imageName", image_path, type="string")
-    import_fbx(cam_path)
 
-    oldName = "cineCam"
-    new_name = f'{shotname}_cam'
-    objs = cmds.ls("*cineCam*", long=False)
+    print(cam_path)
+    reference_scene(cam_path, f'{shotname}_cam')
 
-    for i, obj in enumerate(objs):
-        short_name = obj.split("|")[-1]
-        short_new_name = short_name.replace(oldName, new_name)
-        try:
-            cmds.rename(obj, short_new_name)
-        except:
-            pass
+    # oldName = "ichigoCam"
+    # new_name = f'{shotname}_cam'
+    # print(oldName, '  ->  ', new_name)
+    # objs = cmds.ls("*ichigoCam*", long=False)
+
+    # for i, obj in enumerate(objs):
+    #     short_name = obj.split("|")[-1]
+    #     short_new_name = short_name.replace(oldName, new_name)
+    #     try:
+    #         cmds.rename(obj, short_new_name)
+    #     except:
+    #         pass
     
-    create_image_plane_for_camera(f'{new_name}_cam', '')
+    # create_image_plane_for_camera(f'{new_name}', '')
         
-    return f'{new_name}'
+    return f'{shotname}_cam:ichigoCam'
 
 
 def create_shots_sequencer(shotlist, seqname, cam_path):
@@ -434,7 +502,7 @@ def create_shots_sequencer(shotlist, seqname, cam_path):
 
         # gestion camera
         shotname = f"{seqname}_{item['name']}"
-        camebasename = deal_with_cinecam(cam_path, shotname)
+        camebasename = deal_with_ichigoshotnameholder(cam_path, shotname)
         try:
             cmds.parent(f'{camebasename}_grp', 'CAM')
         except:
@@ -442,6 +510,11 @@ def create_shots_sequencer(shotlist, seqname, cam_path):
                 
         # gestion shot sequencer
         shot_total_frame = int(item['outframe']) - int(item['inframe'])
+        camName = f'{camebasename}_cam'
+        if cmds.objExists(camName):
+            print(camName)
+        else:
+            camName = 'front' 
 
         # get shot time to know if g ofor a 100 or 200 or more marging
         blank = blank + ((shot_total_frame//100)+1)*100
@@ -450,5 +523,14 @@ def create_shots_sequencer(shotlist, seqname, cam_path):
                 et = shot_total_frame + blank,
                 sst = margingframein, 
                 set = margingframein + shot_total_frame,
-                currentCamera = f'{camebasename}_cam')
+                currentCamera = f'{camName}')
         margingframein += shot_total_frame + 100
+
+
+
+
+# cmds.evaluationManager(mode="off")
+# cmds.undoInfo(state=False)
+
+# cmds.undoInfo(state=True)
+# cmds.evaluationManager(mode="parallel")        

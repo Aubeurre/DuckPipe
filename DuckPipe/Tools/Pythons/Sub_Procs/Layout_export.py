@@ -2,6 +2,7 @@ import json
 import os
 import maya.cmds as cmds
 from Soft_Procs import GlobalProcs
+from Sub_Procs import Assembly_export
 
 import json
 import os
@@ -188,6 +189,18 @@ def export_camera_animation(camera, start, end, out_path):
 
     print(f"[EXPORT] {out_path}")
 
+    # export MA
+    ma_path = out_path.rsplit(".", 1)[0] + ".ma"
+
+    cmds.file(
+        ma_path,
+        force=True,
+        type="mayaAscii",
+        exportSelected=True
+    )
+
+    print(f"[EXPORT] {ma_path}")
+
     cmds.delete(dup)
 
 
@@ -212,14 +225,18 @@ def export_all_cams(layout_info, out_json_path):
 
         # optional shot folder export
         shot_folder = os.path.join(
-            os.path.dirname(base_dir),
+            os.path.dirname(base_dir), "Shots",
             shot_name,
             "dlv"
         )
-
+        print('try if exist:', shot_folder)
         if os.path.exists(shot_folder):
             fbx_path_2 = os.path.join(shot_folder, fbx_name)
+            print('OK')
             export_camera_animation(cam, start, end, fbx_path_2)
+        else:
+            print('NOT OK')
+
 
 
 # --------------------------------------------------
@@ -261,5 +278,15 @@ def export(out_json_path):
 
     # export cams
     export_all_cams(layout_info, out_json_path)
+
+
+    # pour replacer les elements au build de la scene d'anim
+    base_dir = os.path.dirname(out_json_path)
+    for shot_name, data in layout_info.items():
+        start = data["start_frame"]
+        # main export
+        file_name = f"{shot_name}_layoutRigPlacement.json"
+        file_path = os.path.join(base_dir, file_name)
+        Assembly_export.export(file_path, frame=int(start))
 
     return out_json_path

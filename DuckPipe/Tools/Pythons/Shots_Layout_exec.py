@@ -40,6 +40,7 @@ import maya.cmds as cmds
 from Soft_Procs import MayaProcs
 from Soft_Procs import GlobalProcs
 from Sub_Procs import Assembly_import
+from Sub_Procs import repathAllMayaSceneInEnvVar
 
 IN_MAYA = True
 python_file = sys.argv[1]
@@ -167,6 +168,8 @@ def postexecute():
                 continue
 
             MayaProcs.inject_reference_into_ma(EXECUTED_FILE, rig_path, i_asset_name)
+        
+    repathAllMayaSceneInEnvVar.repath_ma_file(EXECUTED_FILE, PROD_PATH.split('/')[-1])
 
 # ------------------------------------------------------
 # CUSTOM
